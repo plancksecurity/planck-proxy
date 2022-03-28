@@ -1,0 +1,49 @@
+{
+	"crashreport@pep.security":						"p≡p Crash Reports",
+	"crashreport@pep-security.net":					"p≡p Crash Reports",
+
+	"support@hub.pep":								"p≡p Support",
+	"support@pep.security":							"p≡p Support",
+
+	"contact@hub.pep":								"p≡p Contact",
+	"contact@pep.security":							"p≡p Contact",
+
+	"it@hub.pep":									"p≡p IT Support",
+	"it@pep.security":								"p≡p IT Support",
+
+	"service@pep.security":							"p≡p Service",
+	"service@pep-security.net":						"p≡p Service",
+
+	"no-reply@pep.security":						"p≡p (no-reply)",
+	"noreply@pep.security":							"p≡p (no reply)",
+
+	"holidayreminder@pep.security":					"p≡p holiday reminder",
+	"reminder-bot@pep.security":					"p≡p reminder bot",
+	"pgpkeyexpiry@spareparts.pep.security":			"p≡p key expiry bot",
+	"3cx@pep.security":								"p≡p VoIP",
+
+	"root@download.pep.security":					"p≡p DownUp",
+	"plpython@download.pep.security":               "p≡p DownUp/PLPython",
+
+	"root@chat.pep.security":						"p≡p Mattermost",
+	"chat@pep.security":							"p≡p Mattermost",
+
+	"root@backup.pep.security":						"p≡p Backup",
+	"root@crm.pep.security":						"p≡p SuiteCRM",
+	"root@spareparts.pep.security":					"p≡p Spareparts",
+	"root@files.pep.security":						"p≡p nextCloud",
+	"root@jira.pep.security":						"p≡p JIRA",
+	"root@translate.pep.security":					"p≡p Weblate",
+	"root@ns1.pep.security":						"p≡p DNS (NS1)",
+	"root@ns2.pep.security":						"p≡p DNS (NS2)",
+	"root@pad.pep.security":						"p≡p Hedgedoc",
+	"root@web.pep.security":						"p≡p Web",
+	"root@docu.pep.security":						"p≡p Docu",
+	"root@git.pep.security":						"p≡p Gitolite",
+	"root@gitlab.pep.security":						"p≡p Gitlab",
+	"root@worklog.pep.security":					"p≡p Worklog",
+	"root@codimd.pep.security":                     "p≡p CodiMD",
+	"root@fdroidbuilder.pep.security":				"p≡p F-Droid Builder",
+
+	"root@digitalekho.com":                         "Digitalekho.com"
+}

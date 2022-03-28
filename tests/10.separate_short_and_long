@@ -1,0 +1,21 @@
+Return-Path: <root@lxc-spareparts.pep-security.net>
+Delivered-To: andy@pep-security.net
+Received: from [0.0.0.0] (unknown [10.10.10.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by hub.pep.security (Postfix) with ESMTPSA id B303E1C0AE1
+	for <andy@pep-security.net>; Mon,  9 Jul 2018 10:00:01 +0200 (CEST)
+Received: from root by lxc-spareparts.pep-security.net with local
+ (masqmail 0.2.30) id 1fcR5V-0my-00 for <andy@pep-security.net>; Mon, 09
+ Jul 2018 10:00:01 +0200
+To: andy@pep-security.net
+Subject: =?UTF-8?B?RG8gd2Vla2x5IHDiiaFwIHJlcG9ydGluZyBub3c=?=
+X-PHP-Originating-Script: 0:martindostuffreminder.php
+From: Reporting reminder <no-reply@pep-security.net>
+Reply-To: no-reply@pep-security.net
+MIME-Version: 1.0
+Content-type: text/html; charset=utf-8
+Date: Mon, 09 Jul 2018 10:00:01 +0200
+Message-ID: <1fcR5V-0my-00@lxc-spareparts.pep-security.net>
+
+Sorry. <b>sudo</b> do weekly p≡p reporting now!

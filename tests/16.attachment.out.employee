@@ -1,0 +1,82 @@
+Return-Path: <service@pep-security.net>
+Delivered-To: andy@pep-security.net
+Received: from [0.0.0.0] (hs-pep-02.pep-security.net [95.128.37.71])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by hub.pep.security (Postfix) with ESMTPSA id DC70D1C0AE1;
+	Tue, 10 Jul 2018 22:35:44 +0200 (CEST)
+Received: from 127.0.0.1 (ident=unknown) by
+ vm-pep-web-01.pep-security.intranet with esmtp (masqmail 0.2.30) id
+ 1fczMO-3Nt-00; Tue, 10 Jul 2018 22:35:44 +0200
+Date: Tue, 10 Jul 2018 22:35:44 +0200
+From: service@pep-security.net
+To: sandro@pep-project.org, 
+ martin@pep-security.net, 
+ patrick@pep-security.net, 
+ andy@pep-security.net
+Message-ID: <redmine.journal-3693.20180710203544.ce1d4bfd527dda29@pep-security.net>
+References: <redmine.issue-3038.20180710201639@pep-security.net>
+Subject: [Crashreport - Bug #3038] Attachment test
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Redmine-Project: crashreport
+X-Redmine-Issue-Id: 3038
+X-Redmine-Issue-Author: 
+X-Redmine-Sender: andy
+X-Mailer: Redmine
+X-Redmine-Host: bug.pep-security.net
+X-Redmine-Site: pEp Tracker
+X-Auto-Response-Suppress: All
+Auto-Submitted: auto-generated
+List-Id: <service.pep-security.net>
+
+Issue #3038 has been updated by Andy Weber.
+
+File Peanut Butter Jelly Time Animated.gif added
+
+Attachment test back
+
+----------------------------------------
+Bug #3038: Attachment test
+https://bug.pep-security.net/issues/3038#change-3693
+
+* Author: Anonymous
+* Status: new
+* Priority: Normal
+* Assignee: =
+
+* Category: =
+
+* Target version: =
+
+* owner-email: andy@0x3d.lu
+* Documentation: =
+
+----------------------------------------
+<pre>
+From: Andy Weber <andy@0x3d.lu>
+To: p=E2=89=A1p Crash Reports <crashreport-in@pep.security>
+Date: Tue, 10 Jul 2018 22:16:36 +0200
+</pre>From: Andy Weber <andy@0x3d.lu>
+To: "crashreport@pep.security" <crashreport@pep.security>
+Subject: Attachment test
+
+Image attached
+
+----
+Andy Weber
+andy@0x3d.lu
+
+---Files--------------------------------
+Peanut Butter Jelly Time.png (39 KB)
+Peanut Butter Jelly Time Animated.gif (66.4 KB)
+
+
+-- =
+
+You have received this notification because you have either subscribed to=
+ it, or are involved in it.
+To change your notification preferences, please click here: https://bug.p=
+ep-security.net/my/account

@@ -1,0 +1,15 @@
+Return-Path: <andy@0x3d.lu>
+Delivered-To: crashreport@pep-security.net
+Date: Fri, 06 Jul 2018 08:44:02 +0200
+Subject: security.pEp Crash Report
+Message-ID: <foo@bar.baz>
+From: Andy <andy@0x3d.lu>
+To: "crashreport@prettyeasyprivacy.com" <crashreport@prettyeasyprivacy.com>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="--_com.android.email_360348181829120"
+
+----_com.android.email_360348181829120
+Content-Type: text/plain; charset=utf-8
+
+Fake crash report
+----_com.android.email_360348181829120--
