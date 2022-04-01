@@ -1,0 +1,5 @@
+# Postfix dynamic maps configuration file.
+#
+#type	location of .so file			open function	(mkmap func)
+#====	================================	=============	============
+sqlite	postfix-sqlite.so	dict_sqlite_open

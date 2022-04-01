@@ -1,0 +1,3 @@
+hub._domainkey	IN	TXT	( "v=DKIM1; h=sha256; k=rsa; "
+	  "p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxGdxBk38Kx/OyssocplsV1jvx+DoJN8e5AySMgrTiV9gGWnrdKpe66gY+EJ7RD8ZFmH+gn+7fIXYDv3UICk1bMN+2a5E9X6tTJY3ntN5gjqeXjL5n2/XwGtYIEZyUwLEokHZCW+2zcaFVfilns6pU61BUiIhdDZlRv3nDYD2EEaAnoq+hcjhdQS0mXfU8A9n0aMYLbuciF7uxW"
+	  "Owt3cTr0FbszmXzGjAse/8XehhdwVwa5IQNsTyXItAFqOnoSDGdr3AgCe5Va0JtzGgUd329X5nlGQpJzcKvEWQB6Zr8iSGbImBujCYA9j9aeULCbGIPWLtGyIpxfn3tHL5cjAYvQIDAQAB" )  ; ----- DKIM key hub for pep.security
