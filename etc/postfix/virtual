@@ -1,4 +1,9 @@
-@365.pep				@pproxy.onmicrosoft.com
-@365.pep.security		@pproxy.onmicrosoft.com
-@hub365.pep				@pproxy.onmicrosoft.com
-@hub365.pep.security	@pproxy.onmicrosoft.com
+@gate.peptest			@peptest.ch
+@proxy.peptest			@peptest.ch
+@gate365.peptest		@pproxy.onmicrosoft.com
+@proxy365.peptest		@pproxy.onmicrosoft.com
+
+@gate.peptest.ch		@peptest.ch
+@proxy.peptest.ch		@peptest.ch
+@gate365.peptest.ch		@pproxy.onmicrosoft.com
+@proxy365.peptest.ch	@pproxy.onmicrosoft.com

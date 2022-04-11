@@ -31,8 +31,8 @@ maximal_backoff_time = 3600s
 milter_protocol = 2
 milter_default_action = accept
 
-smtpd_milters = inet:127.0.0.1:12301
-non_smtpd_milters = inet:127.0.0.1:12301
+### TODO smtpd_milters = inet:127.0.0.1:12301
+### TODO non_smtpd_milters = inet:127.0.0.1:12301
 
 # Avoid "SMTPUTF8 is required, but was not offered by host XYZ"
 smtputf8_enable = no
@@ -55,12 +55,18 @@ tls_high_cipherlist=TLS13-CHACHA20-POLY1305-SHA256:TLS13-AES-256-GCM-SHA384:TLS1
 
 smtpd_discard_ehlo_keywords = silent-discard, dsn, etrn
 
+# smtpd_upstream_proxy_protocol = haproxy
+
+smtp_mx_address_limit = 500
+smtp_mx_session_limit = 200
+
+
 smtpd_use_tls=yes
 smtpd_tls_security_level = may
 
 smtpd_tls_loglevel = 1
 
-smtpd_tls_chain_files = /etc/ssl/certs/_.pep.security.bundled.crt
+smtpd_tls_chain_files = /etc/ssl/certs/_.peptest.ch.bundled.crt
 
 smtpd_tls_dh512_param_file = /etc/ssl/dhparam.pem
 smtpd_tls_dh1024_param_file = /etc/ssl/dhparam.pem
@@ -75,7 +81,7 @@ smtpd_starttls_timeout = 300s
 smtpd_timeout = 300s
 
 smtpd_sasl_auth_enable = yes
-smtpd_sasl_local_domain = pep.security
+smtpd_sasl_local_domain = peptest.ch
 smtpd_sasl_security_options = noanonymous
 
 smtpd_tls_protocols           = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
@@ -95,11 +101,11 @@ smtp_tls_security_level = may
 
 smtp_tls_loglevel = 1
 
-smtp_tls_cert_file=/etc/ssl/certs/_.pep.security.crt
-smtp_tls_key_file=/etc/ssl/private/_.pep.security.key
+smtp_tls_cert_file=/etc/ssl/certs/_.peptest.ch.crt
+smtp_tls_key_file=/etc/ssl/private/_.peptest.ch.key
 
-# smtp_tls_eccert_file=/etc/ssl/certs/_.pep.security.crt
-# smtp_tls_eckey_file=/etc/ssl/private/_.pep.security.key
+# smtp_tls_eccert_file=/etc/ssl/certs/_.peptest.ch.crt
+# smtp_tls_eckey_file=/etc/ssl/private/_.peptest.ch.key
 
 smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
 
@@ -120,14 +126,14 @@ lmtp_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1
 ### TLS EOF ###################################################################
 
 myorigin = /etc/mailname
-myhostname = hub365.pep.security
+myhostname = hub.peptest.ch
 
 # Get O365 IPs from https://endpoints.office.com/endpoints/worldwide?clientrequestid=b10c5ed1-bad1-445f-b386-b919946339a7 where URLs = "*.protection.outlook.com"
 mynetworks = 127.0.0.0/8 80.90.47.0/28 192.168.0.0/16 40.92.0.0/15 40.107.0.0/16 52.100.0.0/14 52.238.78.88/32 104.47.0.0/17
 
 mydestination = localhost
 
-virtual_mailbox_domains = 365.pep, 365.pep.security, hub365.pep
+virtual_mailbox_domains = hub.peptest, hub.peptest.ch, gate.peptest.ch, gate365.peptest.ch, proxy.peptest.ch, proxy365.peptest.ch
 
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
 
@@ -139,17 +145,14 @@ message_size_limit = 500000000
 recipient_delimiter = +
 inet_interfaces = all
 
-# pEpBot & pEpGate
+# pEpGate
 
 alias_maps = hash:/etc/aliases
 transport_maps = regexp:/etc/postfix/transport
 
 # header_checks = regexp:/etc/postfix/header_checks
 
-# Only one pEpBot/pEpGate instance at a time (for symlinked .pEp_management.db's)
-pepbot_destination_recipient_limit = 1
-pepbot_destination_concurrency_limit = 1
-
+# Only one pEpGate instance at a time (for now, to leave SQLite concurrency races out of the equation)
 pepgateOUT_destination_recipient_limit = 1
 pepgateOUT_destination_concurrency_limit = 1
 
@@ -161,7 +164,7 @@ parent_domain_matches_subdomains = debug_peer_list,fast_flush_domains,mynetworks
 relay_domains = pep.security, 0x3d.lu
 # mailman.pep.security, pep-security.lu, pep-security.ch
 
-virtual_alias_domains = 365.pep, hub365.pep, hub365.pep.security
+virtual_alias_domains = gate.peptest, gate.peptest.ch, proxy.peptest, proxy.peptest.ch, gate365.peptest, gate365.peptest.ch, proxy365.peptest, proxy365.peptest.ch
 virtual_alias_maps = hash:/etc/postfix/virtual
 
 # virtual_alias_maps = hash:/etc/postfix/virtual_aliases
