@@ -107,8 +107,13 @@ def keysfromkeyring(userid=None):
 					line = line.strip()
 					inspected['sq_inspect'] += [line]
 
-				inspected['username'] = re.findall(r'UserID: (.*?) \<.*\r?\n?', str(inspected['sq_inspect']))[0]
 				inspected['sq_inspect'] = inspected['sq_inspect'][2:] # Hide internal filename & extra whitespace
+
+				try:
+					inspected['username'] = re.findall(r'UserID: (.*?) \<.*\r?\n?', str(inspected['sq_inspect']))[0]
+				except:
+					dbg("[!] No username/user ID was contained in this PGP blob. Full sq inspect:\n" + "\n".join(inspected['sq_inspect']))
+					pass
 
 		allkeys += [ { "pEp_keys.db": fromdb, "key_blob": inspected } ]
 
@@ -665,9 +670,6 @@ try:
 			dst = src
 			dst.longmsg = dst.longmsg.replace("NOENCRYPT", "")
 			dst.longmsg_formatted = dst.longmsg_formatted.replace("NOENCRYPT", "")
-		elif "Message: [QuLog Center] Failed to log in. User: VEEAM$" in src.longmsg + src.longmsg_formatted:
-			dbg(c("QNAP sucks again, ignoring...", 1))
-			exit(0)
 		elif src.from_.address == src.to[0].address:
 			dbg(c("Sender == recipient so probably a loopback/test-message, skipping encryption...", 1))
 			dst = src
@@ -675,13 +677,13 @@ try:
 			dbg(c("Encrypting message...", 2))
 			pEp.unencrypted_subject(True)
 			dst = src.encrypt()
-			### dst = src # DEBUG: disable encryption
+			# dst = src # DEBUG: disable encryption
 			dbg(c("Encrypted in", 2), True)
 
 	if mode == "decrypt":
 		dbg(c("Decrypting message...", 2))
 
-		pepfails = False
+		pepfails = False # Set to True if Postfix queue fills up with errors
 		if not pepfails:
 			dst, keys, rating, flags = src.decrypt()
 		else:

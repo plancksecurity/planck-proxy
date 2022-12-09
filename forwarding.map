@@ -16,5 +16,7 @@
 	"no-reply@pep-security.net":      "andy@pep-security.net",
 	"no-reply@prettyeasyprivacy.com": "andy@pep-security.net",
 
+	"www-data@files.pep.security":    "andy@pep-security.net",
+
 	"default":                        "andy@pep-security.net"
 }
