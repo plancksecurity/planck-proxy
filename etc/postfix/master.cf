@@ -7,7 +7,7 @@
 	-o syslog_name=postfix/smtp-25
 	-o smtpd_tls_security_level=may
 	-o tls_preempt_cipherlist=yes
-	-o content_filter=routetest
+	# TODO -o content_filter=routetest
 	# -o smtp_header_checks=regexp:/etc/postfix/header_checks
 	# -o smtpd_client_restrictions=$mua_client_restrictions
 	# -o smtpd_helo_restrictions=$mua_helo_restrictions
@@ -79,10 +79,6 @@ scan		unix	-		-		n		-		10		smtp
 routetest	unix	 -		n		n		-		10		pipe
 	user=pepgate:pepgate flags=Rq argv=/etc/postfix/routetest.sh -f ${sender} -- ${recipient}
 
-# pEp reply bot
-pepbot		unix	-		n		n		-		1		pipe
-	flags=DRhu user=pepbot:pepbot argv=/home/pepbot/pEpbot
-
 # Incoming decryption-proxy (specific addresses routed via "transport" file)
 pepgateIN	unix	-		n		n		-		1		pipe
 	flags=DRhu user=pepgate:pepgate argv=/home/pepgate/pEpgate decrypt
@@ -90,7 +86,6 @@ pepgateIN	unix	-		n		n		-		1		pipe
 # Outgoing encryption-proxy (specific port routed above)
 pepgateOUT	unix	-		n		n		-		1		pipe
 	flags=DRhu user=pepgate:pepgate argv=/home/pepgate/pEpgate encrypt
-
 
 # SpamAssassin wrapper
 spamcheck	unix	 -		n		n		-		10		pipe
@@ -108,7 +103,6 @@ spamassassin unix	-		n		n		-		-		pipe
 ### Internal stuff ###
 
 smtp		unix	-       -       y       -       -       smtp
-
 relay		unix	-       -       y       -       -       smtp
 	# -o smtp_helo_timeout=5 -o smtp_connect_timeout=5
 

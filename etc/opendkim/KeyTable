@@ -1,1 +1,1 @@
-hub365._domainkey.pep.security pep.security:hub365:/etc/opendkim/keys/pep.security/hub.private
+hub._domainkey.peptest.ch peptest.ch:hub:/etc/opendkim/keys/peptest.ch/hub.private

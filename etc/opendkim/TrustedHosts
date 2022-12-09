@@ -2,5 +2,6 @@
 localhost
 80.90.47.0/28
 
+*.peptest.ch
 *.pep.security
 *.pep-security.net
