@@ -21,7 +21,7 @@ from collections import OrderedDict
 
 ### Configuration #################################################################################
 
-home         = "/home/pepgate/"
+home         = os.path.dirname(__file__) + "/"
 fwdmappath   = home + "forwarding.map"
 usermappath  = home + "username.map"
 nextmxpath   = home + "nextmx.map"
