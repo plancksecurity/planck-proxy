@@ -392,7 +392,8 @@ if any(kw in inmail for kw in keywords) and mode == "encrypt" and ouraddr in val
 	for kw in keywords:
 		inmail = inmail.replace(kw, "")
 
-	cmd = ["/home/pepgate/delete.key.from.keyring.py", ouraddr, theiraddr]
+	cmd = [os.path.join(os.basepath(__file__), "delete.key.from.keyring.py", ouraddr, theiraddr]
+	dbg("CMD: " + " ".join(cmd))
 	p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 	stdout, stderr = p.communicate()
 
@@ -402,18 +403,15 @@ if any(kw in inmail for kw in keywords) and mode == "encrypt" and ouraddr in val
 
 if mode == "encrypt":
 	nexthop = jsonlookup(fwdmappath, theiraddr, False)
-
-	# Reuseable for migrations
-	# if ouraddr in ("newsupport@pep.security", "root@support.pep.security") and not "@pep.security" in theiraddr:
-		# dbg("[!!!] Tempoary redirecting outgoing mail from newsupport@pep.security")
-		# nexthop = "andy@pep-security.net"
-
 	if nexthop is not None:
 		dbg("Redirecting outgoing message from " + c(theiraddr, 3) + " to " + c(nexthop, 1) + ", as per forwarding.map")
 		theiraddr = nexthop
 
 if mode == "decrypt":
 	nexthop = jsonlookup(fwdmappath, ouraddr, False)
+	if nexthop is not None:
+		dbg("Redirecting incoming message from " + c(ouraddr, 1) + " to " + c(nexthop, 3) + ", as per forwarding.map")
+		ouraddr = nexthop
 
 ### Create & set working directory ################################################################
 
@@ -434,7 +432,6 @@ dbg("       Message from: " + c(str(msgfrom), 5))
 dbg("         Message to: " + c(str(msgto), 5))
 dbg("        Our address: " + c(ouraddr, 3))
 dbg("      Their address: " + c(theiraddr, 3))
-dbg("           Next hop: " + c(str(nexthop), 2))
 dbg("    Initital import: " + ("Yes" if initialimport else "No"))
 
 ### Logging #######################################################################################
@@ -453,7 +450,7 @@ logfile.close()
 ### Load p≡p ######################################################################################
 
 import pEp
-# pEp.set_debug_log_enabled(True) # TODO
+pEp.set_debug_log_enabled(True) # TODO
 
 dbg("p≡p engine (with " + str(pEp.about).strip().replace("\n", " | ") + ") loaded in", True)
 
@@ -543,11 +540,11 @@ except NameError:
 
 	i = pEp.Identity(ouraddr, ourname)
 	pEp.myself(i)
-	ourpepid = pEp.Identity(ouraddr) # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
+	ourpepid = pEp.Identity(ouraddr, ourname) # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
 else:
 	dbg(c("Found existing key, p≡p will import/use it", 2))
 	if ourname is not None and ourname != ourkeyname:
-		dbg(c("Name inside existing key (" + ourkeyname + ") differs from the one found in username.map (" + ourname + ")", 3))
+		dbg(c("Name inside existing key (" + ourkeyname + ") differs from the one found in username.map (" + ourname + "), using the latter", 3))
 		i = pEp.Identity(ourkeyaddr, ourname)
 		ourpepid = pEp.Identity(ourkeyaddr, ourname) # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
 	else:
@@ -564,34 +561,27 @@ try:
 
 	# Hide metadata which isn't essential to the recipient (Delivered-To, Return-Path etc.)
 	opts = {
-		"X-pEpgate-version": "2.1",
+		"X-pEpgate-version": "2.11",
 		"X-pEpgate-mode": mode,
 		"X-NextMX": "auto",
 	}
 
 	if mode == "encrypt":
 		src.sent = int(str(datetime.now().timestamp()).split('.')[0])
-		src.id = "pEp-" + uuid4().hex + "@gate.pep.security"
+		src.id = "pEp-" + uuid4().hex + "@" + socket.getfqdn()
 		src.from_ = ourpepid
 		src.to = [theirpepid]
 		### src.reply_to = [ourpepid]
-
 		nextmx = jsonlookup(nextmxpath, theirpepid.address[theirpepid.address.rfind("@") + 1:], False)
-		if nextmx is not None:
-			dbg("Next MX: " + nextmx)
-			opts['X-NextMX'] = nextmx
 
 	if mode == "decrypt":
-		if nexthop is not None:
-			dbg(c("Redirecting incoming message to " + nexthop + ", as per forwarding.map", 3))
-			ourpepid.address = nexthop
 		src.to = [ourpepid]
 		### src.reply_to = [theirpepid]
-
 		nextmx = jsonlookup(nextmxpath, ourpepid.address[ourpepid.address.rfind("@") + 1:], False)
-		if nextmx is not None:
-			dbg("Next MX: " + nextmx)
-			opts['X-NextMX'] = nextmx
+
+	if nextmx is not None:
+		dbg("Next MX: " + nextmx)
+		opts['X-NextMX'] = nextmx
 
 	# Get rid of CC and BCC for loop-avoidance (since Postfix gives us one separate message per recipient)
 	src.cc = []
@@ -747,29 +737,34 @@ dbg("Sending mail via MX: " + (c("auto", 3) if nextmx is None else c(str(nextmx)
 dbg("From: " + ((c(src.from_.username, 2)) if len(src.from_.username) > 0 else "") + c(" <" + src.from_.address + ">", 3))
 dbg("  To: " + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "") + c(" <" + src.to[0].address + ">", 3))
 
-### TODO: these if's should not be needed, we'll keep them though as long as pEp messes up unencrypted mails with attachments
 if mode == "decrypt":
 	if keys is None or len(keys) == 0:
-		dbg("Keys is none so input wasn't encrypted, forwarding input as output without pEp's mess")
-		sendmail("X-NextMX: 192.168.10.10:25\n" + inmail)
+		dbg("Original message was NOT encrypted") # , NOT forwarding as-is, pEp might mess up attachments") # TODO: remove
+		# sendmail("X-NextMX: 192.168.10.10:25\n" + inmail)
+		# sendmail(inmail)
 	else:
-		dbg("Keys contains some data, forwarding the decrypted message: " + str(keys))
-		sendmail(str(dst))
+		dbg("Input was encrypted, forwarding the decrypted message: " + str(keys))
+		
+	# TODO: add header with info about all keys to which the original msg was encrytped to
+	# TODO: if "PEPFEEDBACK" in msg body also return the above as separate mail to sender
+	sendmail(str(dst))
 
 if mode == "encrypt":
 	if theirkey == False:
-		dbg("We don't have any key to encrypt to, forwarding input as output without pEp's mess")
+		dbg("We don't have any key to encrypt to, forwarding as-is, pEp might mess up attachments")
+		# sendmail(inmail)
 
-		if "@pep.security" in getmailheaders(inmail, "To")[0]:
-			dbg("Recipient is pEp, setting next MX to Exchange 10.10. TODO: this is sooooo ugly!")
-			sendmail("X-NextMX: 192.168.10.10:25\n" + inmail)
-		else:
-			dbg("Recipient is external, setting next MX to auto. TODO: this is sooooo ugly!")
-			sendmail("X-NextMX: auto\n" + inmail)
+		# if "@pep.security" in getmailheaders(inmail, "To")[0]:
+			# dbg("Recipient is pEp, setting next MX to Exchange 10.10.")
+			# sendmail("X-NextMX: 192.168.10.10:25\n" + inmail)
+		# else:
+			# dbg("Recipient is external, setting next MX to auto!")
+			# sendmail("X-NextMX: auto\n" + inmail)
 	else:
 		dbg("We have a key for this recipient, sending the encrypted version")
-		sendmail(str(dst))
 
+	# TODO: add header with info about which keys the msg has been encrypted to (incl. extra keys)
+	sendmail(str(dst))
 
 dbg("===== " + c("p≡pgate ended", 1) + " =====")
 exit(0)

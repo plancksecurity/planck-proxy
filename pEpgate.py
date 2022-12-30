@@ -8,6 +8,7 @@ import json
 import atexit
 import codecs
 import random
+import socket
 import traceback
 
 from glob        import glob
