@@ -392,7 +392,7 @@ if any(kw in inmail for kw in keywords) and mode == "encrypt" and ouraddr in val
 	for kw in keywords:
 		inmail = inmail.replace(kw, "")
 
-	cmd = [os.path.join(os.basepath(__file__), "delete.key.from.keyring.py", ouraddr, theiraddr]
+	cmd = [os.path.join(os.basepath(__file__), "delete.key.from.keyring.py"), ouraddr, theiraddr]
 	dbg("CMD: " + " ".join(cmd))
 	p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 	stdout, stderr = p.communicate()
@@ -571,7 +571,13 @@ try:
 		src.id = "pEp-" + uuid4().hex + "@" + socket.getfqdn()
 		src.from_ = ourpepid
 		src.to = [theirpepid]
-		### src.reply_to = [ourpepid]
+		reply_to = jsonlookup(fwdmappath, ourpepid.address, False)
+		if reply_to is not None:
+			dbg(c("Overriding Reply-To: " + ourpepid.username + " <" + reply_to + ">", 3) + " (From: " + ourpepid.address + ")")
+			reply_to_i = pEp.Identity(reply_to, ourpepid.username)
+			src.from_ = reply_to_i
+			# src.reply_to = [ reply_to_i ] # TODO: this would be cleaner but pEp on the other end doesn't handle this yet
+
 		nextmx = jsonlookup(nextmxpath, theirpepid.address[theirpepid.address.rfind("@") + 1:], False)
 
 	if mode == "decrypt":
@@ -580,7 +586,7 @@ try:
 		nextmx = jsonlookup(nextmxpath, ourpepid.address[ourpepid.address.rfind("@") + 1:], False)
 
 	if nextmx is not None:
-		dbg("Next MX: " + nextmx)
+		dbg(c("Overriding next MX: " + nextmx, 3))
 		opts['X-NextMX'] = nextmx
 
 	# Get rid of CC and BCC for loop-avoidance (since Postfix gives us one separate message per recipient)
@@ -665,19 +671,31 @@ try:
 			dst = src
 		else:
 			dbg(c("Encrypting message...", 2))
+
+			if theirkey == False:
+				dbg("We DO NOT have a key for this recipient")
+			else:
+				dbg("We have a key for this recipient:\n" + prettytable(theirkey))
+
 			pEp.unencrypted_subject(True)
 			dst = src.encrypt()
+			# dst = src.encrypt(["4BBCDBF5967AA2BDB26B5877C3329372697276DE"]) # TODO: use extra-keys, load this from map
+			# Jan  3 18:30:07 hub1 postfix/pipe[18330]: 28850A019A: to=<andy@0x3d.lu>, relay=pepgateOUT, delay=0.25, delays=0.02/0.01/0/0.23, dsn=4.3.0,
+			# status=deferred (Command died with signal 6: "/home/pEpGate/pEpgate". Command output: python3: message_api.c:2315: encrypt_message_possibly_with_media_key:
+			# Assertion `0' failed. )
+			# Jan  3 18:30:11 hub1 postfix/qmgr[13967]: 28850A019A: from=<andy@peptest.ch>, size=1251, nrcpt=1 (queue active)
+
 			# dst = src # DEBUG: disable encryption
-			dbg(c("Encrypted in", 2), True)
+			dbg(c("Processed in", 2), True)
 
 	if mode == "decrypt":
-		dbg(c("Decrypting message...", 2))
-
 		pepfails = False # Set to True if Postfix queue fills up with errors
 		if not pepfails:
+			dbg(c("Decrypting message via pEp...", 2))
 			dst, keys, rating, flags = src.decrypt()
+			dst.to = [ourpepid] # Lower the (potentially rewritten) outer recipient back into the inner message
 		else:
-			# Fallback: use Sequoia CLI to decrypt message
+			dbg(c("Decrypting message via Sequoia...", 2))
 			keys, rating, flags = None, None, None
 
 			tmp = pEp.Message(decryptusingsq(inmail, os.path.join(workdirpath, "sec." + ouraddr + ".*.key")))
@@ -697,11 +715,16 @@ try:
 			# dbg("DSTs: " + c(str(dst.shortmsg), 3))
 			# dbg("DSTl: " + c(str(dst.longmsg), 4))
 	
-			keys = [ "ManuallyDecrypted" ] # must stay for "if keys is None" below
+			keys = [ "Decrypted_by_Sequoia-info_not_available" ] # must stay for "if keys is None" below
 	
 		# if pepfails:
 			# dbg(c("pEp wasn't able to decrypt -.-", 1))
 			# exit(2)
+
+		if keys is None or len(keys) == 0:
+			dbg("Original message was NOT encrypted")
+		else:
+			dbg("Input was encrypted to these keys: " + ", ".join(keys))
 
 		dbg(c("Decrypted in", 2), True)
 
@@ -737,34 +760,17 @@ dbg("Sending mail via MX: " + (c("auto", 3) if nextmx is None else c(str(nextmx)
 dbg("From: " + ((c(src.from_.username, 2)) if len(src.from_.username) > 0 else "") + c(" <" + src.from_.address + ">", 3))
 dbg("  To: " + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "") + c(" <" + src.to[0].address + ">", 3))
 
-if mode == "decrypt":
-	if keys is None or len(keys) == 0:
-		dbg("Original message was NOT encrypted") # , NOT forwarding as-is, pEp might mess up attachments") # TODO: remove
-		# sendmail("X-NextMX: 192.168.10.10:25\n" + inmail)
-		# sendmail(inmail)
-	else:
-		dbg("Input was encrypted, forwarding the decrypted message: " + str(keys))
-		
+# if mode == "decrypt":
 	# TODO: add header with info about all keys to which the original msg was encrytped to
 	# TODO: if "PEPFEEDBACK" in msg body also return the above as separate mail to sender
-	sendmail(str(dst))
 
-if mode == "encrypt":
-	if theirkey == False:
-		dbg("We don't have any key to encrypt to, forwarding as-is, pEp might mess up attachments")
-		# sendmail(inmail)
-
-		# if "@pep.security" in getmailheaders(inmail, "To")[0]:
-			# dbg("Recipient is pEp, setting next MX to Exchange 10.10.")
-			# sendmail("X-NextMX: 192.168.10.10:25\n" + inmail)
-		# else:
-			# dbg("Recipient is external, setting next MX to auto!")
-			# sendmail("X-NextMX: auto\n" + inmail)
-	else:
-		dbg("We have a key for this recipient, sending the encrypted version")
-
+# if mode == "encrypt":
 	# TODO: add header with info about which keys the msg has been encrypted to (incl. extra keys)
-	sendmail(str(dst))
+
+# sendmail("X-NextMX: 192.168.10.10:25\n" + inmail)
+# sendmail(inmail)
+
+sendmail(str(dst))
 
 dbg("===== " + c("p≡pgate ended", 1) + " =====")
 exit(0)

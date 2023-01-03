@@ -13,7 +13,7 @@ def collate_email(a, b):
 	return 1 if a > b else -1 if a < b else 0
 
 ### keys.db
-db = sqlite3.connect("/home/pepgate/work/" + sys.argv[1] + "/.pEp/keys.db")
+db = sqlite3.connect("work/" + sys.argv[1] + "/.pEp/keys.db")
 db.create_collation("EMAIL", collate_email)
 
 q = db.execute("SELECT * FROM userids WHERE userid = ?;", (sys.argv[2],))
@@ -32,7 +32,7 @@ for r in q:
 db.commit()
 
 ### management.db
-db = sqlite3.connect("/home/pepgate/work/" + sys.argv[1] + "/.pEp/management.db")
+db = sqlite3.connect("work/" + sys.argv[1] + "/.pEp/management.db")
 
 d = db.execute("DELETE FROM trust WHERE user_id = ?;", ("TOFU_" + sys.argv[2],))
 print("Removed trust tofu: " + str(d.rowcount))

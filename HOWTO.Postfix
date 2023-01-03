@@ -2,11 +2,11 @@
 
 # Incoming decryption-proxy (specific addresses routed via "transport" file)
 pepgateIN   unix    -       n       n       -       1       pipe
-	flags=DRhu user=pepgate:pepgate argv=/home/pepgate/pEpgate decrypt
+	flags=DRhu user=pepgate:pepgate argv=<path to pEpGate>/pEpgate decrypt
 
 # Outgoing encryption-proxy (specific port routed above)
 pepgateOUT  unix    -       n       n       -       1       pipe
-	flags=DRhu user=pepgate:pepgate argv=/home/pepgate/pEpgate encrypt
+	flags=DRhu user=pepgate:pepgate argv=<path to pEpGate>/pEpgate encrypt
 
 ### Define a dedicated port where the pEpGate in encryption mode is enforced, still in master.cf:
 
