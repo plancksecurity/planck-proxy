@@ -124,6 +124,19 @@ def keysfromkeyring(userid=None):
 	else:
 		return False
 
+def inspectusingsq(PGP):
+	import tempfile
+	tf = tempfile.NamedTemporaryFile()
+	dbg("TMP file: " + tf.name)
+	tf.write(PGP.encode("utf8"))
+	cmd = ["/usr/local/bin/sq", "inspect", "--certifications", tf.name]
+	p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+	ret = p.wait()
+
+	for line in io.TextIOWrapper(p.stdout, encoding="utf-8", errors="strict"):
+		line = line.strip()
+		dbg(line)
+
 def decryptusingsq(inmail, secretkeyglob):
 	ret = ""
 	patt = re.compile(r"-----BEGIN PGP MESSAGE-----.*?-----END PGP MESSAGE-----", re.MULTILINE | re.DOTALL)
@@ -441,8 +454,7 @@ if not os.path.exists(logpath):
 	os.makedirs(logpath);
 
 logfilename = os.path.join(logpath, "in." + mode + ".original.eml")
-dbg("   Original message: " + c(logfilename, 6))
-# dbg("   Original message:\n" + c(inmail, 5))
+dbg("   Original message: " + c(logfilename, 6)) # + "\n" + inmail)
 logfile = codecs.open(logfilename, "w", "utf-8")
 logfile.write(inmail)
 logfile.close()
@@ -451,8 +463,10 @@ logfile.close()
 
 import pEp
 pEp.set_debug_log_enabled(True) # TODO
+pEp.message_to_send = messageToSend
+pEp.notify_handshake = notifyHandshake
 
-dbg("p≡p engine (with " + str(pEp.about).strip().replace("\n", " | ") + ") loaded in", True)
+dbg("p≡p (" + str(pEp.about).strip().replace("\n", ", ") + ", p≡p engine version " + pEp.engine_version + ") loaded in", True)
 
 ### Import static / global keys ###################################################################
 
@@ -554,15 +568,16 @@ else:
 	i.fpr = ourkeyfp
 	# i.update() # Not really needed it seems but keep for future reference
 
-### Let p≡p do it's magic #########################################################################
+### Prepare message for processing by p≡p #########################################################
 
 try:
 	src = pEp.Message(inmail)
 
 	# Hide metadata which isn't essential to the recipient (Delivered-To, Return-Path etc.)
 	opts = {
-		"X-pEpgate-version": "2.11",
-		"X-pEpgate-mode": mode,
+		"X-pEpGate-mode": mode,
+		"X-pEpGate-version": gateversion,
+		"X-pEpEngine-version": pEp.engine_version,
 		"X-NextMX": "auto",
 	}
 
@@ -582,6 +597,7 @@ try:
 
 	if mode == "decrypt":
 		src.to = [ourpepid]
+		src.recv_by = ourpepid
 		### src.reply_to = [theirpepid]
 		nextmx = jsonlookup(nextmxpath, ourpepid.address[ourpepid.address.rfind("@") + 1:], False)
 
@@ -644,7 +660,7 @@ logfile = codecs.open(logfilename, "w", "utf-8")
 logfile.write(str(src))
 logfile.close()
 
-### Process (encrypt/decrypt) message #############################################################
+### Let p≡p do it's magic #########################################################################
 
 try:
 	if mode == "encrypt":
@@ -677,16 +693,17 @@ try:
 			else:
 				dbg("We have a key for this recipient:\n" + prettytable(theirkey))
 
-			pEp.unencrypted_subject(True)
-			dst = src.encrypt()
-			# dst = src.encrypt(["4BBCDBF5967AA2BDB26B5877C3329372697276DE"]) # TODO: use extra-keys, load this from map
-			# Jan  3 18:30:07 hub1 postfix/pipe[18330]: 28850A019A: to=<andy@0x3d.lu>, relay=pepgateOUT, delay=0.25, delays=0.02/0.01/0/0.23, dsn=4.3.0,
-			# status=deferred (Command died with signal 6: "/home/pEpGate/pEpgate". Command output: python3: message_api.c:2315: encrypt_message_possibly_with_media_key:
-			# Assertion `0' failed. )
-			# Jan  3 18:30:11 hub1 postfix/qmgr[13967]: 28850A019A: from=<andy@peptest.ch>, size=1251, nrcpt=1 (queue active)
+			# pEp.unencrypted_subject(True)
 
+			# dst = src.encrypt()
+			dst = src.encrypt(["4BBCDBF5967AA2BDB26B5877C3329372697276DE"], 0) # TODO: load this/these from some config/map
 			# dst = src # DEBUG: disable encryption
+
 			dbg(c("Processed in", 2), True)
+
+			# DEBUG
+			dbg("Full dst:\n" + str(dst))
+			inspectusingsq(str(dst))
 
 	if mode == "decrypt":
 		pepfails = False # Set to True if Postfix queue fills up with errors
@@ -724,13 +741,9 @@ try:
 		if keys is None or len(keys) == 0:
 			dbg("Original message was NOT encrypted")
 		else:
-			dbg("Input was encrypted to these keys: " + ", ".join(keys))
+			dbg("Original message was encrypted to these keys:\n" + prettytable(list(set(keys))))
 
 		dbg(c("Decrypted in", 2), True)
-
-	if "Предложение" in dst.shortmsg or "Сотрудничество" in dst.shortmsg:
-		dbg("[!!!] Ignoring russian spam: " + dst.longmsg)
-		exit(0)
 
 	# Workaround for engine converting plaintext-only messages into a msg.txt inline-attachment
 	# dst = str(dst).replace(' filename="msg.txt"', "")
@@ -739,19 +752,20 @@ except Exception:
 	e = sys.exc_info()
 	errmsg  = "ERROR 4 - " + str(e[0]) + ": " + str(e[1]) + "\n"
 	errmsg += "Traceback:\n" + prettytable([line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])])
-	# dst = src
 	dbg(errmsg)
 	dbgmail(errmsg)
 	exit(4)
+	# dst = src # FALLBACK: forward original message as-is if anything crypto goes wrong
 	# pass
 
 ### Log processed message #########################################################################
 
+dst = str(dst)
+
 logfilename = os.path.join(logpath, "in." + mode + ".processed.eml")
-dbg("p≡p-processed message: " + c(logfilename, 6))
-dbg(str(dst)[0:1000])
+dbg("p≡p-processed message: " + c(logfilename, 6) + "\n" + str(dst)[0:1337])
 logfile = codecs.open(logfilename, "w", "utf-8")
-logfile.write(str(dst))
+logfile.write(dst)
 logfile.close()
 
 ### Hand reply over to sendmail ###################################################################
@@ -770,7 +784,7 @@ dbg("  To: " + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "
 # sendmail("X-NextMX: 192.168.10.10:25\n" + inmail)
 # sendmail(inmail)
 
-sendmail(str(dst))
+sendmail(dst)
 
 dbg("===== " + c("p≡pgate ended", 1) + " =====")
 exit(0)

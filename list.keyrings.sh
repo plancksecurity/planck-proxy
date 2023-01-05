@@ -8,7 +8,16 @@ fi
 
 for kdb in ${keydbs}; do
 	echo "========================================================================="
-	echo "== $(echo ${kdb})"
+	echo "== ${kdb} - Public keys"
 	echo "========================================================================="
-	sqlite3 "${kdb}" -header -column "SELECT * FROM userids; SELECT primary_key, secret FROM keys; SELECT * FROM subkeys;"
+	sqlite3 "${kdb}" -header -column "SELECT userid, keys.primary_key, subkey \
+		FROM userids JOIN keys USING(primary_key) JOIN subkeys USING(primary_key) \
+		WHERE secret = 0 ORDER BY userid COLLATE NOCASE;"
+
+	echo "========================================================================="
+	echo "== ${kdb} - Secret keys"
+	echo "========================================================================="
+	sqlite3 "${kdb}" -header -column "SELECT userid, keys.primary_key, subkey \
+		FROM userids JOIN keys USING(primary_key) JOIN subkeys USING(primary_key) \
+		WHERE secret = 1 ORDER BY userid COLLATE NOCASE;"
 done

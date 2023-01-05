@@ -38,6 +38,7 @@ globalkpath  = home + "keys.global/"
 
 bldomains    = ["apple.com"]
 
+gateversion  = "2.11"
 locktimeout  = 60
 
 ### Extra configuration / workarounds for being called by Postfix #################################
@@ -93,6 +94,15 @@ def sendmail(msg):
 		for line in p.stdout:
 			dbg(line)
 		exit(30)
+
+def messageToSend(msg):
+	dbg("Ignoring message_to_send")
+	# dbg(c("messageToSend(" + str(len(str(msg))) + " Bytes)", 3))
+	# dbg(str(msg))
+
+def notifyHandshake(me, partner, signal):
+	dbg("Ignoring notify_handshake")
+	# dbg("notifyHandshake(" + str(me) + ", " + str(partner) + ", " + str(signal) + ")")
 
 def dbgmail(msg):
 	dbg(c("Sending debug message", 1))
