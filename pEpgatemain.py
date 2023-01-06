@@ -4,14 +4,6 @@ from pEpgate import *
 
 ### More helper functions #########################################################################
 
-def cleanup():
-	if os.path.isfile(lockfilepath):
-		try:
-			os.remove(lockfilepath)
-			dbg("Lockfile " + c(lockfilepath, 6) + " removed")
-		except:
-			dbg("Can't remove Lockfile " + c(lockfilepath, 6))
-
 def prettytable(thing, colwidth=26):
 	ret = ""
 	if not isinstance(thing, list):
@@ -232,7 +224,9 @@ def jsonlookup(jsonmapfile, key, bidilookup=False):
 
 ### Initialization ################################################################################
 
+sys.excepthook = except_hook
 atexit.register(cleanup)
+
 inmail = ""
 
 ### Lockfile handling #############################################################################
@@ -271,8 +265,6 @@ if os.path.isfile(lockfilepath) and lockpid is not None and lockpid.isdigit():
 			sleep(1)
 		except:
 			pass
-
-cleanup() # just to make sure
 
 lock = open(lockfilepath, "w")
 lock.write(str(os.getpid()))
@@ -394,7 +386,21 @@ msgto = msgto.lower()
 ouraddr = (msgfrom if mode == "encrypt" else msgto)
 theiraddr = (msgto if mode == "encrypt" else msgfrom)
 
-### KEYRESET/RESETKEY command #############################################################################
+### If sender enabled "Return receipt" allow cleanup() to send back debugging info ################
+
+dts = getmailheaders(inmail, "Disposition-Notification-To") # Debug To Sender
+
+if dts is not None:
+	dts = addr = dts[0]
+	dts = "-".join(re.findall(re.compile(r"<.*@(\w{2,}\.\w{2,})>"), dts))
+	dbg(c("Return receipt requested by: " + str(addr), 3))
+	if dts in ("peptest.ch", "pep.security", "0x3d.lu"):
+		dbg(c("Domain " + c(dts, 5) + " is whitelisted for DTS requests", 2))
+		setoutervar("dts", addr)
+	else:
+		dbg(c("Domain is not whitelisted for DTS requests", 1))
+
+### KEYRESET/RESETKEY command #####################################################################
 
 keywords = ("RESETKEY", "KEYRESET")
 validsenders = ("support@pep.security", "contact@pep.security", "it@pep.security")
@@ -573,14 +579,6 @@ else:
 try:
 	src = pEp.Message(inmail)
 
-	# Hide metadata which isn't essential to the recipient (Delivered-To, Return-Path etc.)
-	opts = {
-		"X-pEpGate-mode": mode,
-		"X-pEpGate-version": gateversion,
-		"X-pEpEngine-version": pEp.engine_version,
-		"X-NextMX": "auto",
-	}
-
 	if mode == "encrypt":
 		src.sent = int(str(datetime.now().timestamp()).split('.')[0])
 		src.id = "pEp-" + uuid4().hex + "@" + socket.getfqdn()
@@ -593,23 +591,15 @@ try:
 			src.from_ = reply_to_i
 			# src.reply_to = [ reply_to_i ] # TODO: this would be cleaner but pEp on the other end doesn't handle this yet
 
-		nextmx = jsonlookup(nextmxpath, theirpepid.address[theirpepid.address.rfind("@") + 1:], False)
 
 	if mode == "decrypt":
 		src.to = [ourpepid]
-		src.recv_by = ourpepid
+		src.recv_by = ourpepid # TODO: implement proper echo-protocol handling
 		### src.reply_to = [theirpepid]
-		nextmx = jsonlookup(nextmxpath, ourpepid.address[ourpepid.address.rfind("@") + 1:], False)
-
-	if nextmx is not None:
-		dbg(c("Overriding next MX: " + nextmx, 3))
-		opts['X-NextMX'] = nextmx
 
 	# Get rid of CC and BCC for loop-avoidance (since Postfix gives us one separate message per recipient)
 	src.cc = []
 	src.bcc = []
-
-	src.opt_fields = opts
 
 except Exception:
 	e = sys.exc_info()
@@ -696,7 +686,7 @@ try:
 			# pEp.unencrypted_subject(True)
 
 			# dst = src.encrypt()
-			dst = src.encrypt(["4BBCDBF5967AA2BDB26B5877C3329372697276DE"], 0) # TODO: load this/these from some config/map
+			dst = src.encrypt(["4BBCDBF5967AA2BDB26B5877C3329372697276DE"], 0) # TODO: load extra keys from some config/map
 			# dst = src # DEBUG: disable encryption
 
 			dbg(c("Processed in", 2), True)
@@ -758,6 +748,32 @@ except Exception:
 	# dst = src # FALLBACK: forward original message as-is if anything crypto goes wrong
 	# pass
 
+### Add MX routing and version information headers ################################################
+
+dbg("Opt fields IN:\n" + prettytable(dst.opt_fields)) # DEBUG
+
+opts = {
+	"X-pEpGate-mode": mode,
+	"X-pEpGate-version": gateversion,
+	"X-pEpEngine-version": pEp.engine_version,
+	"X-NextMX": "auto",
+}
+
+if mode == "encrypt":
+	nextmx = jsonlookup(nextmxpath, theirpepid.address[theirpepid.address.rfind("@") + 1:], False)
+
+if mode == "decrypt":
+	nextmx = jsonlookup(nextmxpath, ourpepid.address[ourpepid.address.rfind("@") + 1:], False)
+
+if nextmx is not None:
+	dbg(c("Overriding next MX: " + nextmx, 3))
+	opts['X-NextMX'] = nextmx
+
+opts.update(dst.opt_fields)
+dst.opt_fields = opts
+
+dbg("Opt fields OUT:\n" + prettytable(dst.opt_fields)) # DEBUG
+
 ### Log processed message #########################################################################
 
 dst = str(dst)
@@ -787,4 +803,3 @@ dbg("  To: " + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "
 sendmail(dst)
 
 dbg("===== " + c("p≡pgate ended", 1) + " =====")
-exit(0)
