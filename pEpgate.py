@@ -6,6 +6,8 @@ import re
 import sys
 import html
 import json
+import email
+import base64
 import atexit
 import codecs
 import random
@@ -17,7 +19,6 @@ from uuid        import uuid4
 from time        import sleep
 from shutil      import copytree
 from datetime    import datetime
-from email       import message_from_string
 from subprocess  import Popen, PIPE, STDOUT
 from collections import OrderedDict
 
@@ -35,9 +36,17 @@ testmailglob = home + "tests/*.eml"
 statickpath  = home + "keys.static/"
 globalkpath  = home + "keys.global/"
 dbgrcpt      = "aw@pep.security"
-bldomains    = ["apple.com"]
 gateversion  = "2.11"
 locktimeout  = 60
+
+# Sender domains that get a debug log when the original message had enabled "Return receipt"
+dtsdomains   = ["peptest.ch", "pep.security", "0x3d.lu"]
+
+# Senders that are allowed to use the inline-command RESETKEY/KEYRESET
+resetsenders = ["support@pep.security", "contact@pep.security", "it@pep.security"]
+
+# Never send encrypted to these domains
+bldomains    = ["apple.com"]
 
 ### Extra configuration / workarounds for being called by Postfix #################################
 
@@ -49,7 +58,7 @@ os.environ['LANG'] = os.environ['LC_ALL'] = "en_US.UTF-8"
 
 ### Helper functions ##############################################################################
 
-def dbg(text, printtiming=False):
+def dbg(text, printtiming=False, pub=True):
 	global logfilepath, adminlog, textlog, htmllog, lastactiontime, thisactiontime
 	thisactiontime = datetime.now()
 	took = (thisactiontime - lastactiontime).total_seconds()
@@ -70,12 +79,11 @@ def dbg(text, printtiming=False):
 	if sys.stdout.isatty():
 		print(text)
 
-	plain = toplain(text)
-	html = tohtml(text)
+	adminlog += toplain(text) + "\n"
+	textlog += text + "\n"
 
-	adminlog += plain + "\n"
-	textlog += plain + "\n"
-	htmllog += html + "<br>\n"
+	if pub:
+		htmllog += tohtml(text) + "<br>\n"
 
 	return took
 
@@ -107,9 +115,12 @@ def tohtml(text):
 	ret = ret.replace('\033[1;34m', '<font color="#0000ff">') # blue
 	ret = ret.replace('\033[1;35m', '<font color="#ff00ff">') # pink
 	ret = ret.replace('\033[1;36m', '<font color="#5555ff">') # bright-blue
-	ret = ret.replace('\033[1;37m', '<font color="#ffffff">') # white
+	ret = ret.replace('\033[1;37m', '<font color="#666666">') # white
 	ret = ret.replace('\033[1;m', '</font>')
 	return ret
+
+def getlog(type):
+	return globals()[type] if type in ["textlog", "htmllog"] else ""
 
 def sendmail(msg):
 	# Replace dots at the beginning of a line with the MIME-encoded, quoted-printable counterpart. Fuck you very much, Outlook!
@@ -132,23 +143,45 @@ def sendmail(msg):
 			dbg(line)
 		return False
 
-def dbgmail(msg, rcpt=dbgrcpt, subject="[FATAL] pEp Gate @ " + socket.getfqdn() + " crashed!"):
+def dbgmail(msg, rcpt=dbgrcpt, subject="[FATAL] pEp Gate @ " + socket.getfqdn() + " crashed!", attachments=[]):
 	dbg("Sending message to " + c(rcpt, 2) + ", subject: " + c(subject, 3))
-	# mailcontent  = "Content-type: text/plain; charset=utf8\n"
-	mailcontent  = "Content-type: text/html; charset=utf8\n"
+
+	if len(attachments) == 0:
+		mailcontent  = "Content-type: text/html; charset=UTF-8\n"
+	else:
+		mailcontent  = "Content-Type: multipart/mixed; boundary=\"pEpMIME\"\n"
+
 	mailcontent += "From: pepgate@" + socket.getfqdn() + "\n"
 	mailcontent += "To: " + rcpt + "\n"
 	mailcontent += "Subject: " + subject + "\n\n"
-	# mailcontent += msg + "\n" + ("=" * 80) + "\n\n" + adminlog[-50000:]
-	if msg:
-		mailcontent += '<html><head><style>'
-		mailcontent += '.console { font-family: Courier New; font-size: 13px; line-height: 14px; width: 100%; }'
-		mailcontent += '</style></head>'
-		mailcontent += '<body topmargin="0" leftmargin="0" marginwidth="0" marginheight="0"><table class="console"><tr><td>'
-		mailcontent += msg + "<br>" + ("=" * 80) + "<br><br>" + htmllog
-		mailcontent += '</td></tr></table></body></html>'
-	else:
-		mailcontent += htmllog
+
+	if len(attachments) > 0:
+		mailcontent += "This is a multi-part message in MIME format.\n"
+		mailcontent += "--pEpMIME\n"
+		mailcontent += "Content-Type: text/html; charset=UTF-8\n"
+		mailcontent += "Content-Transfer-Encoding: 7bit\n\n"
+
+	mailcontent += '<html><head><style>'
+	mailcontent += '.console { font-family: Courier New; font-size: 13px; line-height: 14px; width: 100%; }'
+	mailcontent += '</style></head>'
+	mailcontent += '<body topmargin="0" leftmargin="0" marginwidth="0" marginheight="0"><table class="console"><tr><td>'
+	mailcontent += (msg + "<br>" + ("=" * 80) + "<br><br>" if len(msg) > 0 else "") + htmllog
+	mailcontent += '</td></tr></table></body></html>'
+
+	if len(attachments) > 0:
+		for att in attachments:
+			dbg("Attaching " + att)
+
+			mailcontent += "\n\n--pEpMIME\n"
+			mailcontent += "Content-Type: application/octet-stream; name=\"" + os.path.basename(att) + "\"\n"
+			mailcontent += "Content-Disposition: attachment; filename=\"" + os.path.basename(att) + "\"\n"
+			mailcontent += "Content-Transfer-Encoding: base64\n\n"
+
+			with open(att, "rb") as f:
+				mailcontent += base64.b64encode(f.read()).decode()
+
+		mailcontent += "--pEpMIME--"
+
 	sendmail(mailcontent)
 
 def except_hook(type, value, tback):
@@ -160,36 +193,42 @@ def except_hook(type, value, tback):
 	dbgmail(mailcontent)
 	exit(31)
 
-# To set "dts" used in cleanup() to allow for "Debug To Sender" reports even in case of crashes
+# Set variables in the outer scope from within the inner scope "pEpgatemain" (mainly used in cleanup())
 def setoutervar(var, val):
 	globals()[var] = val
 
 def cleanup():
+	global wdp
 	if dts is not None:
-		dbgmail("Debug-To-Sender report", dts, "[DTS report] pEp Gate @ " + socket.getfqdn())
+		attachments = []
+		if logpath is not None:
+			for a in glob(os.path.join(logpath, "*.eml")):
+				attachments += [ a ]
+		dbgmail("As requested via activated Return Receipt here's your debug log:", dts, "[DEBUG LOG] pEp Gate @ " + socket.getfqdn(), attachments)
 
 	if os.path.isfile(lockfilepath):
 		try:
 			os.remove(lockfilepath)
-			dbg("Lockfile " + c(lockfilepath, 6) + " removed")
+			dbg("Lockfile " + c(lockfilepath, 6) + " removed", pub=False)
 		except:
-			dbg("Can't remove Lockfile " + c(lockfilepath, 6))
+			dbg("Can't remove Lockfile " + c(lockfilepath, 6), pub=False)
 
 ### pEp Sync & echo protocol handling (TODO) ##################################
 
 def messageToSend(msg):
-	dbg("Ignoring message_to_send")
+	dbg("Ignoring message_to_send", pub=False)
 	# dbg(c("messageToSend(" + str(len(str(msg))) + " Bytes)", 3))
 	# dbg(str(msg))
 
 def notifyHandshake(me, partner, signal):
-	dbg("Ignoring notify_handshake")
+	dbg("Ignoring notify_handshake", pub=False)
 	# dbg("notifyHandshake(" + str(me) + ", " + str(partner) + ", " + str(signal) + ")")
 
 ### Load pEpGate ##############################################################
 
 lastactiontime = datetime.now()
 adminlog = textlog = htmllog = ""
+logpath = None
 dts = None
 
 import pEpgatemain

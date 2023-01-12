@@ -119,7 +119,6 @@ def keysfromkeyring(userid=None):
 def inspectusingsq(PGP):
 	import tempfile
 	tf = tempfile.NamedTemporaryFile()
-	dbg("TMP file: " + tf.name)
 	tf.write(PGP.encode("utf8"))
 	cmd = ["/usr/local/bin/sq", "inspect", "--certifications", tf.name]
 	p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
@@ -134,8 +133,7 @@ def decryptusingsq(inmail, secretkeyglob):
 	patt = re.compile(r"-----BEGIN PGP MESSAGE-----.*?-----END PGP MESSAGE-----", re.MULTILINE | re.DOTALL)
 	pgpparts = patt.findall(inmail)
 
-	dbg(c("[!!!] Using decryptusingsq() fallback. Attachments will be LOST!", 1))
-
+	# dbg(c("[!!!] Using decryptusingsq() fallback. Attachments will be LOST!", 1))
 	# dbg("Inmail: " + str(inmail))
 	# dbg("PGP: " + str(pgpparts))
 
@@ -155,7 +153,7 @@ def decryptusingsq(inmail, secretkeyglob):
 			dbg(c("Trying secret key file " + secretkey, 3))
 
 			cmd = ["/usr/local/bin/sq", "decrypt", "--secret-key-file", secretkey, "--", tmppath]
-			dbg("CMD: " + " ".join(cmd))
+			dbg("CMD: " + " ".join(cmd), pub=False)
 
 			p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 			stdout, stderr = p.communicate()
@@ -174,7 +172,7 @@ def decryptusingsq(inmail, secretkeyglob):
 
 def getmailheaders(inmsg, headername=None):
 	try:
-		msg = message_from_string(inmsg)
+		msg = email.message_from_string(inmsg)
 		if (headername is not None):
 			headers = msg.get_all(headername)
 		else:
@@ -189,14 +187,13 @@ def getmailheaders(inmsg, headername=None):
 	except:
 		dbg("Can't pre-parse e-mail. Aborting!")
 		e = sys.exc_info()
-		dbg("ERROR 5 - " + str(e[0]) + ": " + str(e[1]))
+		dbg("ERROR 21 - " + str(e[0]) + ": " + str(e[1]))
 		dbg("Traceback: " + str(traceback.format_tb(e[2])))
 		return False
 		exit(21)
 
 def jsonlookup(jsonmapfile, key, bidilookup=False):
 	# dbg("JSON lookup in file " + jsonmapfile + " for key " + key)
-
 	result = None
 
 	with open(jsonmapfile) as f:
@@ -215,9 +212,9 @@ def jsonlookup(jsonmapfile, key, bidilookup=False):
 		except KeyError:
 			pass
 
-	# dbg("== " + key[:key.rfind("@")])
-	if jsonmapfile == fwdmappath and result is None and key[:key.rfind("@")] in ("root", "postmaster", "noreply", "no-reply"): # Silly debug catch-all for backscatter
-		result = "andy@pep-security.net" # must use the .net alias here since Exchange doesn't like From: aw@pep.sec and To: aw@pep.sec within one and the same message
+	# pEp-specificdbg("== " + key[:key.rfind("@")])
+	if jsonmapfile == fwdmappath and result is None: # and key[:key.rfind("@")] in ("root", "postmaster", "noreply", "no-reply"): # Silly debug catch-all for backscatter
+		result = j['default'] # "andy@pep-security.net" # must use the .net alias here since Exchange doesn't like From: aw@pep.sec and To: aw@pep.sec within one and the same message
 		dbg(c("Fallback-rewriting ", 2) + key + " to " + result)
 
 	return result
@@ -242,13 +239,13 @@ while os.path.isfile(lockfilepath) and locktime < locktimeout:
 		try:
 			os.kill(int(lockpid), 0)
 		except OSError:
-			dbg("Lock held by dead PID " + lockpid + ", removing lockfile")
+			dbg("Lock held by dead PID " + lockpid + ", removing lockfile", pub=False)
 			cleanup()
 			lockpid = None
 		else:
-			dbg("Lock held by active PID " + lockpid + ", killing in " + str(locktimeout - locktime) + "s")
+			dbg("Lock held by active PID " + lockpid + ", killing in " + str(locktimeout - locktime) + "s", pub=False)
 	else:
-		dbg("Lockfile doesn't contain any numeric PID [" + str(lockpid) + "]. Removing file")
+		dbg("Lockfile doesn't contain any numeric PID [" + str(lockpid) + "]. Removing file", pub=False)
 		cleanup()
 	locktime += 1
 	sleep(1)
@@ -257,10 +254,10 @@ if os.path.isfile(lockfilepath) and lockpid is not None and lockpid.isdigit():
 	lockpid = int(lockpid)
 	if lockpid > 1:
 		try:
-			dbg("Sending SIGTERM to PID " + str(lockpid))
+			dbg("Sending SIGTERM to PID " + str(lockpid), pub=False)
 			os.kill(lockpid, 15)
 			sleep(1)
-			dbg("Sending SIGKILL to PID " + str(lockpid))
+			dbg("Sending SIGKILL to PID " + str(lockpid), pub=False)
 			os.kill(lockpid, 9)
 			sleep(1)
 		except:
@@ -269,7 +266,7 @@ if os.path.isfile(lockfilepath) and lockpid is not None and lockpid.isdigit():
 lock = open(lockfilepath, "w")
 lock.write(str(os.getpid()))
 lock.close()
-dbg("Lockfile created")
+dbg("Lockfile created", pub=False)
 
 if len(sys.argv) < 2:
 	dbg("No operation mode specified. Usage: " + sys.argv[0] + " [encrypt|decrypt]")
@@ -277,11 +274,11 @@ if len(sys.argv) < 2:
 
 mode = sys.argv[1]
 
-dbg("===== " + c("p≡pgate started", 2) + " in mode " + c(mode, 3) +" | PID " + c(str(os.getpid()), 5) + " | UID " + c(str(os.getuid()), 6) + " | GID " + c(str(os.getgid()), 7) + " =====")
+dbg("===== " + c("p≡pGate started", 2) + " in mode " + c(mode, 3) +" | PID " + c(str(os.getpid()), 5) + " | UID " + c(str(os.getuid()), 6) + " | GID " + c(str(os.getgid()), 7) + " =====")
 
 ### Read original message from stdin or use a testmail ############################################
 
-dbg("Reading message (to confirm press CTRL+D on an empty line)...")
+dbg("Reading message (to confirm press CTRL+D on an empty line)...", pub=False)
 
 inbuf = bytearray()
 while True:
@@ -296,21 +293,21 @@ try:
 		inmail += str(line)
 except:
 	try:
-		dbg(c("Can't decode input as utf-8, trying latin-1", 1))
+		dbg(c("Can't decode input message as utf-8, trying latin-1", 1))
 		for line in inbuf.decode(encoding="latin-1", errors="strict"):
 			inmail += str(line)
 	except:
-		dbg(c("Can't decode input as latin-1 either, doing utf-8 anyways and ignoring all errors", 1))
+		dbg(c("Can't decode input message as latin-1 either, doing utf-8 again but ignoring all errors", 1))
 		for line in inbuf.decode(encoding="utf-8", errors="ignore"):
 			inmail += str(line)
 
 if len(inmail) == 0:
-	dbg(c("No message was passed to me on stdin", 1))
+	dbg(c("No message was passed to me on stdin", 1), pub=False)
 	testmails = glob(testmailglob)
 	numtestmails = len(testmails)
 	if numtestmails > 0:
 		testmailtouse = random.choice(testmails)
-		dbg("There are " + str(numtestmails) + " testmails available, using " + c(testmailtouse, 3))
+		dbg("There are " + str(numtestmails) + " testmails available, using " + c(testmailtouse, 3), pub=False)
 		with open(testmailtouse, "r") as f:
 			for line in f:
 				inmail += line
@@ -393,19 +390,18 @@ dts = getmailheaders(inmail, "Disposition-Notification-To") # Debug To Sender
 if dts is not None:
 	dts = addr = dts[0]
 	dts = "-".join(re.findall(re.compile(r"<.*@(\w{2,}\.\w{2,})>"), dts))
-	dbg(c("Return receipt requested by: " + str(addr), 3))
-	if dts in ("peptest.ch", "pep.security", "0x3d.lu"):
-		dbg(c("Domain " + c(dts, 5) + " is whitelisted for DTS requests", 2))
+	dbg(c("Return receipt (debug log) requested by: " + str(addr), 3))
+	if dts in dtsdomains:
+		dbg(c("Domain " + c(dts, 5) + " is allowed to request a debug log", 2))
 		setoutervar("dts", addr)
 	else:
-		dbg(c("Domain is not whitelisted for DTS requests", 1))
+		dbg(c("Domain is not allowed to request a debug log", 1))
 
 ### KEYRESET/RESETKEY command #####################################################################
 
 keywords = ("RESETKEY", "KEYRESET")
-validsenders = ("support@pep.security", "contact@pep.security", "it@pep.security")
 
-if any(kw in inmail for kw in keywords) and mode == "encrypt" and ouraddr in validsenders and theiraddr not in validsenders:
+if any(kw in inmail for kw in keywords) and mode == "encrypt" and ouraddr in resetsenders and theiraddr not in resetsenders:
 	dbg("Resetting key for " + theiraddr + " in keyring " + ouraddr)
 
 	for kw in keywords:
@@ -456,6 +452,7 @@ dbg("    Initital import: " + ("Yes" if initialimport else "No"))
 ### Logging #######################################################################################
 
 logpath = os.path.join(workdirpath, theiraddr, datetime.now().strftime('%Y.%m.%d-%H.%M.%S.%f'))
+setoutervar("logpath", logpath)
 if not os.path.exists(logpath):
 	os.makedirs(logpath);
 
@@ -503,9 +500,9 @@ if initialimport:
 
 ### Show me what you got ##########################################################################
 
-dbg(c("┌ Environment variables", 5) + "\n" + prettytable(os.environ))
+dbg(c("┌ Environment variables", 5) + "\n" + prettytable(os.environ), pub=False)
 # dbg(c("┌ Keys in this keyring (as stored in keys.db)", 5) + "\n" + prettytable(keysfromkeyring()))
-dbg(c("┌ Headers in original message", 5) + "\n" + prettytable(getmailheaders(inmail)))
+dbg(c("┌ Headers in original message (as seen by non-p≡p clients)", 5) + "\n" + prettytable(getmailheaders(inmail)))
 
 ### Check if we have a public key for "them" ######################################################
 
@@ -516,7 +513,7 @@ if mode == "encrypt":
 		theirpepid = pEp.Identity(theiraddr, theiraddr)
 	else:
 		dbg(c("Found existing public key for recipient ", 2) + c(theiraddr, 5) + ":\n" + prettytable(theirkey))
-		# TODO: this doesn't really support multiple UID's per key, should probably figure out the most recent
+		# TODO: this doesn't really support multiple UIDs per key, should probably figure out the most recent
 		theirkeyname = theirkey[0]['key_blob']['username']
 		theirkeyaddr = theirkey[0]['pEp_keys.db']['UserID']
 		theirkeyfp   = theirkey[0]['pEp_keys.db']['KeyID']
@@ -537,9 +534,9 @@ else:
 	ourkeyname = ourkey[0]['key_blob']['username']
 	ourkeyaddr = ourkey[0]['pEp_keys.db']['UserID']
 	ourkeyfp   = ourkey[0]['pEp_keys.db']['KeyID']
-	dbg("  Our key name: " + ourkeyname)
-	dbg("  Our key addr: " + ourkeyaddr)
-	dbg("  Our key fpr:  " + ourkeyfp)
+	dbg("Our key name: " + ourkeyname)
+	dbg("Our key addr: " + ourkeyaddr)
+	dbg("Our key fpr:  " + ourkeyfp)
 
 ### Create/set own identity ######################################################################
 
@@ -572,7 +569,6 @@ else:
 		ourpepid = pEp.Identity(ourkeyaddr, ourkeyname) # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
 
 	i.fpr = ourkeyfp
-	# i.update() # Not really needed it seems but keep for future reference
 
 ### Prepare message for processing by p≡p #########################################################
 
@@ -591,11 +587,10 @@ try:
 			src.from_ = reply_to_i
 			# src.reply_to = [ reply_to_i ] # TODO: this would be cleaner but pEp on the other end doesn't handle this yet
 
-
 	if mode == "decrypt":
 		src.to = [ourpepid]
 		src.recv_by = ourpepid # TODO: implement proper echo-protocol handling
-		### src.reply_to = [theirpepid]
+		# src.reply_to = [theirpepid]
 
 	# Get rid of CC and BCC for loop-avoidance (since Postfix gives us one separate message per recipient)
 	src.cc = []
@@ -608,7 +603,6 @@ except Exception:
 	dbg(errmsg)
 	dbgmail(errmsg)
 	exit(1)
-	# pass
 
 try:
 	dbg("Processing message from " + ((c(src.from_.username, 2)) if len(src.from_.username) > 0 else "") + c(" <" + src.from_.address + ">", 3) + \
@@ -621,25 +615,6 @@ except Exception:
 	dbg(errmsg)
 	dbgmail(errmsg)
 	exit(2)
-	# pass
-
-# Workaround for message_api.c:632: separate_short_and_long: Assertion `src' failed
-try:
-	if len(src.longmsg) == 0:
-		if len(src.longmsg_formatted) > 0:
-			dbg("Fixed missing text-only part in multipart/alternate message")
-			src.longmsg = src.longmsg_formatted
-		else:
-			dbg("Fallback-fixed missing text-only part in multipart/alternate message")
-			src.longmsg = "(content missing)"
-except Exception:
-	e = sys.exc_info()
-	errmsg  = "ERROR 3 - " + str(e[0]) + ": " + str(e[1]) + "\n"
-	errmsg += "Traceback:\n" + prettytable([line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])])
-	dbg(errmsg)
-	dbgmail(errmsg)
-	exit(3)
-	# pass
 
 ### Log parsed message ############################################################################
 
@@ -772,7 +747,7 @@ if nextmx is not None:
 opts.update(dst.opt_fields)
 dst.opt_fields = opts
 
-dbg("Opt fields OUT:\n" + prettytable(dst.opt_fields)) # DEBUG
+dbg("Opt fields OUT:\n" + prettytable(dst.opt_fields), pub=False) # DEBUG
 
 ### Log processed message #########################################################################
 
@@ -802,4 +777,16 @@ dbg("  To: " + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "
 
 sendmail(dst)
 
-dbg("===== " + c("p≡pgate ended", 1) + " =====")
+dbg("===== " + c("p≡pGate ended", 1) + " =====")
+
+### Per-session logfile ###########################################################################
+
+logfilename = os.path.join(logpath, "debug.log")
+logfile = codecs.open(logfilename, "w", "utf-8")
+logfile.write(getlog("textlog"))
+logfile.close()
+
+logfilename = os.path.join(logpath, "debug.html")
+logfile = codecs.open(logfilename, "w", "utf-8")
+logfile.write(getlog("htmllog"))
+logfile.close()
