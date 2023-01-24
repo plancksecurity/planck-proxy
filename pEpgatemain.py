@@ -1,223 +1,5 @@
-#!/usr/bin/env python3
-
 from pEpgate import *
-
-### More helper functions #########################################################################
-
-def prettytable(thing, colwidth=26):
-	ret = ""
-	if not isinstance(thing, list):
-		thing = [thing]
-
-	for subthing in thing:
-		if isinstance(subthing, str):
-			ret += (" " * colwidth) + c(" | ", 5) + subthing + "\n"
-		elif (hasattr(subthing, '__iter__')):
-			for k, v in subthing.items():
-				w = []
-				keys = []
-
-				if isinstance(v, dict) or isinstance(v, OrderedDict):
-					maxkeylength = max(len(x) for x in v.keys())
-					w += [ prettytable(v, max(maxkeylength, 10)) ]
-					v = "\n".join(w)
-
-				if isinstance(v, list):
-					# Iterate over list to figure out if we have dicts underneath + it's max key length
-					maxkeylength = colwidth
-					for item in v:
-						if isinstance(item, dict) or isinstance(item, OrderedDict):
-							keys += item.keys()
-
-					if len(keys) > 0:
-						maxkeylength = max(len(x) for x in keys)
-
-					if len(v) == 0:
-						w = [ "None" ]
-
-					# Iterate another round with the known max key length, call prettytable() recursively for "sub-tables"
-					for item in v:
-						if isinstance(item, dict) or isinstance(item, OrderedDict):
-							w += [ prettytable(item, max(maxkeylength, 10)) ]
-						else:
-							w += [ item ]
-					v = "\n".join(w)
-
-				ret += c(str(k).rjust(colwidth), 6) + c(" | ", 5) + str(v).replace("\n", "\n" + (" " * colwidth) + c(" | ", 5)) + "\n"
-
-		else:
-			dbg("Don't know how to prettyprint this thing. Aborting!")
-			sys.exit(20)
-
-	return ret[:-1]
-
-def keysfromkeyring(userid=None):
-	global jsonout
-	import sqlite3
-	db = sqlite3.connect(os.environ["HOME"] + "/.pEp/keys.db")
-
-	def collate_email(a, b):
-		# dbg("collate(%s, %s)" % (a, b))
-		return 1 if a > b else -1 if a < b else 0
-	db.create_collation("EMAIL", collate_email)
-
-	allkeys = []
-
-	if userid is not None:
-		q1 = db.execute("SELECT * FROM userids WHERE userid = ?;", (userid,))
-	else:
-		q1 = db.execute("SELECT * FROM userids;")
-
-	for r1 in q1:
-		q2 = db.execute("SELECT * FROM subkeys WHERE primary_key = ?;", (r1[1],))
-		subkeys = []
-		for r2 in q2:
-			subkeys += [ str(r2[0]) ]
-
-		fromdb = {}
-		fromdb["UserID"] = r1[0]
-		fromdb["KeyID"] = r1[1]
-		fromdb["Subkeys"] = subkeys
-
-		q3 = db.execute("SELECT tpk, secret FROM keys WHERE primary_key = ?;", (r1[1],))
-		for r3 in q3:
-			sqkeyfile = ("sec" if r3[1] == True else "pub") + "." + r1[0] + "." + r1[1] + ".key"
-			open(sqkeyfile, "wb").write(r3[0])
-			cmd = ["/usr/local/bin/sq", "enarmor", sqkeyfile, "-o", sqkeyfile + ".asc"]
-			p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE) # stderr=STDOUT for debugging
-			ret = p.wait()
-
-			cmd = ["/usr/local/bin/sq", "inspect", "--certifications", sqkeyfile]
-			p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE) # stderr=STDOUT for debugging
-			ret = p.wait()
-
-			if ret == 0:
-				inspected = {}
-				inspected['is_private'] = r3[1]
-				inspected['sq_inspect'] = []
-				for line in io.TextIOWrapper(p.stdout, encoding="utf-8", errors="strict"):
-					line = line.strip()
-					inspected['sq_inspect'] += [line]
-
-				inspected['sq_inspect'] = inspected['sq_inspect'][2:] # Hide internal filename & extra whitespace
-
-				try:
-					inspected['username'] = re.findall(r'UserID: (.*?) \<.*\r?\n?', str(inspected['sq_inspect']))[0]
-				except:
-					dbg("[!] No username/user ID was contained in this PGP blob. Full sq inspect:\n" + "\n".join(inspected['sq_inspect']))
-					pass
-
-		allkeys += [ { "pEp_keys.db": fromdb, "key_blob": inspected } ]
-
-	db.close()
-
-	if len(allkeys) > 0:
-		return allkeys
-	else:
-		return False
-
-def inspectusingsq(PGP):
-	import tempfile
-	tf = tempfile.NamedTemporaryFile()
-	tf.write(PGP.encode("utf8"))
-	cmd = ["/usr/local/bin/sq", "inspect", "--certifications", tf.name]
-	p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-	ret = p.wait()
-
-	for line in io.TextIOWrapper(p.stdout, encoding="utf-8", errors="strict"):
-		line = line.strip()
-		dbg(line)
-
-def decryptusingsq(inmail, secretkeyglob):
-	ret = ""
-	patt = re.compile(r"-----BEGIN PGP MESSAGE-----.*?-----END PGP MESSAGE-----", re.MULTILINE | re.DOTALL)
-	pgpparts = patt.findall(inmail)
-
-	# dbg(c("[!!!] Using decryptusingsq() fallback. Attachments will be LOST!", 1))
-	# dbg("Inmail: " + str(inmail))
-	# dbg("PGP: " + str(pgpparts))
-
-	if len(pgpparts) == 0:
-		return c("No -----BEGIN PGP MESSAGE----- found in original message", 3)
-
-	for p in pgpparts:
-		tmppath = "/tmp/pEpgate.pgppart." + str(os.getpid())
-		if "=0A=" in p:
-			import quopri
-			p = quopri.decodestring(p).decode("utf-8")
-
-		# dbg("PGP part: " + c(p, 5))
-		open(tmppath, "w").write(str(p))
-		
-		for secretkey in glob(secretkeyglob):
-			dbg(c("Trying secret key file " + secretkey, 3))
-
-			cmd = ["/usr/local/bin/sq", "decrypt", "--secret-key-file", secretkey, "--", tmppath]
-			dbg("CMD: " + " ".join(cmd), pub=False)
-
-			p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-			stdout, stderr = p.communicate()
-
-			# dbg("STDOUT: " + c(stdout.decode("utf8"), 2))
-			# dbg("STDERR: " + c(stderr.decode("utf8"), 1))
-
-			patt = re.compile(r"Message-ID:.*?^$", re.MULTILINE | re.DOTALL)
-			pepparts = patt.findall(stdout.decode("utf8"))
-
-			ret += "\n".join(pepparts)
-
-		os.unlink(tmppath)
-
-	return ret.replace("pEp-Wrapped-Message-Info: INNER\n", "")
-
-def getmailheaders(inmsg, headername=None):
-	try:
-		msg = email.message_from_string(inmsg)
-		if (headername is not None):
-			headers = msg.get_all(headername)
-		else:
-			headers = []
-			origheaders = msg.items()
-			for k, v in origheaders:
-				vclean = []
-				for line in v.splitlines():
-					vclean += [line.strip()]
-				headers += [{k:"\n".join(vclean)}]
-		return headers
-	except:
-		dbg("Can't pre-parse e-mail. Aborting!")
-		e = sys.exc_info()
-		dbg("ERROR 21 - " + str(e[0]) + ": " + str(e[1]))
-		dbg("Traceback: " + str(traceback.format_tb(e[2])))
-		return False
-		exit(21)
-
-def jsonlookup(jsonmapfile, key, bidilookup=False):
-	# dbg("JSON lookup in file " + jsonmapfile + " for key " + key)
-	result = None
-
-	with open(jsonmapfile) as f:
-		j = json.load(f)
-	try:
-		result = j[key]
-		dbg(c("Forward-rewriting ", 2) + key + " to " + str(result))
-	except KeyError:
-		pass
-
-	if result is None and bidilookup:
-		try:
-			jr = {v: k for k, v in j.items()}
-			result = jr[key]
-			dbg(c("Reverse-rewriting ", 3) + key + " to " + str(result))
-		except KeyError:
-			pass
-
-	# pEp-specificdbg("== " + key[:key.rfind("@")])
-	if jsonmapfile == fwdmappath and result is None: # and key[:key.rfind("@")] in ("root", "postmaster", "noreply", "no-reply"): # Silly debug catch-all for backscatter
-		result = j['default'] # "andy@pep-security.net" # must use the .net alias here since Exchange doesn't like From: aw@pep.sec and To: aw@pep.sec within one and the same message
-		dbg(c("Fallback-rewriting ", 2) + key + " to " + result)
-
-	return result
+from pEphelpers import *
 
 ### Initialization ################################################################################
 
@@ -269,8 +51,8 @@ lock.close()
 dbg("Lockfile created", pub=False)
 
 if len(sys.argv) < 2:
-	dbg("No operation mode specified. Usage: " + sys.argv[0] + " [encrypt|decrypt]")
-	exit(22)
+	dbg("ERROR: No operation mode specified. Usage: " + sys.argv[0] + " [encrypt|decrypt]")
+	exit(1)
 
 mode = sys.argv[1]
 
@@ -313,7 +95,7 @@ if len(inmail) == 0:
 				inmail += line
 	else:
 		dbg(c("No testmails available either. Aborting!", 1))
-		exit(23)
+		exit(2)
 
 ### Figure out how we have been contacted, what to do next ########################################
 
@@ -375,7 +157,7 @@ if aliases is not None:
 
 if msgto.count("@") != 1:
 	dbg(c("No clue how we've been contacted. Giving up...", 1))
-	exit(1)
+	exit(3)
 
 msgfrom = msgfrom.lower()
 msgto = msgto.lower()
@@ -391,7 +173,7 @@ if dts is not None:
 	dts = addr = dts[0]
 	dts = "-".join(re.findall(re.compile(r"<.*@(\w{2,}\.\w{2,})>"), dts))
 	dbg(c("Return receipt (debug log) requested by: " + str(addr), 3))
-	if dts in dtsdomains:
+	if dts in dts_domains:
 		dbg(c("Domain " + c(dts, 5) + " is allowed to request a debug log", 2))
 		setoutervar("dts", addr)
 	else:
@@ -401,7 +183,7 @@ if dts is not None:
 
 keywords = ("RESETKEY", "KEYRESET")
 
-if any(kw in inmail for kw in keywords) and mode == "encrypt" and ouraddr in resetsenders and theiraddr not in resetsenders:
+if any(kw in inmail for kw in keywords) and mode == "encrypt" and ouraddr in reset_senders and theiraddr not in reset_senders:
 	dbg("Resetting key for " + theiraddr + " in keyring " + ouraddr)
 
 	for kw in keywords:
@@ -411,22 +193,21 @@ if any(kw in inmail for kw in keywords) and mode == "encrypt" and ouraddr in res
 	dbg("CMD: " + " ".join(cmd))
 	p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 	stdout, stderr = p.communicate()
-
 	dbg(c(stdout.decode("utf8"), 2))
 
-### Address rewriting #############################################################################
+### Address- & domain-rewriting (for asymmetric inbound/outbound domains) #########################
 
-if mode == "encrypt":
-	nexthop = jsonlookup(fwdmappath, theiraddr, False)
-	if nexthop is not None:
-		dbg("Redirecting outgoing message from " + c(theiraddr, 3) + " to " + c(nexthop, 1) + ", as per forwarding.map")
-		theiraddr = nexthop
-
-if mode == "decrypt":
-	nexthop = jsonlookup(fwdmappath, ouraddr, False)
-	if nexthop is not None:
-		dbg("Redirecting incoming message from " + c(ouraddr, 1) + " to " + c(nexthop, 3) + ", as per forwarding.map")
-		ouraddr = nexthop
+rewrite = jsonlookup(fwdmappath, ouraddr, False)
+if rewrite is not None:
+	dbg("Rewriting our address from " + c(ouraddr, 1) + " to " + c(rewrite, 3))
+	ouraddr = rewrite
+else:
+	if mode == "encrypt":
+		ourdomain = ouraddr[ouraddr.rfind("@"):]
+		rewrite = jsonlookup(fwdmappath, ourdomain, False)
+		if rewrite is not None:
+			dbg("Rewriting domain of outgoing message from " + c(ourdomain, 3) + " to " + c(rewrite, 1))
+			ouraddr = ouraddr.replace(ourdomain, rewrite)
 
 ### Create & set working directory ################################################################
 
@@ -475,33 +256,16 @@ dbg("p≡p (" + str(pEp.about).strip().replace("\n", ", ") + ", p≡p engine ver
 
 if initialimport:
 	dbg(c("Initializing keys.db...", 2))
-
-	for f in glob(statickpath + ouraddr + "*.asc"):
-		dbg("")
+	for f in glob(os.path.join(keypath, "*.asc")):
 		keys = open(f, "rb").read()
-		pEp.import_key(keys)
-		dbg("Imported static/predefined keys from " + f, True)
-
-	for f in glob(globalkpath + "*.asc"):
 		dbg("")
-		keys = open(f, "rb").read()
 		pEp.import_key(keys)
-		dbg("Imported global key(s) from " + f, True)
-
-	# for f in glob(exportedpath + ouraddr + "/sec.*.asc"):
-		# dbg("Importing GnuPG-exported secret key from file: " + f)
-		# keys = open(f, "rb").read()
-		# pEp.import_key(keys)
-
-	# for f in glob(exportedpath + ouraddr + "/pub.*.asc"):
-		# dbg("Importing GnuPG-exported public key from file: " + f)
-		# keys = open(f, "rb").read()
-		# pEp.import_key(keys)
+		dbg("Imported key(s) from " + f, True)
 
 ### Show me what you got ##########################################################################
 
 dbg(c("┌ Environment variables", 5) + "\n" + prettytable(os.environ), pub=False)
-# dbg(c("┌ Keys in this keyring (as stored in keys.db)", 5) + "\n" + prettytable(keysfromkeyring()))
+dbg(c("┌ Keys in this keyring (as stored in keys.db)", 5) + "\n" + prettytable(keysfromkeyring()))
 dbg(c("┌ Headers in original message (as seen by non-p≡p clients)", 5) + "\n" + prettytable(getmailheaders(inmail)))
 
 ### Check if we have a public key for "them" ######################################################
@@ -598,11 +362,11 @@ try:
 
 except Exception:
 	e = sys.exc_info()
-	errmsg  = "ERROR 1 - " + str(e[0]) + ": " + str(e[1]) + "\n"
+	errmsg  = "ERROR 4: " + str(e[0]) + ": " + str(e[1]) + "\n"
 	errmsg += "Traceback:\n" + prettytable([line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])])
 	dbg(errmsg)
 	dbgmail(errmsg)
-	exit(1)
+	exit(4)
 
 try:
 	dbg("Processing message from " + ((c(src.from_.username, 2)) if len(src.from_.username) > 0 else "") + c(" <" + src.from_.address + ">", 3) + \
@@ -610,11 +374,11 @@ try:
 except Exception:
 	e = sys.exc_info()
 	errmsg  = "Couldn't get src.from_ or src.to\n"
-	errmsg += "ERROR 2 - " + str(e[0]) + ": " + str(e[1]) + "\n"
+	errmsg += "ERROR 5: " + str(e[0]) + ": " + str(e[1]) + "\n"
 	errmsg += "Traceback:\n" + prettytable([line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])])
 	dbg(errmsg)
 	dbgmail(errmsg)
-	exit(2)
+	exit(5)
 
 ### Log parsed message ############################################################################
 
@@ -638,8 +402,8 @@ try:
 		# Blacklisted domains which don't like PGP
 		a = src.to[0].address
 		d = a[a.find("@") + 1:]
-		if d in bldomains:
-			dbg(c("Blacklisted domain " + d + ". Not encrypting", 5))
+		if d in never_pEp:
+			dbg(c("Domain " + d + " in never_pEp, not encrypting", 5))
 			dst = src
 		# Magic-string "NOENCRYPT" found inside the message
 		elif "NOENCRYPT" in src.longmsg + src.longmsg_formatted:
@@ -671,10 +435,14 @@ try:
 			inspectusingsq(str(dst))
 
 	if mode == "decrypt":
-		pepfails = False # Set to True if Postfix queue fills up with errors
+		pepfails = False # TODO: put a flag somewhere to detect subsequent failures then auto-fallback (was: set to True if Postfix queue fills up with errors)
 		if not pepfails:
 			dbg(c("Decrypting message via pEp...", 2))
 			dst, keys, rating, flags = src.decrypt()
+			# dbg("dst: " + str(dst)[0:100] + "...")
+			# dbg("keys: " + str(keys))
+			# dbg("rating: " + str(rating))
+			# dbg("flags: " + str(flags))
 			dst.to = [ourpepid] # Lower the (potentially rewritten) outer recipient back into the inner message
 		else:
 			dbg(c("Decrypting message via Sequoia...", 2))
@@ -697,11 +465,15 @@ try:
 			# dbg("DSTs: " + c(str(dst.shortmsg), 3))
 			# dbg("DSTl: " + c(str(dst.longmsg), 4))
 	
-			keys = [ "Decrypted_by_Sequoia-info_not_available" ] # must stay for "if keys is None" below
+			keys = [ "Decrypted_by_Sequoia-info_not_available" ] # dummy required for "if keys is None" below
 	
-		# if pepfails:
-			# dbg(c("pEp wasn't able to decrypt -.-", 1))
-			# exit(2)
+		if pepfails:
+			dbg(c("ERROR 6: pEp crashed during decryption", 1))
+			exit(6)
+
+		if str(rating) == "have_no_key":
+			dbg(c("No matching key found to decrypt the message. Aborting!", 1))
+			exit(7)
 
 		if keys is None or len(keys) == 0:
 			dbg("Original message was NOT encrypted")
@@ -715,11 +487,11 @@ try:
 
 except Exception:
 	e = sys.exc_info()
-	errmsg  = "ERROR 4 - " + str(e[0]) + ": " + str(e[1]) + "\n"
+	errmsg  = "ERROR 7: " + str(e[0]) + ": " + str(e[1]) + "\n"
 	errmsg += "Traceback:\n" + prettytable([line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])])
 	dbg(errmsg)
 	dbgmail(errmsg)
-	exit(4)
+	exit(7)
 	# dst = src # FALLBACK: forward original message as-is if anything crypto goes wrong
 	# pass
 
@@ -729,7 +501,7 @@ dbg("Opt fields IN:\n" + prettytable(dst.opt_fields)) # DEBUG
 
 opts = {
 	"X-pEpGate-mode": mode,
-	"X-pEpGate-version": gateversion,
+	"X-pEpGate-version": gate_version,
 	"X-pEpEngine-version": pEp.engine_version,
 	"X-NextMX": "auto",
 }
@@ -775,7 +547,10 @@ dbg("  To: " + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "
 # sendmail("X-NextMX: 192.168.10.10:25\n" + inmail)
 # sendmail(inmail)
 
-sendmail(dst)
+if "discard" in src.to[0].address:
+	dbg("Keyword discard found in recipient address, skipping call to sendmail")
+else:
+	sendmail(dst)
 
 dbg("===== " + c("p≡pGate ended", 1) + " =====")
 

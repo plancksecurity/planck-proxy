@@ -18,13 +18,19 @@
 
 	"www-data@files.pep.security":    "andy@pep-security.net",
 
+	"__":                             "__-prefix for disabled",
+	"__andy@gate365.peptest.ch":      "andy@peptest.ch",
+	"__andy@peptest.ch":              "andy@gate.peptest.ch",
+	"__@peptest.ch":                  "@gate.peptest.ch",
+	"__@gate.peptest.ch":               "@peptest.ch",
+
+	"@pproxy.onmicrosoft.com":        "@peptest.ch",
+	"@peptest.ch":                    "@gate.peptest.ch",
+
+	"andy@proxy365.peptest.ch":       "andy@peptest.ch",
 	"andy@gate.peptest.ch":           "andy@peptest.ch",
-	"andy@gate365.peptest.ch":        "andy@peptest.ch",
 
-	"valentin.pproxy@pproxy.onmicrosoft.com":	"andy@peptest.ch",
 	"valentin.pproxy@peptest.ch":     "andy@peptest.ch",
-
-	"andy@peptest.ch":                "andy@gate.peptest.ch",
 
 	"default":                        "andy@pep-security.net"
 }

@@ -33,3 +33,7 @@ header_checks = regexp:/etc/postfix/header_checks
 
 /^X-NextMX: auto$/ FILTER smtp:
 /^X-NextMX: (.*)$/ FILTER smtp:$1
+
+### Cron to use for basic monitoring. Notify once per hour about mails stuck in Postfix's queue
+
+0	*	*	*	*	mailq | grep -v "is empty"
