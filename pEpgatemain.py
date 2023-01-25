@@ -99,68 +99,7 @@ if len(inmail) == 0:
 
 ### Figure out how we have been contacted, what to do next ########################################
 
-mailparseregexes = [
-	r"<([\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+)>",
-	r"<?([\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+)>?"
-]
-
-# From, fallback: Return-Path
-msgfrom = ""
-try:
-	for mpr in mailparseregexes:
-		msgfrom = "-".join(getmailheaders(inmail, "From"))
-		msgfrom = "-".join(re.findall(re.compile(mpr), msgfrom))
-		if len(msgfrom) > 0:
-			break
-except:
-	pass
-
-if msgfrom.count("@") != 1:
-	dbg(c("Unparseable From-header, falling back to using Return-Path", 1))
-	for mpr in mailparseregexes:
-		msgfrom = "-".join(getmailheaders(inmail, "Return-Path"))
-		msgfrom = "-".join(re.findall(re.compile(mpr), msgfrom))
-		if len(msgfrom) > 0:
-			break
-
-# Delivered-To, fallback if is alias: search for match in To/CC/BCC
-for mpr in mailparseregexes:
-	msgto = "-".join(getmailheaders(inmail, "Delivered-To"))
-	msgto = "-".join(re.findall(re.compile(mpr), msgto))
-	if len(msgto) > 0:
-		break
-
-aliases = jsonlookup(aliasespath, msgto, False)
-if aliases is not None:
-	dbg("Delivered-To is an aliased address: " + c(", ".join(aliases), 3))
-
-	allrcpts = set()
-	for hdr in ("To", "CC", "BCC"):
-		try:
-			for a in ", ".join(getmailheaders(inmail, hdr)).split(", "):
-				for mpr in mailparseregexes:
-					rcpt = " ".join(re.findall(re.compile(mpr), a))
-					allrcpts.add(rcpt)
-					# dbg(str(rcpt))
-		except:
-			# dbg("No " + hdr + " header in this message")
-			pass
-
-	dbg("All recipients / Alias candidates: " + c(", ".join(allrcpts), 5))
-	for r in allrcpts:
-		if r in aliases:
-			dbg("Matching alias found: " + c(r, 2))
-			msgto = r
-			break
-	else:
-		dbg(c("Couldn't match alias to original Delivered-To!", 1))
-
-if msgto.count("@") != 1:
-	dbg(c("No clue how we've been contacted. Giving up...", 1))
-	exit(3)
-
-msgfrom = msgfrom.lower()
-msgto = msgto.lower()
+msgfrom, msgto = get_contact_info(inmail)
 
 ouraddr = (msgfrom if mode == "encrypt" else msgto)
 theiraddr = (msgto if mode == "encrypt" else msgfrom)
@@ -464,9 +403,9 @@ try:
 			dbg("DST: " + c(str(dst), 2))
 			# dbg("DSTs: " + c(str(dst.shortmsg), 3))
 			# dbg("DSTl: " + c(str(dst.longmsg), 4))
-	
+
 			keys = [ "Decrypted_by_Sequoia-info_not_available" ] # dummy required for "if keys is None" below
-	
+
 		if pepfails:
 			dbg(c("ERROR 6: pEp crashed during decryption", 1))
 			exit(6)

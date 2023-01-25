@@ -12,6 +12,7 @@ import atexit
 import codecs
 import random
 import socket
+import smtplib
 import traceback
 
 from glob        import glob
