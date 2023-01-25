@@ -1,3 +1,4 @@
 debug.log
 keys/*.asc
 work/**
+__pycache__/
