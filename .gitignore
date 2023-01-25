@@ -2,3 +2,5 @@ debug.log
 keys/*.asc
 work/**
 __pycache__/
+_venv/
+.DS_Store

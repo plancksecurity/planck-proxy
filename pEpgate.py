@@ -42,7 +42,7 @@ lockfilepath = os.path.join(home, "pEpGate.lock")
 locktimeout  = 60
 
 # For testing only so not needed in settings.py
-testmailglob = os.path.join(home, "tests/*.eml")
+testmailglob = os.path.join(home, "tests/emails/*.eml")
 
 # Postfix sets this to "C" by default, we want full Unicode support though
 os.environ['LANG'] = os.environ['LC_ALL'] = "en_US.UTF-8"
