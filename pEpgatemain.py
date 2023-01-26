@@ -163,6 +163,8 @@ if msgto.count("@") != 1:
 	dbg(c("No clue how we've been contacted. Giving up...", 1))
 	exit(3)
 
+exit(3)
+
 msgfrom = msgfrom.lower()
 msgto = msgto.lower()
 
