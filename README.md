@@ -76,3 +76,8 @@ Cron can be used for basic monitoring. Here's an example to notify once per hour
 ```
 0 * * * * mailq | grep -v "is empty"
 ```
+
+## Testing
+To run the test suite [pytest](https://docs.pytest.org/) must be installed. This can be done either system-wide or using a virtualenv. pip provides an automatic installation using `pip install pytest``
+
+To run the tests simply run the `pytest` command.
