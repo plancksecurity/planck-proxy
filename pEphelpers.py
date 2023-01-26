@@ -330,10 +330,12 @@ def decryptusingsq(inmail, secretkeyglob):
 def getmailheaders(inmsg, headername=None):
 	try:
 		msg = email.message_from_string(inmsg)
+		headers = []
 		if (headername is not None):
-			headers = msg.get_all(headername)
+			h = msg.get_all(headername)
+			if h is not None:
+				headers = h
 		else:
-			headers = []
 			origheaders = msg.items()
 			for k, v in origheaders:
 				vclean = []
@@ -377,13 +379,15 @@ def get_contact_info(inmail):
 			msgfrom = "-".join(re.findall(re.compile(mpr), msgfrom))
 			if len(msgfrom) > 0:
 				break
-
-	# Delivered-To, fallback if is alias: search for match in To/CC/BCC
-	for mpr in mailparseregexes:
-		msgto = "-".join(getmailheaders(inmail, "Delivered-To"))
-		msgto = "-".join(re.findall(re.compile(mpr), msgto))
-		if len(msgto) > 0:
-			break
+	try:
+		# Delivered-To, fallback if is alias: search for match in To/CC/BCC
+		for mpr in mailparseregexes:
+			msgto = "-".join(getmailheaders(inmail, "Delivered-To"))
+			msgto = "-".join(re.findall(re.compile(mpr), msgto))
+			if len(msgto) > 0:
+				break
+	except:
+		pass
 
 	aliases = jsonlookup(aliasespath, msgto, False)
 	if aliases is not None:
