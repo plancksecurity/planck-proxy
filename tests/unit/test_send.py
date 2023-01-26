@@ -1,15 +1,11 @@
 from pEphelpers import sendmail
-
-msg = """From: <root@backup.pep.security>
-Delivered-To: dbe@pep.security
-To: "David" <dbe@pep.security>
-Subject: Hello world!
-Date: Thu, 12 Jul 2021 09:59:45 +0200
-
-Hello encrypted world!"""
+from helpers import get_mailbot_address
+from helpers import collect_email
 
 
 def test_send():
-    res = sendmail(msg)
+    to_addr = get_mailbot_address()
+    test_msg = collect_email("test_send_bot.eml").replace('[[TO_ADDR]]', to_addr)
+    res = sendmail(test_msg)
     assert res is True
 
