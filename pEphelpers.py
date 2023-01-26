@@ -337,10 +337,12 @@ def decryptusingsq(inmail, secretkeyglob):
 def getmailheaders(inmsg, headername=None):
 	try:
 		msg = email.message_from_string(inmsg)
+		headers = []
 		if (headername is not None):
-			headers = msg.get_all(headername)
+			h = msg.get_all(headername)
+			if h is not None:
+				headers = h
 		else:
-			headers = []
 			origheaders = msg.items()
 			for k, v in origheaders:
 				vclean = []
@@ -370,8 +372,15 @@ def jsonlookup(jsonmapfile, key, bidilookup=False):
 
 	if result is None and bidilookup:
 		try:
-			jr = {v: k for k, v in j.items()}
-			result = jr[key]
+			for k, v in j.items():
+				if type(v) is list:
+					if key in v:
+						result = k
+						break
+				else:
+					jr = {v: k for k, v in j.items()}
+					result = jr[key]
+					break
 			dbg(c("Reverse-rewriting ", 3) + key + " to " + str(result))
 		except KeyError:
 			pass
