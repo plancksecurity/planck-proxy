@@ -67,23 +67,16 @@ def getlog(type):
 def sendmail(msg):
 	# Replace dots at the beginning of a line with the MIME-encoded, quoted-printable counterpart. Fuck you very much, Outlook!
 	msg = re.sub('^\.', '=2E', msg, flags=re.M)
-
-	# dbg("Passing message to sendmail") # + c(str(out), 6))
-	p = Popen(["timeout", "15", "/usr/sbin/sendmail", "-t"], shell=False, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-	p.stdin.write(msg.encode("utf8") + "\r\n.\r\n".encode("ascii"))
-
-	p.stdin.flush()
-	retval = p.wait()
-
-	if retval == 0:
-		dbg(c("Mail successfully sent", 2))
-		return True
-	else:
-		dbg(c("ERROR 6 - Mail could not be sent, return code: " + str(retval), 1))
-		dbg("sendmail's stdout:")
-		for line in p.stdout:
-			dbg(line)
+	try:
+		msgfrom, msgto = get_contact_info(msg)
+		with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+			server.sendmail(msgfrom, msgto, msg)
+	except Exception as e:
+		dbg(c(f"ERROR 6 - Mail could not be sent, return code: {e}", 6))
 		return False
+	else:
+		dbg("Mail successfully sent")
+		return True
 
 def dbgmail(msg, rcpt=admin_addr, subject="[FATAL] pEp Gate @ " + socket.getfqdn() + " crashed!", attachments=[]):
 	# We're in failure-mode here so we can't rely on pEp here and need to hand-craft a MIME-structure
@@ -312,7 +305,7 @@ def decryptusingsq(inmail, secretkeyglob):
 
 		# dbg("PGP part: " + c(p, 5))
 		open(tmppath, "w").write(str(p))
-		
+
 		for secretkey in glob(secretkeyglob):
 			dbg(c("Trying secret key file " + secretkey, 3))
 
@@ -357,6 +350,76 @@ def getmailheaders(inmsg, headername=None):
 		dbg("Traceback: " + str(traceback.format_tb(e[2])))
 		return False
 		exit(21)
+
+def get_contact_info(inmail):
+	"""
+	Figure from and to address based on the email headers
+	"""
+
+	mailparseregexes = [
+		r"<([\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+)>",
+		r"<?([\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+)>?"
+	]
+
+	# From, fallback: Return-Path
+	msgfrom = ""
+	try:
+		for mpr in mailparseregexes:
+			msgfrom = "-".join(getmailheaders(inmail, "From"))
+			msgfrom = "-".join(re.findall(re.compile(mpr), msgfrom))
+			if len(msgfrom) > 0:
+				break
+	except:
+		pass
+
+	if msgfrom.count("@") != 1:
+		dbg(c("Unparseable From-header, falling back to using Return-Path", 1))
+		for mpr in mailparseregexes:
+			msgfrom = "-".join(getmailheaders(inmail, "Return-Path"))
+			msgfrom = "-".join(re.findall(re.compile(mpr), msgfrom))
+			if len(msgfrom) > 0:
+				break
+
+	# Delivered-To, fallback if is alias: search for match in To/CC/BCC
+	for mpr in mailparseregexes:
+		msgto = "-".join(getmailheaders(inmail, "Delivered-To"))
+		msgto = "-".join(re.findall(re.compile(mpr), msgto))
+		if len(msgto) > 0:
+			break
+
+	aliases = jsonlookup(aliasespath, msgto, False)
+	if aliases is not None:
+		dbg("Delivered-To is an aliased address: " + c(", ".join(aliases), 3))
+
+		allrcpts = set()
+		for hdr in ("To", "CC", "BCC"):
+			try:
+				for a in ", ".join(getmailheaders(inmail, hdr)).split(", "):
+					for mpr in mailparseregexes:
+						rcpt = " ".join(re.findall(re.compile(mpr), a))
+						allrcpts.add(rcpt)
+						# dbg(str(rcpt))
+			except:
+				# dbg("No " + hdr + " header in this message")
+				pass
+
+		dbg("All recipients / Alias candidates: " + c(", ".join(allrcpts), 5))
+		for r in allrcpts:
+			if r in aliases:
+				dbg("Matching alias found: " + c(r, 2))
+				msgto = r
+				break
+		else:
+			dbg(c("Couldn't match alias to original Delivered-To!", 1))
+
+	if msgto.count("@") != 1:
+		dbg(c("No clue how we've been contacted. Giving up...", 1))
+		exit(3)
+
+	msgfrom = msgfrom.lower()
+	msgto = msgto.lower()
+
+	return msgfrom, msgto
 
 def jsonlookup(jsonmapfile, key, bidilookup=False):
 	dbg("JSON lookup in file " + jsonmapfile + " for key " + key)
