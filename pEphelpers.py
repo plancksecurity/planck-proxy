@@ -361,7 +361,7 @@ def get_contact_info(inmail):
 		r"<?([\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+)>?"
 	]
 
-	# From, fallback: Return-Path
+	# Figure out the sender (use From header, fallback Return-Path)
 	msgfrom = ""
 	try:
 		for mpr in mailparseregexes:
@@ -380,12 +380,16 @@ def get_contact_info(inmail):
 			if len(msgfrom) > 0:
 				break
 
-	# Delivered-To, fallback if is alias: search for match in To/CC/BCC
-	for mpr in mailparseregexes:
-		msgto = "-".join(getmailheaders(inmail, "Delivered-To"))
-		msgto = "-".join(re.findall(re.compile(mpr), msgto))
-		if len(msgto) > 0:
-			break
+	# Figure out the recipient (rely on the Delivered-To header, rewrite if is a key in aliases map and if any of it's values is part of To/CC/BCC)
+	msgto = ""
+	try:
+		for mpr in mailparseregexes:
+			msgto = "-".join(getmailheaders(inmail, "Delivered-To"))
+			msgto = "-".join(re.findall(re.compile(mpr), msgto))
+			if len(msgto) > 0:
+				break
+	except:
+		pass
 
 	aliases = jsonlookup(aliasespath, msgto, False)
 	if aliases is not None:
@@ -397,8 +401,8 @@ def get_contact_info(inmail):
 				for a in ", ".join(getmailheaders(inmail, hdr)).split(", "):
 					for mpr in mailparseregexes:
 						rcpt = " ".join(re.findall(re.compile(mpr), a))
-						allrcpts.add(rcpt)
-						# dbg(str(rcpt))
+						if len(rcpt) > 0:
+							allrcpts.add(rcpt)
 			except:
 				# dbg("No " + hdr + " header in this message")
 				pass
