@@ -116,7 +116,7 @@ theiraddr = (msgto if mode == "encrypt" else msgfrom)
 
 dts = getmailheaders(inmail, "Disposition-Notification-To") # Debug To Sender
 
-if dts is not None:
+if len(dts) > 0:
 	dts = addr = dts[0]
 	dts = "-".join(re.findall(re.compile(r"<.*@(\w{2,}\.\w{2,})>"), dts))
 	dbg(c("Return receipt (debug log) requested by: " + str(addr), 3))

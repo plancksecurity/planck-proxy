@@ -68,15 +68,14 @@ def sendmail(msg):
 	# Replace dots at the beginning of a line with the MIME-encoded, quoted-printable counterpart. Fuck you very much, Outlook!
 	msg = re.sub('^\.', '=2E', msg, flags=re.M)
 	try:
-		msgfrom, msgto = get_contact_info(msg)
+		msgfrom, msgto = get_contact_info(msg, True)
 		with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
 			server.sendmail(msgfrom, msgto, msg)
 	except Exception as e:
 		dbg(c(f"ERROR 6 - Mail could not be sent, return code: {e}", 6))
-		return False
+		exit(6)
 	else:
 		dbg("Mail successfully sent")
-		return True
 
 def dbgmail(msg, rcpt=admin_addr, subject="[FATAL] pEp Gate @ " + socket.getfqdn() + " crashed!", attachments=[]):
 	# We're in failure-mode here so we can't rely on pEp here and need to hand-craft a MIME-structure
@@ -351,7 +350,7 @@ def getmailheaders(inmsg, headername=None):
 		return False
 		exit(21)
 
-def get_contact_info(inmail):
+def get_contact_info(inmail, reinjection=False):
 	"""
 	Figure from and to address based on the email headers
 	"""
@@ -361,7 +360,7 @@ def get_contact_info(inmail):
 		r"<?([\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+)>?"
 	]
 
-	# From, fallback: Return-Path
+	# Figure out the sender (use From header, fallback Return-Path)
 	msgfrom = ""
 	try:
 		for mpr in mailparseregexes:
@@ -379,15 +378,17 @@ def get_contact_info(inmail):
 			msgfrom = "-".join(re.findall(re.compile(mpr), msgfrom))
 			if len(msgfrom) > 0:
 				break
-	try:
-		# Delivered-To, fallback if is alias: search for match in To/CC/BCC
-		for mpr in mailparseregexes:
-			msgto = "-".join(getmailheaders(inmail, "Delivered-To"))
-			msgto = "-".join(re.findall(re.compile(mpr), msgto))
-			if len(msgto) > 0:
-				break
-	except:
-		pass
+	# Figure out the recipient (rely on the Delivered-To header, rewrite if is a key in aliases map and if any of it's values is part of To/CC/BCC)
+	msgto = ""
+	for hdr in ["To", "Delivered-To"] if reinjection else ["Delivered-To"]:
+		try:
+			for mpr in mailparseregexes:
+				msgto = "-".join(getmailheaders(inmail, hdr))
+				msgto = "-".join(re.findall(re.compile(mpr), msgto))
+				if len(msgto) > 0: break
+			if len(msgto) > 0: break # we need one for each for-loop
+		except:
+			pass
 
 	aliases = jsonlookup(aliasespath, msgto, False)
 	if aliases is not None:
@@ -399,8 +400,8 @@ def get_contact_info(inmail):
 				for a in ", ".join(getmailheaders(inmail, hdr)).split(", "):
 					for mpr in mailparseregexes:
 						rcpt = " ".join(re.findall(re.compile(mpr), a))
-						allrcpts.add(rcpt)
-						# dbg(str(rcpt))
+						if len(rcpt) > 0:
+							allrcpts.add(rcpt)
 			except:
 				# dbg("No " + hdr + " header in this message")
 				pass
@@ -437,8 +438,15 @@ def jsonlookup(jsonmapfile, key, bidilookup=False):
 
 	if result is None and bidilookup:
 		try:
-			jr = {v: k for k, v in j.items()}
-			result = jr[key]
+			for k, v in j.items():
+				if type(v) is list:
+					if key in v:
+						result = k
+						break
+				else:
+					jr = {v: k for k, v in j.items()}
+					result = jr[key]
+					break
 			dbg(c("Reverse-rewriting ", 3) + key + " to " + str(result))
 		except KeyError:
 			pass

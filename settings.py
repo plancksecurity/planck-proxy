@@ -7,7 +7,7 @@
 # │   │   │   ├── in.{decrypt|encrypt}.original.eml
 # │   │   │   ├── in.{decrypt|encrypt}.parsed.eml
 # │   │   │   └── in.{decrypt|encrypt}.processed.eml
-# │   │   ├── <Anbother Date/Time>
+# │   │   ├── <Another Date/Time>
 # │   │   │   ├── [...]
 # │   ├── <Another Sender address>
 # │   │   ├── <Date/Time>
