@@ -1,4 +1,5 @@
 debug.log
+pytestdebug.log
 keys/*.asc
 work/**
 __pycache__/

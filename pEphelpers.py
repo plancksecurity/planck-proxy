@@ -379,7 +379,6 @@ def get_contact_info(inmail):
 			msgfrom = "-".join(re.findall(re.compile(mpr), msgfrom))
 			if len(msgfrom) > 0:
 				break
-
 	# Figure out the recipient (rely on the Delivered-To header, rewrite if is a key in aliases map and if any of it's values is part of To/CC/BCC)
 	msgto = ""
 	try:

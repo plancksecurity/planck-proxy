@@ -1,5 +1,8 @@
 from pathlib import Path
 import sys
-# Adding the path to the commons folder so it can be used as a module anywhere
-ROOT_PATH = Path(__file__).parent
+import os
+# Adding the path to the root folder so the files can be imported in the tests
+ROOT_PATH = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_PATH))
+
+os.environ['TEST_ROOT'] = str(Path(__file__).parent)
