@@ -68,15 +68,14 @@ def sendmail(msg):
 	# Replace dots at the beginning of a line with the MIME-encoded, quoted-printable counterpart. Fuck you very much, Outlook!
 	msg = re.sub('^\.', '=2E', msg, flags=re.M)
 	try:
-		msgfrom, msgto = get_contact_info(msg)
+		msgfrom, msgto = get_contact_info(msg, True)
 		with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
 			server.sendmail(msgfrom, msgto, msg)
 	except Exception as e:
 		dbg(c(f"ERROR 6 - Mail could not be sent, return code: {e}", 6))
-		return False
+		exit(6)
 	else:
 		dbg("Mail successfully sent")
-		return True
 
 def dbgmail(msg, rcpt=admin_addr, subject="[FATAL] pEp Gate @ " + socket.getfqdn() + " crashed!", attachments=[]):
 	# We're in failure-mode here so we can't rely on pEp here and need to hand-craft a MIME-structure
@@ -351,7 +350,7 @@ def getmailheaders(inmsg, headername=None):
 		return False
 		exit(21)
 
-def get_contact_info(inmail):
+def get_contact_info(inmail, reinjection=False):
 	"""
 	Figure from and to address based on the email headers
 	"""
@@ -381,14 +380,15 @@ def get_contact_info(inmail):
 				break
 	# Figure out the recipient (rely on the Delivered-To header, rewrite if is a key in aliases map and if any of it's values is part of To/CC/BCC)
 	msgto = ""
-	try:
-		for mpr in mailparseregexes:
-			msgto = "-".join(getmailheaders(inmail, "Delivered-To"))
-			msgto = "-".join(re.findall(re.compile(mpr), msgto))
-			if len(msgto) > 0:
-				break
-	except:
-		pass
+	for hdr in ["To", "Delivered-To"] if reinjection else ["Delivered-To"]:
+		try:
+			for mpr in mailparseregexes:
+				msgto = "-".join(getmailheaders(inmail, hdr))
+				msgto = "-".join(re.findall(re.compile(mpr), msgto))
+				if len(msgto) > 0: break
+			if len(msgto) > 0: break # we need one for each for-loop
+		except:
+			pass
 
 	aliases = jsonlookup(aliasespath, msgto, False)
 	if aliases is not None:
