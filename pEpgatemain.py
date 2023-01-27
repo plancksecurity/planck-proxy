@@ -345,7 +345,7 @@ try:
 			dbg(c("Domain " + d + " in never_pEp, not encrypting", 5))
 			dst = src
 		# Magic-string "NOENCRYPT" found inside the message
-		elif "NOENCRYPT" in src.longmsg + src.longmsg_formatted:
+		elif "NOENCRYPT" in src.longmsg + src.longmsg_formatted and DEBUG:
 			dbg(c("Found magic string 'NOENCRYPT' so not going to encrypt this message", 1))
 			dst = src
 			dst.longmsg = dst.longmsg.replace("NOENCRYPT", "")

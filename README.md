@@ -5,6 +5,13 @@ This project provides a tool able to decrypt with p≡p incoming messages which 
 To import the extra key into the p≡p Gate it must be placed into the `keys_dir` defined in the `settings.py` file.
 By default this directory is set to the `keys` folder in the root of this same project.
 
+## Features
+### NOENCRYPT
+On DEBUG mode, messages containing the string 'NOENCRYPT' somewhere in the body and with positive feedback from the filtering system, will be sent unencrypted to the next MTA. The string 'NOENCRYPT' will be removed from the message itself.
+
+## p≡p Gate settings
+The `settings.py` file has some setting configurations that wither need to be set or can be used to enable custom behaviours.
+
 ## Postfix configuration
 The p≡p Gate uses postfix to handle the message sending and queuing, so some configuration is needed in postfix to correctly bind the email flow to the p≡p Gate:
 

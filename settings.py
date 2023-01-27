@@ -58,5 +58,8 @@ reset_senders  = [ "support@pep.security", "contact@pep.security", "it@pep.secur
 # Never send encrypted to these domains
 never_pEp      = [ "apple.com" ]
 
+# Host and port for the local SMTP server that will handle the emails
 SMTP_HOST  = "80.90.47.12"
 SMTP_PORT = 25
+
+DEBUG = False
