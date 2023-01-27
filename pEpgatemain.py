@@ -50,11 +50,19 @@ lock.write(str(os.getpid()))
 lock.close()
 dbg("Lockfile created", pub=False)
 
-if len(sys.argv) < 2:
-	dbg("ERROR: No operation mode specified. Usage: " + sys.argv[0] + " [encrypt|decrypt]")
-	exit(1)
+### Parse args
 
-mode = sys.argv[1]
+parser = argparse.ArgumentParser(description='pEp Proxy CLI.')
+parser.add_argument('mode', choices=["encrypt", "decrypt"], help='Mode')
+parser.add_argument('--DEBUG', type=bool, default=get_default("DEBUG"), help='DEBUG')
+parser.add_argument('--keys_dir', default=get_default("keys_dir"), help='keys_dir')
+parser.add_argument('--SMTP_HOST', default=get_default("SMTP_HOST"), help='SMTP_HOST')
+parser.add_argument('--SMTP_PORT', type=int, default=get_default("SMTP_PORT"), help='SMTP_PORT')
+
+args = parser.parse_args()
+for key,val in vars(args).items():
+	# Dump the args dict into the namespace so settings can be overwritten
+	setoutervar(key, val)
 
 dbg("===== " + c("p≡pGate started", 2) + " in mode " + c(mode, 3) +" | PID " + c(str(os.getpid()), 5) + " | UID " + c(str(os.getuid()), 6) + " | GID " + c(str(os.getgid()), 7) + " =====")
 

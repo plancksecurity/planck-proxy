@@ -145,7 +145,7 @@ def cleanup():
 		except:
 			dbg("Can't remove Lockfile " + c(lockfilepath, 6), pub=False)
 
-# Set variables in the outer scope from within the inner scope "pEpgatemain" (mainly used in cleanup())
+# Set variables in the outer scope from within the inner scope "pEpgatemain"
 def setoutervar(var, val):
 	globals()[var] = val
 
@@ -453,3 +453,16 @@ def jsonlookup(jsonmapfile, key, bidilookup=False):
 	'''
 
 	return result
+
+def get_default(setting):
+	"""
+	Get the default value for the given setting with the following priority:
+	1. Env variable
+	2. String on settings.py file (aka vars loaded into the memory space)
+	"""
+	env_val = os.getenv(setting)
+	if env_val:
+		return env_val
+	settings_vars = globals()
+	settings_val = settings_vars.get(setting)
+	return settings_val

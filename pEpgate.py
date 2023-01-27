@@ -8,6 +8,7 @@ import html
 import json
 import email
 import base64
+import argparse
 import atexit
 import codecs
 import random
