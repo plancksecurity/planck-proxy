@@ -32,8 +32,7 @@ def reset_pep_folder(tmp_path):
     pep_folder.mkdir(parents=True)
     return pep_folder
 
-
-KEYS_DIR = pathlib.Path(__file__).parent.absolute() / "testing_keys"
+KEYS_DIR = pathlib.Path(__file__).parent.absolute() / "keys"
 
 @pytest.fixture
 def keys_dir():

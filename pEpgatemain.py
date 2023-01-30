@@ -1,6 +1,37 @@
 from pEpgate import *
 from pEphelpers import *
 
+### Parse args ################################################################################
+
+parser = argparse.ArgumentParser(description='pEp Proxy CLI.')
+parser.add_argument('mode', choices=["encrypt", "decrypt"], help='Mode')
+parser.add_argument('--DEBUG', type=bool, default=get_default("DEBUG"), help='DEBUG')
+parser.add_argument('--keys_dir', default=get_default("keys_dir"), help='keys_dir')
+parser.add_argument('--work_dir', default=get_default("work_dir"), help='work_dir')
+parser.add_argument('--SMTP_HOST', default=get_default("SMTP_HOST"), help='SMTP_HOST')
+parser.add_argument('--SMTP_PORT', type=int, default=get_default("SMTP_PORT"), help='SMTP_PORT')
+
+args = parser.parse_args()
+for key,val in vars(args).items():
+	# Dump the args dict into the namespace so settings can be overwritten
+	globals()[key] = val
+
+workdirpath  = os.path.join(home, work_dir)
+keypath      = os.path.join(home, keys_dir)
+logfilepath  = os.path.join(home, logfile)
+fwdmappath   = os.path.join(home, forwarding_map)
+usermappath  = os.path.join(home, username_map)
+nextmxpath   = os.path.join(home, nextmx_map)
+aliasespath  = os.path.join(home, aliases_map)
+lockfilepath = os.path.join(home, "pEpGate.lock")
+
+dbg("===== " + c("p≡pGate started", 2) + " in mode " + c(mode, 3)
+	+ " | PID " + c(str(os.getpid()), 5) + " | UID " + c(str(os.getuid()), 6)
+	+ " | GID " + c(str(os.getgid()), 7) + " =====")
+dbg (f"args passed {str(args)}")
+dbg (f"keys and work paths {keypath}, {workdirpath}")
+
+
 ### Initialization ################################################################################
 
 sys.excepthook = except_hook
@@ -49,22 +80,6 @@ lock = open(lockfilepath, "w")
 lock.write(str(os.getpid()))
 lock.close()
 dbg("Lockfile created", pub=False)
-
-### Parse args
-
-parser = argparse.ArgumentParser(description='pEp Proxy CLI.')
-parser.add_argument('mode', choices=["encrypt", "decrypt"], help='Mode')
-parser.add_argument('--DEBUG', type=bool, default=get_default("DEBUG"), help='DEBUG')
-parser.add_argument('--keys_dir', default=get_default("keys_dir"), help='keys_dir')
-parser.add_argument('--SMTP_HOST', default=get_default("SMTP_HOST"), help='SMTP_HOST')
-parser.add_argument('--SMTP_PORT', type=int, default=get_default("SMTP_PORT"), help='SMTP_PORT')
-
-args = parser.parse_args()
-for key,val in vars(args).items():
-	# Dump the args dict into the namespace so settings can be overwritten
-	setoutervar(key, val)
-
-dbg("===== " + c("p≡pGate started", 2) + " in mode " + c(mode, 3) +" | PID " + c(str(os.getpid()), 5) + " | UID " + c(str(os.getuid()), 6) + " | GID " + c(str(os.getgid()), 7) + " =====")
 
 ### Read original message from stdin or use a testmail ############################################
 
