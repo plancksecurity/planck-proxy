@@ -5,8 +5,8 @@ from pEphelpers import *
 
 parser = argparse.ArgumentParser(description='pEp Proxy CLI.')
 parser.add_argument('mode', choices=["encrypt", "decrypt"], help='Mode')
-parser.add_argument('--DEBUG', type=bool, default=get_default("DEBUG"),
-	help=f'Set DEBUG mode, default is {get_default("DEBUG")}')
+parser.add_argument('--DEBUG', action='store_true',
+	default=get_default("DEBUG"), help=f'Set DEBUG mode, default is {get_default("DEBUG")}')
 parser.add_argument('--keys_dir', default=get_default("keys_dir"),
 	help=f'Directory where the extra key should be imported from, default is "{get_default("keys_dir")}"')
 parser.add_argument('--work_dir', default=get_default("work_dir"),
@@ -34,8 +34,6 @@ dbg("===== " + c("p≡pGate started", 2) + " in mode " + c(mode, 3)
 	+ " | PID " + c(str(os.getpid()), 5) + " | UID " + c(str(os.getuid()), 6)
 	+ " | GID " + c(str(os.getgid()), 7) + " =====")
 dbg (f"args passed {str(args)}")
-dbg (f"keys and work paths {keypath}, {workdirpath}")
-
 
 ### Initialization ################################################################################
 
@@ -374,7 +372,7 @@ try:
 			dst = src
 		# Magic-string "NOENCRYPT" found inside the message
 		elif "NOENCRYPT" in src.longmsg + src.longmsg_formatted and DEBUG:
-			dbg(c("Found magic string 'NOENCRYPT' so not going to encrypt this message", 1))
+			dbg(c(f"Found magic string 'NOENCRYPT' so not going to encrypt this message {DEBUG}", 1))
 			dst = src
 			dst.longmsg = dst.longmsg.replace("NOENCRYPT", "")
 			dst.longmsg_formatted = dst.longmsg_formatted.replace("NOENCRYPT", "")
