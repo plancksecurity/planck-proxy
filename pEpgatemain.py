@@ -15,6 +15,8 @@ parser.add_argument('--SMTP_HOST', default=get_default("SMTP_HOST"),
 	help=f'Address of the SMTP host used to send the messages. Default "{get_default("SMTP_HOST")}"')
 parser.add_argument('--SMTP_PORT', type=int, default=get_default("SMTP_PORT"),
 	help=f'Port of the SMTP host used to send the messages. Default "{get_default("SMTP_PORT")}"')
+parser.add_argument('--EXTRA_KEY', default=get_default("EXTRA_KEY"),
+	help=f'FPR for the Extra Key to decrypt messages. Default "{get_default("EXTRA_KEY")}"')
 
 args = parser.parse_args()
 for key,val in vars(args).items():
@@ -390,7 +392,7 @@ try:
 			# pEp.unencrypted_subject(True)
 
 			# dst = src.encrypt()
-			dst = src.encrypt(["4BBCDBF5967AA2BDB26B5877C3329372697276DE"], 0) # TODO: load extra keys from some config/map
+			dst = src.encrypt([EXTRA_KEY], 0) # TODO: load extra keys from some config/map
 			# dst = src # DEBUG: disable encryption
 
 			dbg(c("Processed in", 2), True)

@@ -62,4 +62,8 @@ never_pEp      = [ "apple.com" ]
 SMTP_HOST  = "80.90.47.12"
 SMTP_PORT = 25
 
+# Some test features will only work when DEBUG is on
 DEBUG = False
+
+# Extra key used to decrypt messages
+EXTRA_KEY = "4BBCDBF5967AA2BDB26B5877C3329372697276DE"
