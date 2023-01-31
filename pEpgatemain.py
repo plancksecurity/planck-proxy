@@ -7,6 +7,8 @@ parser = argparse.ArgumentParser(description='pEp Proxy CLI.')
 parser.add_argument('mode', choices=["encrypt", "decrypt"], help='Mode')
 parser.add_argument('--DEBUG', action='store_true',
 	default=get_default("DEBUG"), help=f'Set DEBUG mode, default is {get_default("DEBUG")}')
+parser.add_argument('--EXTRA_KEY', default=get_default("EXTRA_KEY"),
+	help=f'FPR for the Extra Key to decrypt messages, default is "{get_default("EXTRA_KEY")}"')
 parser.add_argument('--keys_dir', default=get_default("keys_dir"),
 	help=f'Directory where the extra key should be imported from, default is "{get_default("keys_dir")}"')
 parser.add_argument('--work_dir', default=get_default("work_dir"),
@@ -391,7 +393,7 @@ try:
 			# pEp.unencrypted_subject(True)
 
 			# dst = src.encrypt()
-			dst = src.encrypt(["4BBCDBF5967AA2BDB26B5877C3329372697276DE"], 0) # TODO: load extra keys from some config/map
+			dst = src.encrypt([EXTRA_KEY], 0) # TODO: load extra keys from some config/map
 			# dst = src # DEBUG: disable encryption
 
 			dbg(c("Processed in", 2), True)

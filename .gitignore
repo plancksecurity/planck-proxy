@@ -4,6 +4,7 @@ pytestdebug.log
 keys/*.asc
 work/**
 tests/work/**
+tests/keys/
 __pycache__/
 _venv/
 .DS_Store
