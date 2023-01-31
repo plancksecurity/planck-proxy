@@ -134,18 +134,24 @@ Example of /etc/postfix/transport:
 
   ```
 
-2. Define header_checks in main.cf (pEp Gate adds an X-NextMX header to all messages, defined in nexthop.map):
+2. Define inbound and outbound (smtp_)header_checks in main.cf (pEp Gate adds an X-NextMX header to all messages, defined in nexthop.map):
 
  ```
-header_checks = regexp:/etc/postfix/header_checks
+header_checks      = regexp:/etc/postfix/header_checks_in
+smtp_header_checks = regexp:/etc/postfix/header_checks_out
 ```
 
-Example of /etc/postfix/header_checks:
+/etc/postfix/header_checks_in:
 
 ```
 /^X-NextMX: auto$/ FILTER smtp:
-
 /^X-NextMX: (.*)$/ FILTER smtp:$1
+```
+
+/etc/postfix/header_checks_out:
+
+```
+/^X-NextMX:.*$/ IGNORE
 ```
 
   ## Monitoring
