@@ -33,7 +33,8 @@ lockfilepath = os.path.join(home, "pEpGate.lock")
 dbg("===== " + c("p≡pGate started", 2) + " in mode " + c(mode, 3)
 	+ " | PID " + c(str(os.getpid()), 5) + " | UID " + c(str(os.getuid()), 6)
 	+ " | GID " + c(str(os.getgid()), 7) + " =====")
-dbg (f"args passed {str(args)}")
+if DEBUG:
+	dbg (f"args passed {str(args)}")
 
 ### Initialization ################################################################################
 

@@ -47,19 +47,19 @@ nextmx_map     = "nextmx.map"
 aliases_map    = "aliases.map"
 
 # Send failure and debug messages here
-admin_addr     = "aw@pep.security"
+admin_addr     = "someone@yourcompany.tld"
 
 # Sender domains that get a debug log when the original message had enabled "Return receipt"
-dts_domains    = [ "peptest.ch", "pep.security", "0x3d.lu" ]
+dts_domains    = [ "yourcompany.tld" ]
 
 # Senders that are allowed to use the inline-command RESETKEY/KEYRESET
-reset_senders  = [ "support@pep.security", "contact@pep.security", "it@pep.security" ]
+reset_senders  = [ "service@yourcompany.tld" ]
 
 # Never send encrypted to these domains
 never_pEp      = [ "apple.com" ]
 
 # Host and port for the local SMTP server that will handle the emails
-SMTP_HOST  = "80.90.47.12"
-SMTP_PORT = 25
+SMTP_HOST      = "127.0.0.1"
+SMTP_PORT      = 25
 
-DEBUG = False
+DEBUG          = False

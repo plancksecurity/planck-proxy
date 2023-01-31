@@ -1,4 +1,5 @@
 debug.log
+settings.py
 pytestdebug.log
 keys/*.asc
 work/**
