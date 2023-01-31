@@ -90,15 +90,11 @@ The p≡p Gate uses postfix to handle the message sending and queuing, so some c
 
 ```
 # Incoming decryption-proxy (specific addresses routed via "transport" file)
-
 pepgateIN unix - n n - 1 pipe
-
 flags=DRhu user=pepgate:pepgate argv=<path to pEpGate>/pEpgate decrypt
 
 # Outgoing encryption-proxy (specific port routed above)
-
 pepgateOUT unix - n n - 1 pipe
-
 flags=DRhu user=pepgate:pepgate argv=<path to pEpGate>/pEpgate encrypt
 ```
 
@@ -107,9 +103,7 @@ flags=DRhu user=pepgate:pepgate argv=<path to pEpGate>/pEpgate encrypt
 
   ```
 588 inet n - y - - smtpd
-
 -o content_filter=pepgateOUT
-
 -o [ + whatever options you have for port 587/SUBMISSION ]
   ````
 
@@ -120,18 +114,13 @@ flags=DRhu user=pepgate:pepgate argv=<path to pEpGate>/pEpgate encrypt
 transport_maps = regexp:/etc/postfix/transport
 ```
 
-
 Example of /etc/postfix/transport:
 
   ```
 # pEpGate
-
 /^support@pep.*/ pepgateIN:
-
 /^noreply@pep.*/ pepgateIN:
-
 /^no-reply@pep.*/ pepgateIN:
-
   ```
 
 2. Define inbound and outbound (smtp_)header_checks in main.cf (pEp Gate adds an X-NextMX header to all messages, defined in nexthop.map):
