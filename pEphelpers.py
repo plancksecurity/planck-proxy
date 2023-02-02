@@ -70,7 +70,7 @@ def sendmail(msg):
 	try:
 		msgfrom, msgto = get_contact_info(msg, True)
 		with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-			server.sendmail(msgfrom, msgto, msg)
+			server.sendmail(msgfrom, msgto, msg.encode("utf8"))
 	except Exception as e:
 		dbg(c(f"ERROR 6 - Mail could not be sent, return code: {e}", 6))
 		exit(6)
