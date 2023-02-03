@@ -1,5 +1,4 @@
 import subprocess
-import shutil
 import os
 import pytest
 from pEphelpers import get_contact_info

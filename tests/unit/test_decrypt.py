@@ -4,6 +4,7 @@ import sqlite3
 import os
 import pytest
 from pEphelpers import get_contact_info
+from pEphelpers import decryptusingsq
 from pathlib import Path
 
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
@@ -39,7 +40,7 @@ def test_decrypt_message_no_key(test_dirs):
         res = subprocess.run(['./pEpgate decrypt'], shell=True,
             capture_output=True, input=email.read(), env=cmd_env)
 
-    assert res.returncode is 7 # Return code 7 is "have_no_key"
+    assert res.returncode == 7 # Return code 7 is "have_no_key"
 
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
 def test_decrypt_message(test_dirs, collect_email, extra_keypair):
@@ -62,3 +63,8 @@ def test_decrypt_message(test_dirs, collect_email, extra_keypair):
     assert "Hello back, I am encrypted!" in decrypted_data
 
 
+@pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
+def test_sq_decrypt(collect_email, extra_keypair, test_dirs):
+    key_path = test_dirs['keys'] / extra_keypair.get_private()
+    dec_msg = decryptusingsq(collect_email, str(key_path))
+    assert dec_msg is 0
