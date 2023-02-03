@@ -8,3 +8,4 @@ tests/keys/
 __pycache__/
 _venv/
 .DS_Store
+.coverage
