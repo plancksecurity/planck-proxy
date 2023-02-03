@@ -143,7 +143,7 @@ smtp_header_checks = regexp:/etc/postfix/header_checks_out
 /^X-NextMX:.*$/ IGNORE
 ```
 
-  ## Monitoring
+## Monitoring
 
 Cron can be used for basic monitoring. Here's an example to notify once per hour about mails stuck in Postfix's queue
 
@@ -155,3 +155,71 @@ Cron can be used for basic monitoring. Here's an example to notify once per hour
 To run the test suite [pytest](https://docs.pytest.org/) must be installed. This can be done either system-wide or using a virtualenv. pip provides an automatic installation using `pip install pytest`
 
 To run the tests simply run the `pytest` command.
+
+## Example integration with O365
+
+### DNS
+
+```
+hub.peptest.ch A <IP>
+hub.peptest.ch TXT v=spf1 a ~all
+hub._domainkey.peptest.ch TXT v=DKIM1 <... DKIM key material>
+{gate,proxy}(365).peptest.ch MX hub
+{gate,proxy}(365).peptest.ch TXT v=spf1 mx ip4:80.90.47.0/28 include:spf.protection.outlook.com -all
+autodiscover.{gate,proxy}365.pep.security	CNAME	autodiscover.outlook.com.
+```
+
+### On O365
+
+Accepted domains:
+	* ```{gate,proxy}365.peptest.ch```, domain type: internal relay
+	* ```pproxy.onmicrosoft.com```, domain type: authoritative
+
+Mail flow > Connectors:
+	* "Mailhub inbound" -> identify by IP
+	* "Mailhub outbound"
+		* Use of connector: Use only when I have a transport rule set up that redirects messages to this connector.
+		* Routing: Route email messages through these smart hosts: ```hub.peptest.ch```
+	* Rules:
+		* Apply to all messages
+		* Use the following connector: Mailhub outbound
+		* Except if the subject includes "NOENCRYPT"
+		*  or the sender's IP address is in the range <Mailhub's IP>
+
+### On pEpProxy:
+
+#### Postfix
+
+/etc/postfix/main.cf:
+```
+virtual_mailbox_domains = gate365.peptest.ch
+```
+
+/etc/postfix/master.cf:
+```
+25          inet    n       -       y       -       -       smtpd
+[...]
+-o content_filter=pEpGateIN
+
+# Incoming decryption-proxy (specific addresses routed via "transport" file)
+pepGateIN   unix    -       n       n       -       1       pipe
+    flags=DRhu user=pepgate:pepgate argv=/home/pEpGate/pEpgate decrypt
+
+# Outgoing encryption-proxy (specific port routed above)
+pepGateOUT  unix    -       n       n       -       1       pipe
+    flags=DRhu user=pepgate:pepgate argv=/home/pEpGate/pEpgate encrypt
+```
+
+/etc/postfix/transport:
+```
+/^.*@{gate,proxy}365\.peptest\.ch/ smtp:<tenant slug>.onmicrosoft.com
+```
+
+/etc/postfix/virtual:
+```
+@{gate,proxy}365.peptest.ch @<tenant slug>.onmicrosoft.com
+```
+
+#### pEpGate
+
+Configure ```settings.py``` and ```*.map``` as needed
