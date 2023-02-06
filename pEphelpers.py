@@ -129,7 +129,6 @@ def except_hook(type, value, tback):
 	exit(31)
 
 def cleanup():
-	global wdp  # I think this variable does nothing @andy
 	if dts is not None:
 		attachments = []
 		if logpath is not None:
