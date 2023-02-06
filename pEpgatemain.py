@@ -36,7 +36,7 @@ dbg("===== " + c("p≡pGate started", 2) + " in mode " + c(mode, 3)
 	+ " | PID " + c(str(os.getpid()), 5) + " | UID " + c(str(os.getuid()), 6)
 	+ " | GID " + c(str(os.getgid()), 7) + " =====")
 if DEBUG:
-	dbg (f"args passed {str(args)}")
+	dbg (c("┌ Parameters", 5) + "\n" + prettytable(args.__dict__))
 
 ### Initialization ################################################################################
 
@@ -440,13 +440,13 @@ try:
 			exit(6)
 
 		if str(rating) == "have_no_key":
-			dbg(c("No matching key found to decrypt the message. Aborting!", 1))
+			dbg(c("No matching key found to decrypt the message. Please put a matching key into the " + c(keys_dir, 5) + " folder. Returning non-null exit code to Postfix so the message remains queued.", 1))
 			exit(7)
 
 		if keys is None or len(keys) == 0:
-			dbg("Original message was NOT encrypted")
+			dbg(c("Original message was NOT encrypted", 1))
 		else:
-			dbg("Original message was encrypted to these keys:\n" + prettytable(list(set(keys))))
+			dbg(c("Original message was encrypted to these keys", 2) + ":\n" + prettytable(list(set(keys))))
 
 		dbg(c("Decrypted in", 2), True)
 

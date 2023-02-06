@@ -207,9 +207,11 @@ def prettytable(thing, colwidth=26):
 	return ret[:-1]
 
 def keysfromkeyring(userid=None):
-	global jsonout
 	import sqlite3
 	db = sqlite3.connect(os.environ["HOME"] + "/.pEp/keys.db")
+
+	if userid is not None:
+		dbg("Looking up key of " + c(userid, 5) + " from keyring...")
 
 	def collate_email(a, b):
 		# dbg("collate(%s, %s)" % (a, b))
@@ -256,11 +258,22 @@ def keysfromkeyring(userid=None):
 
 				inspected['sq_inspect'] = inspected['sq_inspect'][2:] # Hide internal filename & extra whitespace
 
+				usernameparseregexes = [
+					r"UserID: (.*?) <?[\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+>?",
+					r"UserID: (.*?) <[\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+>",
+					r"UserID: (.*)",
+				]
 				try:
-					inspected['username'] = re.findall(r'UserID: (.*?) \<.*\r?\n?', str(inspected['sq_inspect']))[0]
+					for upr in usernameparseregexes:
+						inspected['username'] = re.findall(upr, str(inspected['sq_inspect']))[0]
+						break
+				except:
+					pass
+
+				try:
+					inspected['username']
 				except:
 					dbg("[!] No username/user ID was contained in this PGP blob. Full sq inspect:\n" + "\n".join(inspected['sq_inspect']))
-					pass
 
 		allkeys += [ { "pEp_keys.db": fromdb, "key_blob": inspected } ]
 
