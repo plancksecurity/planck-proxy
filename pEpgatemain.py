@@ -480,7 +480,7 @@ for name, cmd in scan_pipeline.items():
 dbg("Combined scan results:\n" + prettytable(scanresults))
 
 if sum(scanresults.values()) == 0:
-	dbg("All scans " + c(PASSED, 2) + ", relaying message", 2)
+	dbg("All scans " + c("PASSED", 2) + ", relaying message", 2)
 else:
 	dbg("Some scans " + c("FAILED", 1) + ", not relaying message (keeping it in the Postfix queue for now)")
 	exit(1) # keep message on hold
