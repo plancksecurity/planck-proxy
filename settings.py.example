@@ -29,17 +29,21 @@ keys_dir       = "keys"
 logfile        = "debug.log"
 
 # Which scans & checks do messages need to pass to be forwarded
+# Acceptable exit codes are 0 (ACCEPT), 1 (REJECT) and 2 (RETRY)
 scan_pipeline  = {
 	"SpamAssassin":	"spamc --check -",
 	"ClamAV":		"clamdscan --verbose -z -",
 }
 
 # Extra key used to encrypt messages
-EXTRA_KEY      = "1234ABCDEF1234ABCDEF1234ABCDEF1234ABCDEF"
+EXTRA_KEY      = [ "1234ABCDEF1234ABCDEF1234ABCDEF1234ABCDEF" ]
 
 # Host and port of SMTP server where messages should be reinjected
 SMTP_HOST      = "127.0.0.1"
 SMTP_PORT      = 25
+
+# Sequoia command-line tool path (used only in some fallback functions)
+sq_bin         = "/usr/local/bin/sq"
 
 # Forwarding map
 #   In encrypt mode: rewrite sender (From: and Reply-To: headers) address or (sub)domain
@@ -70,10 +74,6 @@ reset_senders  = [ "service@yourcompany.tld" ]
 
 # Never send encrypted to these domains
 never_pEp      = [ "apple.com" ]
-
-# Host and port for the local SMTP server that will handle the emails
-SMTP_HOST      = "127.0.0.1"
-SMTP_PORT      = 25
 
 # Some test features will only work when DEBUG is on
 DEBUG          = False
