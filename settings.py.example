@@ -28,7 +28,7 @@ keys_dir       = "keys"
 # The global logfile
 logfile        = "debug.log"
 
-# Which scans & checks do messages need to pass to be forward
+# Which scans & checks do messages need to pass to be forwarded
 scan_pipeline  = {
 	"SpamAssassin":	"spamc --check -",
 	"ClamAV":		"clamdscan --verbose -z -",
