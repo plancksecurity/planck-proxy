@@ -1,0 +1,32 @@
+Delivered-To: <andy@gate.peptest.ch>
+Message-ID: <b5d05ff9-4c1a-1b60-4cb1-b536776506d0@0x3d.lu>
+Date: Fri, 27 Jan 2023 12:18:34 +0000
+From: Andy Weber <andy@0x3d.lu>
+To: AnDy AT p3ptest dot tse hah <andy@peptest.ch>
+Subject: EICAR test mail
+X-pEpGate-mode: decrypt
+X-pEpGate-version: 2.12
+X-pEpEngine-version: 2.1.62
+X-NextMX: auto
+X-pEp-Adapter-Cache-ID: 15351280200381494182887853741566103093
+X-pEp-Version: 2.1
+X-pEp-Sender-FPR: DCA652F7A1F6F114080B4350B6DDF72A7B5F9183
+X-EncStatus: reliable
+X-KeyList: 
+ DCA652F7A1F6F114080B4350B6DDF72A7B5F9183,DCA652F7A1F6F114080B4350B6DDF72A7B5F9183,E629DB4E02FBB0E0E6B667473DC9FFAA172514A2
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="48b2900aabe54a55a1e685a48de7102"
+
+--48b2900aabe54a55a1e685a48de7102
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+This is spam!!1!
+
+XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X
+
+----
+Andy Weber
+andy@0x3d.lu
+
+--48b2900aabe54a55a1e685a48de7102--
