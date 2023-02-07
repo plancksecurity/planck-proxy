@@ -30,8 +30,8 @@ logfile        = "debug.log"
 
 # Which scans & checks do messages need to pass to be forward
 scan_pipeline  = {
-	"clamdscan --verbose -z -": { 0: "OK", 1: "FAIL", 2: "TEMPFAIL" }
-	"spamc --check -":          { 0: "OK", 1: "FAIL", 2: "TEMPFAIL" }
+	"SpamAssassin":	"spamc --check -",
+	"ClamAV":		"clamdscan --verbose -z -",
 }
 
 # Extra key used to encrypt messages
