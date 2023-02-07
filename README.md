@@ -7,7 +7,7 @@ The core of the pEp Gate is the pEpgate.py script. It is intended to be invoked 
 You can see all the available arguments and their usage running the help command `./pEpgate.py -h`
 
 ```
-usage: pEpgate [-h] [--DEBUG] [--keys_dir KEYS_DIR] [--work_dir WORK_DIR] [--SMTP_HOST SMTP_HOST] [--SMTP_PORT SMTP_PORT] [--EXTRA_KEY EXTRA_KEY] {encrypt,decrypt}
+usage: pEpgate [-h] [--DEBUG] [--keys_dir KEYS_DIR] [--work_dir WORK_DIR] [--SMTP_HOST SMTP_HOST] [--SMTP_PORT SMTP_PORT] [--EXTRA_KEYS EXTRA_KEYS] {encrypt,decrypt}
 
 pEp Proxy CLI.
 
@@ -17,7 +17,7 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --DEBUG               Set DEBUG mode, default is False
-  --EXTRA_KEY EXTRA_KEY
+  --EXTRA_KEYS EXTRA_KEYS
                         FPR for the Extra Key to decrypt messages, default is "4BBCDBF5967AA2BDB26B5877C3329372697276DE"
   --keys_dir KEYS_DIR   Directory where the extra key should be imported from, default is "keys"
   --work_dir WORK_DIR   Directory where the command outputs are placed, default is "work"
@@ -38,7 +38,7 @@ Enables sone debug testing features. The default value is False and it's not int
 ### Extra key and keys dir
 To import the extra key into the p≡p Gate, the keypair must be placed into the `keys_dir` defined in the `settings.py` file.
 By default this directory is set to the `keys` folder in the root of this same project.
-Since all the keys in the `keys_dir`will be imported, you need to specify the FPR for the extra key through the `EXTRA_KEY` setting.
+Since all the keys in the `keys_dir`will be imported, you need to specify the FPR for the extra key through the `EXTRA_KEYS` setting.
 
 ### Work dir
 It's the folder where the pEpgate command will output the results. By default this directory is set to the `work` folder in the root of this same project.
