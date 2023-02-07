@@ -36,7 +36,7 @@ scan_pipeline  = {
 }
 
 # Extra key used to encrypt messages
-EXTRA_KEY      = [ "1234ABCDEF1234ABCDEF1234ABCDEF1234ABCDEF" ]
+EXTRA_KEYS     = [ "1234ABCDEF1234ABCDEF1234ABCDEF1234ABCDEF" ]
 
 # Host and port of SMTP server where messages should be reinjected
 SMTP_HOST      = "127.0.0.1"
