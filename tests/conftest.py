@@ -42,6 +42,7 @@ def per_user_directory():
 @pytest.fixture
 def test_dirs(tmp_path):
     return {
+        'tmp': tmp_path,
         'root': Path(os.environ['TEST_ROOT']),
         'keys': tmp_path / "keys",
         'test_keys': Path(os.environ['TEST_ROOT']) / "test_keys",
