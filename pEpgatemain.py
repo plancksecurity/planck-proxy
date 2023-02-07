@@ -383,61 +383,42 @@ try:
 			dbg(c("Sender == recipient so probably a loopback/test-message, skipping encryption...", 1))
 			dst = src
 		else:
-			dbg(c("Encrypting message...", 2))
-
 			if theirkey == False:
 				dbg("We DO NOT have a key for this recipient")
+				# TODO: add policy setting to enforce outbound encryption (allow/deny-list?)
 			else:
 				dbg("We have a key for this recipient:\n" + prettytable(theirkey))
 
+			dbg(c("Encrypting message...", 2))
 			# pEp.unencrypted_subject(True)
+			if len(EXTRAKEYS) == 0:
+				dst = src.encrypt()
+			else:
+				dst = src.encrypt(EXTRA_KEYS, 0)
+			dbg(c("Encrypted in", 2), True)
 
-			# dst = src.encrypt()
-			dst = src.encrypt([EXTRA_KEY], 0) # TODO: load extra keys from some config/map
-			# dst = src # DEBUG: disable encryption
-
-			dbg(c("Processed in", 2), True)
-
-			# DEBUG
-			dbg("Full dst:\n" + str(dst))
-			inspectusingsq(str(dst))
+			if DEBUG:
+				dbg("Full dst:\n" + str(dst))
+				inspectusingsq(str(dst))
 
 	if mode == "decrypt":
 		pepfails = False # TODO: put a flag somewhere to detect subsequent failures then auto-fallback (was: set to True if Postfix queue fills up with errors)
 		if not pepfails:
 			dbg(c("Decrypting message via pEp...", 2))
 			dst, keys, rating, flags = src.decrypt()
-			# dbg("dst: " + str(dst)[0:100] + "...")
-			# dbg("keys: " + str(keys))
-			# dbg("rating: " + str(rating))
-			# dbg("flags: " + str(flags))
+			dbg(c("Decrypted in", 2), True)
 			dst.to = [ourpepid] # Lower the (potentially rewritten) outer recipient back into the inner message
 		else:
 			dbg(c("Decrypting message via Sequoia...", 2))
-			keys, rating, flags = None, None, None
+			tmp = decryptusingsq(inmail, os.path.join(workdirpath, "sec.*.key"))
+			dst, keys, rating, flags = pEp.Message(tmp[0]), tmp[1], None, None
+			dbg(c("Decrypted in", 2), True)
 
-			tmp = pEp.Message(decryptusingsq(inmail, os.path.join(workdirpath, "sec." + ouraddr + ".*.key")))
-
-			# dbg("TMP s: " + tmp.shortmsg)
-			# dbg("TMP l: " + tmp.longmsg)
-			dst = src
-			dst.shortmsg = tmp.shortmsg
-			dst.longmsg = tmp.longmsg
-			dst.attachments = []
-
-			# Fallback of the fallback: just forward the encrypted message as-is
-			# dst, keys, rating, flags = src, None, None, None
-
-			# dbg("TMP: "  + c(str(tmp), 1))
-			dbg("DST: " + c(str(dst), 2))
-			# dbg("DSTs: " + c(str(dst.shortmsg), 3))
-			# dbg("DSTl: " + c(str(dst.longmsg), 4))
-
-			keys = [ "Decrypted_by_Sequoia-info_not_available" ] # dummy required for "if keys is None" below
-
-		if pepfails:
-			dbg(c("ERROR 6: pEp crashed during decryption", 1))
-			exit(6)
+		# if DEBUG:
+			# dbg("Decrypted message:\n" + c(str(dst), 2))
+			# dbg("Keys used: " + ", ".join(keys))
+			# dbg("Rating: " + str(rating))
+			# dbg("Flags: " + str(flags))
 
 		if str(rating) == "have_no_key":
 			dbg(c("No matching key found to decrypt the message. Please put a matching key into the " + c(keys_dir, 5) + " folder. Returning non-null exit code to Postfix so the message remains queued.", 1))
@@ -445,10 +426,9 @@ try:
 
 		if keys is None or len(keys) == 0:
 			dbg(c("Original message was NOT encrypted", 1))
+			# TODO: add policy setting to enforce inbound encryption (allow/deny-list?)
 		else:
 			dbg(c("Original message was encrypted to these keys", 2) + ":\n" + prettytable(list(set(keys))))
-
-		dbg(c("Decrypted in", 2), True)
 
 	# Workaround for engine converting plaintext-only messages into a msg.txt inline-attachment
 	# dst = str(dst).replace(' filename="msg.txt"', "")
@@ -460,12 +440,54 @@ except Exception:
 	dbg(errmsg)
 	dbgmail(errmsg)
 	exit(7)
-	# dst = src # FALLBACK: forward original message as-is if anything crypto goes wrong
+	# Alternatively: fall back to forwarding the message as-is
+	# dst, keys, rating, flags = src, None, None, None
 	# pass
 
-### Add MX routing and version information headers ################################################
+### Scan pipeline #################################################################################
 
-dbg("Opt fields IN:\n" + prettytable(dst.opt_fields)) # DEBUG
+scanresults = {}
+desc = { 0: "PASS", 1: "FAIL", 2: "RETRY" }
+cols = { 0: 2,      1: 1,      2: 3 }
+for name, cmd in scan_pipeline.items():
+	if mode == "encrypt":
+		dbg("Passing original message to scanner " + c(name, 3))
+		msgtoscan = str(src)
+	if mode == "decrypt":
+		dbg("Passing decrypted message to scanner " + c(name, 3))
+		msgtoscan = str(dst)
+
+	p = Popen(cmd.split(" "), shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+	p.stdin.write(msgtoscan.encode("utf8"))
+	stdout, stderr = p.communicate()
+	rc = p.returncode
+
+	if rc in desc.keys():
+		scanresults[name] = rc
+		dbg("Result: " + c(desc[rc], cols[rc]))
+	else:
+		dbg("Unknown return code for scanner " + name + ": " + rc)
+
+	if rc == 2:
+		dbgmail("Error detected with scanner " + name)
+		exit(11)
+
+	if DEBUG:
+		if len(stdout) > 0: dbg(c("STDOUT:\n", 2) + prettytable(stdout.decode("utf8").strip().split("\n")))
+		if len(stderr) > 0: dbg(c("STDERR:\n", 1) + prettytable(stderr.decode("utf8").strip().split("\n")))
+		# dbg("Return code: " + c(str(rc), 3));
+
+dbg("Combined scan results:\n" + prettytable(scanresults))
+
+if sum(scanresults.values()) == 0:
+	dbg("All scans " + c(PASSED, 2) + ", relaying message", 2)
+else:
+	dbg("Some scans " + c("FAILED", 1) + ", not relaying message (keeping it in the Postfix queue for now)")
+	exit(1) # keep message on hold
+	# exit(0) # silently drop the message
+	# TODO: inform the admin and/or the (likely spoofed) sender
+
+### Add MX routing and version information headers ################################################
 
 opts = {
 	"X-pEpGate-mode": mode,
@@ -487,7 +509,8 @@ if nextmx is not None:
 opts.update(dst.opt_fields)
 dst.opt_fields = opts
 
-dbg("Opt fields OUT:\n" + prettytable(dst.opt_fields), pub=False) # DEBUG
+if DEBUG:
+	dbg("Optional headers:\n" + prettytable(dst.opt_fields), pub=False)
 
 ### Log processed message #########################################################################
 

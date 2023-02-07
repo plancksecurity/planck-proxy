@@ -149,15 +149,17 @@ def setoutervar(var, val):
 
 ### pEp Sync & echo protocol handling (unused for now) ########################
 def messageToSend(msg):
-	dbg("Ignoring message_to_send", pub=False)
+	pass
+	# dbg("Ignoring message_to_send", pub=False)
 	# dbg(c("messageToSend(" + str(len(str(msg))) + " Bytes)", 3))
 	# dbg(str(msg))
 
 def notifyHandshake(me, partner, signal):
-	dbg("Ignoring notify_handshake", pub=False)
+	pass
+	# dbg("Ignoring notify_handshake", pub=False)
 	# dbg("notifyHandshake(" + str(me) + ", " + str(partner) + ", " + str(signal) + ")")
 
-def prettytable(thing, colwidth=26):
+def 	prettytable(thing, colwidth=26):
 	ret = ""
 	if not isinstance(thing, list):
 		thing = [thing]
@@ -207,6 +209,7 @@ def prettytable(thing, colwidth=26):
 	return ret[:-1]
 
 def keysfromkeyring(userid=None):
+	global sq_bin
 	import sqlite3
 	db = sqlite3.connect(os.environ["HOME"] + "/.pEp/keys.db")
 
@@ -214,7 +217,6 @@ def keysfromkeyring(userid=None):
 		dbg("Looking up key of " + c(userid, 5) + " from keyring...")
 
 	def collate_email(a, b):
-		# dbg("collate(%s, %s)" % (a, b))
 		return 1 if a > b else -1 if a < b else 0
 	db.create_collation("EMAIL", collate_email)
 
@@ -240,11 +242,11 @@ def keysfromkeyring(userid=None):
 		for r3 in q3:
 			sqkeyfile = ("sec" if r3[1] == True else "pub") + "." + r1[0] + "." + r1[1] + ".key"
 			open(sqkeyfile, "wb").write(r3[0])
-			cmd = ["/usr/local/bin/sq", "enarmor", sqkeyfile, "-o", sqkeyfile + ".asc"]
+			cmd = [sq_bin, "enarmor", sqkeyfile, "-o", sqkeyfile + ".asc"]
 			p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE) # stderr=STDOUT for debugging
 			ret = p.wait()
 
-			cmd = ["/usr/local/bin/sq", "inspect", "--certifications", sqkeyfile]
+			cmd = [sq_bin, "inspect", "--certifications", sqkeyfile]
 			p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE) # stderr=STDOUT for debugging
 			ret = p.wait()
 
@@ -259,20 +261,20 @@ def keysfromkeyring(userid=None):
 				inspected['sq_inspect'] = inspected['sq_inspect'][2:] # Hide internal filename & extra whitespace
 
 				usernameparseregexes = [
-					r"UserID: (.*?) <?[\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+>?",
-					r"UserID: (.*?) <[\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+>",
-					r"UserID: (.*)",
+					r"UserID: (.*?) <?[\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+>?\n?",
+					r"UserID: (.*?) <[\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+>\n?",
+					r"UserID: ([\w\-\_\"\.\ ]+)\n?",
 				]
-				try:
-					for upr in usernameparseregexes:
-						inspected['username'] = re.findall(upr, str(inspected['sq_inspect']))[0]
-						break
-				except:
-					pass
+				for upr in usernameparseregexes:
+					try:
+						patt = re.compile(upr, re.MULTILINE | re.DOTALL)
+						inspected['username'] = patt.findall("\n".join(inspected['sq_inspect']))[0]
+						if len(inspected['username']) > 0:
+							break
+					except Exception as e:
+						pass
 
-				try:
-					inspected['username']
-				except:
+				if len(inspected['username']) == 0:
 					dbg("[!] No username/user ID was contained in this PGP blob. Full sq inspect:\n" + "\n".join(inspected['sq_inspect']))
 
 		allkeys += [ { "pEp_keys.db": fromdb, "key_blob": inspected } ]
@@ -285,10 +287,11 @@ def keysfromkeyring(userid=None):
 		return False
 
 def inspectusingsq(PGP):
+	global sq_bin
 	import tempfile
 	tf = tempfile.NamedTemporaryFile()
 	tf.write(PGP.encode("utf8"))
-	cmd = ["/usr/local/bin/sq", "inspect", "--certifications", tf.name]
+	cmd = [sq_bin, "inspect", "--certifications", tf.name]
 	p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
 	ret = p.wait()
 
@@ -301,7 +304,7 @@ def decryptusingsq(inmail, secretkeyglob):
 	patt = re.compile(r"-----BEGIN PGP MESSAGE-----.*?-----END PGP MESSAGE-----", re.MULTILINE | re.DOTALL)
 	pgpparts = patt.findall(inmail)
 
-	# dbg(c("[!!!] Using decryptusingsq() fallback. Attachments will be LOST!", 1))
+	dbg(c("[!] Fallback-decrypting via sq CLI tool", 1))
 	# dbg("Inmail: " + str(inmail))
 	# dbg("PGP: " + str(pgpparts))
 
@@ -319,24 +322,26 @@ def decryptusingsq(inmail, secretkeyglob):
 
 		for secretkey in glob(secretkeyglob):
 			dbg(c("Trying secret key file " + secretkey, 3))
-
-			cmd = ["/usr/local/bin/sq", "decrypt", "--secret-key-file", secretkey, "--", tmppath]
-			dbg("CMD: " + " ".join(cmd), pub=False)
-
+			cmd = [sq_bin, "decrypt", "--recipient-key", secretkey, "--", tmppath]
+			# dbg("CMD: " + " ".join(cmd), pub=False)
 			p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 			stdout, stderr = p.communicate()
-
+			rc = p.returncode
 			# dbg("STDOUT: " + c(stdout.decode("utf8"), 2))
 			# dbg("STDERR: " + c(stderr.decode("utf8"), 1))
-
-			patt = re.compile(r"Message-ID:.*?^$", re.MULTILINE | re.DOTALL)
-			pepparts = patt.findall(stdout.decode("utf8"))
-
-			ret += "\n".join(pepparts)
+			# dbg("Return code: " + c(str(rc), 3));
+			if rc == 0:
+				keyused = [ re.search(r"[0-9a-zA-Z]{40}", secretkey)[0] ]
+				break
 
 		os.unlink(tmppath)
 
-	return ret.replace("pEp-Wrapped-Message-Info: INNER\n", "")
+		if len(stdout) > 0:
+			patt = re.compile(r"Message-ID:.*?^$", re.MULTILINE | re.DOTALL)
+			pepparts = patt.findall(stdout.decode("utf8"))
+			ret += "\n".join(pepparts)
+
+	return [ ret.replace("X-pEp-Wrapped-Message-Info: INNER\r\n", ""), keyused ]
 
 def getmailheaders(inmsg, headername=None):
 	try:
