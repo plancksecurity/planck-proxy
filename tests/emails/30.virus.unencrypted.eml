@@ -1,0 +1,64 @@
+Message-ID: <b5d05ff9-4c1a-1b60-4cb1-b536776506d0@0x3d.lu>
+Date: Fri, 27 Jan 2023 12:18:34 +0000
+From: Andy Weber <andy@0x3d.lu>
+To: AnDy AT p3ptest dot tse hah <andy@peptest.ch>
+Subject: EICAR test mail
+X-pEpGate-mode: decrypt
+X-pEpGate-version: 2.12
+X-pEpEngine-version: 2.1.62
+X-NextMX: auto
+X-pEp-Adapter-Cache-ID: 15351280200381494182887853741566103093
+X-pEp-Version: 2.1
+X-pEp-Sender-FPR: DCA652F7A1F6F114080B4350B6DDF72A7B5F9183
+X-EncStatus: reliable
+X-KeyList: 
+ DCA652F7A1F6F114080B4350B6DDF72A7B5F9183,DCA652F7A1F6F114080B4350B6DDF72A7B5F9183,E629DB4E02FBB0E0E6B667473DC9FFAA172514A2
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="48b2900aabe54a55a1e685a48de7102"
+
+--48b2900aabe54a55a1e685a48de7102
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+This is infected!!1!
+
+X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
+
+----
+Andy Weber
+andy@0x3d.lu
+--48b2900aabe54a55a1e685a48de7102
+Content-Type: application/zip
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="eicarcom2.zip"
+
+UEsDBAoAAAAAADKs6yjRINsxuAAAALgAAAANAAAAZWljYXJfY29tLnppcFBLAwQKAAAAAADgmLgo
+PM9RaEQAAABEAAAACQAAAGVpY2FyLmNvbVg1TyFQJUBBUFs0XFBaWDU0KFBeKTdDQyk3fSRFSUNB
+Ui1TVEFOREFSRC1BTlRJVklSVVMtVEVTVC1GSUxFISRIK0gqUEsBAhQACgAAAAAA4Ji4KDzPUWhE
+AAAARAAAAAkAAAAAAAAAAQAgAP+BAAAAAGVpY2FyLmNvbVBLBQYAAAAAAQABADcAAABrAAAAAABQ
+SwECFAAKAAAAAAAyrOso0SDbMbgAAAC4AAAADQAAAAAAAAAAACAAtoEAAAAAZWljYXJfY29tLnpp
+cFBLBQYAAAAAAQABADsAAADjAAAAAAA=
+
+--48b2900aabe54a55a1e685a48de7102
+Content-Type: application/pEp.sync
+Content-Disposition: attachment; filename="sync.pEp"
+
+(p
+--48b2900aabe54a55a1e685a48de7102
+Content-Type: application/pEp.sign
+Content-Disposition: attachment; filename="electronic_signature.asc"
+
+-----BEGIN PGP MESSAGE-----
+
+wsC7BAABCgBvBYJj2S07CRDgZLkxHyFknEcUAAAAAAAeACBzYWx0QG5vdGF0aW9u
+cy5zZXF1b2lhLXBncC5vcmdJGQfLJ89IvWuQ4MuSXUlE9Djf5Q8irn5FloGoMQhH
+2RYhBDO3lZK176GfKOmS7OBkuTEfIWScAACADggAhN73DS8TiM31LrlM6yHJaSZl
++gqqt6n1UipGljCHg/o6wGvoaomlG++7cDfCOTNm0RtvhlTTrIk1R+l3o6xOLgfm
+jw2S8PFPiLr57J54cOrpdt9STp4GLfhVLmNS5ukcpDjenJzk4kEP3blvw27pTkuL
+mA6WS6iVhEROgbPqxaqGDklyWqwA9/6A2uBaNVo2xFtNwT9J0wAFn1jc8hYRIR+5
+2ezK1NVeVrXN7VQxVjOVlHavF/vw+5X3DRTwxdl7HIj9SKwdSxbxQzA0VgOfoQN7
+eGGccmiu0jKk78Q0ZweCX1OVFn44vRa/TollnjoQZC1faUNyw0Bg3uc9Il6Rzw==
+=4uTJ
+-----END PGP MESSAGE-----
+
+--48b2900aabe54a55a1e685a48de7102--
