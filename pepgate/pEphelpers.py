@@ -1,10 +1,75 @@
-from pEpgate import *
+import codecs
+import os
+import html
+import sys
+import re
+import smtplib
+import socket
+import base64
+import sqlite3
+import io
+import tempfile
+import email
+import traceback
+import json
+
+
+from collections import OrderedDict
+from datetime    import datetime
+from subprocess  import Popen, PIPE, STDOUT
+from glob        import glob
+
+from .pEpgatesettings import settings
+
+### Parse args ####################################################################################
+
+def get_default(setting):
+	"""
+	Get the default value for the given setting with the following priority:
+	1. Env variable
+	2. String on settings.py file (aka vars loaded into the memory space)
+	"""
+	env_val = os.getenv(setting)
+	if env_val:
+		return env_val
+	return settings.get(setting)
+
+### Exception / post-execution handling ###########################################################
+
+def except_hook(type, value, tback):
+	dbg(c("!!! pEp Gate - Unhandled exception !!!", 1))
+	mailcontent = ""
+	for line in traceback.format_exception(type, value, tback):
+		dbg(line.strip())
+		mailcontent += line
+	dbgmail(mailcontent)
+	exit(31)
+
+def cleanup():
+	if settings['dts'] is not None:
+		attachments = []
+		logpath = settings['logpath']
+		if logpath is not None:
+			for a in glob(os.path.join(logpath, "*.eml")):
+				attachments += [ a ]
+		dbgmail("As requested via activated Return Receipt here's your debug log:", settings['dts'], "[DEBUG LOG] pEp Gate @ " + socket.getfqdn(), attachments)
+
+	lockfilepath = settings['lockfilepath']
+	if os.path.isfile(lockfilepath):
+		try:
+			os.remove(lockfilepath)
+			dbg("Lockfile " + c(lockfilepath, 6) + " removed", pub=False)
+		except:
+			dbg("Can't remove Lockfile " + c(lockfilepath, 6), pub=False)
+
+### Debug and logging
 
 def dbg(text, printtiming=False, pub=True):
-	global logfilepath, adminlog, textlog, htmllog, lastactiontime, thisactiontime
-	thisactiontime = datetime.now()
-	took = (thisactiontime - lastactiontime).total_seconds()
-	lastactiontime = thisactiontime
+	global settings
+	thisactiontime =  datetime.now()
+	settings['thisactiontime'] = thisactiontime
+	took = (thisactiontime - settings['lastactiontime']).total_seconds()
+	settings['lastactiontime'] = thisactiontime
 
 	if len(text) == 0: # don't output anything, only time the next event
 		return took
@@ -14,18 +79,18 @@ def dbg(text, printtiming=False, pub=True):
 		+ (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
 
 	# Unconditionally write to the global logfile
-	with codecs.open(logfilepath, "a+", "utf-8") as d:
+	with codecs.open(settings['logfilepath'], "a+", "utf-8") as d:
 		d.write(c(str(os.getpid()), 5) + " | " + text + "\n")
 	d.close()
 
 	if sys.stdout.isatty():
 		print(text)
 
-	adminlog += toplain(text) + "\n"
-	textlog += text + "\n"
+	settings['adminlog'] += toplain(text) + "\n"
+	settings['textlog'] += text + "\n"
 
 	if pub:
-		htmllog += tohtml(text) + "<br>\n"
+		settings['htmllog'] += tohtml(text) + "<br>\n"
 
 	return took
 
@@ -69,7 +134,7 @@ def sendmail(msg):
 	msg = re.sub('^\.', '=2E', msg, flags=re.M)
 	try:
 		msgfrom, msgto = get_contact_info(msg, True)
-		with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+		with smtplib.SMTP(settings['SMTP_HOST'], settings['SMTP_PORT']) as server:
 			server.sendmail(msgfrom, msgto, msg.encode("utf8"))
 	except Exception as e:
 		dbg(c(f"ERROR 6 - Mail could not be sent, return code: {e}", 6))
@@ -77,7 +142,10 @@ def sendmail(msg):
 	else:
 		dbg("Mail successfully sent")
 
-def dbgmail(msg, rcpt=admin_addr, subject="[FATAL] pEp Gate @ " + socket.getfqdn() + " crashed!", attachments=[]):
+def dbgmail(msg, rcpt=None, subject="[FATAL] pEp Gate @ " + socket.getfqdn() + " crashed!", attachments=[]):
+	if rcpt is None:
+		rcpt = settings['admin_addr'] #cant use a global in method default arg
+
 	# We're in failure-mode here so we can't rely on pEp here and need to hand-craft a MIME-structure
 	dbg("Sending message to " + c(rcpt, 2) + ", subject: " + c(subject, 3))
 
@@ -100,7 +168,7 @@ def dbgmail(msg, rcpt=admin_addr, subject="[FATAL] pEp Gate @ " + socket.getfqdn
 	mailcontent += '.console { font-family: Courier New; font-size: 13px; line-height: 14px; width: 100%; }'
 	mailcontent += '</style></head>'
 	mailcontent += '<body topmargin="0" leftmargin="0" marginwidth="0" marginheight="0"><table class="console"><tr><td>'
-	mailcontent += (msg + "<br>" + ("=" * 80) + "<br><br>" if len(msg) > 0 else "") + htmllog
+	mailcontent += (msg + "<br>" + ("=" * 80) + "<br><br>" if len(msg) > 0 else "") + settings['htmllog']
 	mailcontent += '</td></tr></table></body></html>'
 
 	if len(attachments) > 0:
@@ -135,7 +203,7 @@ def notifyHandshake(me, partner, signal):
 	# dbg("Ignoring notify_handshake", pub=False)
 	# dbg("notifyHandshake(" + str(me) + ", " + str(partner) + ", " + str(signal) + ")")
 
-def 	prettytable(thing, colwidth=26):
+def prettytable(thing, colwidth=26):
 	ret = ""
 	if not isinstance(thing, list):
 		thing = [thing]
@@ -185,8 +253,7 @@ def 	prettytable(thing, colwidth=26):
 	return ret[:-1]
 
 def keysfromkeyring(userid=None):
-	global sq_bin
-	import sqlite3
+	sq_bin = settings['sq_bin']
 	db = sqlite3.connect(os.environ["HOME"] + "/.pEp/keys.db")
 
 	if userid is not None:
@@ -263,8 +330,7 @@ def keysfromkeyring(userid=None):
 		return False
 
 def inspectusingsq(PGP):
-	global sq_bin
-	import tempfile
+	sq_bin = settings['sq_bin']
 	tf = tempfile.NamedTemporaryFile()
 	tf.write(PGP.encode("utf8"))
 	cmd = [sq_bin, "inspect", "--certifications", tf.name]
@@ -276,6 +342,7 @@ def inspectusingsq(PGP):
 		dbg(line)
 
 def decryptusingsq(inmail, secretkeyglob):
+	sq_bin = settings['sq_bin']
 	ret = ""
 	patt = re.compile(r"-----BEGIN PGP MESSAGE-----.*?-----END PGP MESSAGE-----", re.MULTILINE | re.DOTALL)
 	pgpparts = patt.findall(inmail)
@@ -383,7 +450,7 @@ def get_contact_info(inmail, reinjection=False):
 		except:
 			pass
 
-	aliases = jsonlookup(aliasespath, msgto, False)
+	aliases = jsonlookup(settings['aliasespath'], msgto, False)
 	if aliases is not None:
 		dbg("Delivered-To is an aliased address: " + c(", ".join(aliases), 3))
 
