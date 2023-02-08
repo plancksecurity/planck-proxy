@@ -528,17 +528,7 @@ dbg("Sending mail via MX: " + (c("auto", 3) if nextmx is None else c(str(nextmx)
 dbg("From: " + ((c(src.from_.username, 2)) if len(src.from_.username) > 0 else "") + c(" <" + src.from_.address + ">", 3))
 dbg("  To: " + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "") + c(" <" + src.to[0].address + ">", 3))
 
-# if mode == "decrypt":
-	# TODO: add header with info about all keys to which the original msg was encrytped to
-	# TODO: if "PEPFEEDBACK" in msg body also return the above as separate mail to sender
-
-# if mode == "encrypt":
-	# TODO: add header with info about which keys the msg has been encrypted to (incl. extra keys)
-
-# sendmail("X-NextMX: 192.168.10.10:25\n" + inmail)
-# sendmail(inmail)
-
-if "discard" in src.to[0].address:
+if DEBUG and "discard" in src.to[0].address:
 	dbg("Keyword discard found in recipient address, skipping call to sendmail")
 else:
 	sendmail(dst)
