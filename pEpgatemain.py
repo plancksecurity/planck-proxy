@@ -1,49 +1,11 @@
 from pEpgate import *
 from pEphelpers import *
 
-### Parse args ################################################################################
-
-parser = argparse.ArgumentParser(description='pEp Proxy CLI.')
-parser.add_argument('mode', choices=["encrypt", "decrypt"], help='Mode')
-parser.add_argument('--DEBUG', action='store_true',
-	default=get_default("DEBUG"), help=f'Set DEBUG mode, default is {get_default("DEBUG")}')
-parser.add_argument('--EXTRA_KEY', default=get_default("EXTRA_KEY"),
-	help=f'FPR for the Extra Key to decrypt messages, default is "{get_default("EXTRA_KEY")}"')
-parser.add_argument('--keys_dir', default=get_default("keys_dir"),
-	help=f'Directory where the extra key should be imported from, default is "{get_default("keys_dir")}"')
-parser.add_argument('--work_dir', default=get_default("work_dir"),
-	help=f'Directory where the command outputs are placed, default is "{get_default("work_dir")}"')
-parser.add_argument('--SMTP_HOST', default=get_default("SMTP_HOST"),
-	help=f'Address of the SMTP host used to send the messages. Default "{get_default("SMTP_HOST")}"')
-parser.add_argument('--SMTP_PORT', type=int, default=get_default("SMTP_PORT"),
-	help=f'Port of the SMTP host used to send the messages. Default "{get_default("SMTP_PORT")}"')
-
-args = parser.parse_args()
-for key,val in vars(args).items():
-	# Dump the args dict into the namespace so settings can be overwritten
-	globals()[key] = val
-
-workdirpath  = os.path.join(home, work_dir)
-keypath      = os.path.join(home, keys_dir)
-logfilepath  = os.path.join(home, logfile)
-fwdmappath   = os.path.join(home, forwarding_map)
-usermappath  = os.path.join(home, username_map)
-nextmxpath   = os.path.join(home, nextmx_map)
-aliasespath  = os.path.join(home, aliases_map)
-lockfilepath = os.path.join(home, "pEpGate.lock")
-
 dbg("===== " + c("p≡pGate started", 2) + " in mode " + c(mode, 3)
 	+ " | PID " + c(str(os.getpid()), 5) + " | UID " + c(str(os.getuid()), 6)
 	+ " | GID " + c(str(os.getgid()), 7) + " =====")
 if DEBUG:
 	dbg (c("┌ Parameters", 5) + "\n" + prettytable(args.__dict__))
-
-### Initialization ################################################################################
-
-sys.excepthook = except_hook
-atexit.register(cleanup)
-
-inmail = ""
 
 ### Lockfile handling #############################################################################
 
@@ -113,18 +75,8 @@ except:
 			inmail += str(line)
 
 if len(inmail) == 0:
-	dbg(c("No message was passed to me on stdin", 1), pub=False)
-	testmails = glob(testmailglob)
-	numtestmails = len(testmails)
-	if numtestmails > 0:
-		testmailtouse = random.choice(testmails)
-		dbg("There are " + str(numtestmails) + " testmails available, using " + c(testmailtouse, 3), pub=False)
-		with open(testmailtouse, "r") as f:
-			for line in f:
-				inmail += line
-	else:
-		dbg(c("No testmails available either. Aborting!", 1))
-		exit(2)
+	dbg(c("No message was passed to me. Aborting.", 1), pub=False)
+	exit(2)
 
 ### Figure out how we have been contacted, what to do next ########################################
 
@@ -220,7 +172,7 @@ pEp.notify_handshake = notifyHandshake
 
 dbg("p≡p (" + str(pEp.about).strip().replace("\n", ", ") + ", p≡p engine version " + pEp.engine_version + ") loaded in", True)
 
-### Import static / global keys ###################################################################
+### Import static / globally available / extra keys ###############################################
 
 if initialimport:
 	dbg(c("Initializing keys.db...", 2))
@@ -245,7 +197,7 @@ if mode == "encrypt":
 		theirpepid = pEp.Identity(theiraddr, theiraddr)
 	else:
 		dbg(c("Found existing public key for recipient ", 2) + c(theiraddr, 5) + ":\n" + prettytable(theirkey))
-		# TODO: this doesn't really support multiple UIDs per key, should probably figure out the most recent
+		# TODO: this doesn't support multiple UID's per key, we should figure out the most recent one
 		theirkeyname = theirkey[0]['key_blob']['username']
 		theirkeyaddr = theirkey[0]['pEp_keys.db']['UserID']
 		theirkeyfp   = theirkey[0]['pEp_keys.db']['KeyID']
@@ -262,7 +214,7 @@ if ourkey == False:
 	dbg("No private key for our address " + c(ouraddr, 3) + ", p≡p will have to generate one later")
 else:
 	dbg(c("Found existing private key for our address ", 2) + c(ouraddr, 5) + ":\n" + prettytable(ourkey))
-	# TODO: this doesn't really support multiple UID's per key, should probably figure out the most recent
+	# TODO: this doesn't support multiple UID's per key, we should figure out the most recent one
 	ourkeyname = ourkey[0]['key_blob']['username']
 	ourkeyaddr = ourkey[0]['pEp_keys.db']['UserID']
 	ourkeyfp   = ourkey[0]['pEp_keys.db']['KeyID']
@@ -312,17 +264,10 @@ try:
 		src.id = "pEp-" + uuid4().hex + "@" + socket.getfqdn()
 		src.from_ = ourpepid
 		src.to = [theirpepid]
-		reply_to = jsonlookup(fwdmappath, ourpepid.address, False)
-		if reply_to is not None:
-			dbg(c("Overriding Reply-To: " + ourpepid.username + " <" + reply_to + ">", 3) + " (From: " + ourpepid.address + ")")
-			reply_to_i = pEp.Identity(reply_to, ourpepid.username)
-			src.from_ = reply_to_i
-			# src.reply_to = [ reply_to_i ] # TODO: this would be cleaner but pEp on the other end doesn't handle this yet
 
 	if mode == "decrypt":
 		src.to = [ourpepid]
 		src.recv_by = ourpepid # TODO: implement proper echo-protocol handling
-		# src.reply_to = [theirpepid]
 
 	# Get rid of CC and BCC for loop-avoidance (since Postfix gives us one separate message per recipient)
 	src.cc = []
@@ -391,9 +336,10 @@ try:
 
 			dbg(c("Encrypting message...", 2))
 			# pEp.unencrypted_subject(True)
-			if len(EXTRAKEYS) == 0:
+			if len(EXTRA_KEYS) == 0:
 				dst = src.encrypt()
 			else:
+				dbg("└ with extra key(s): " + ", ".join(EXTRA_KEYS))
 				dst = src.encrypt(EXTRA_KEYS, 0)
 			dbg(c("Encrypted in", 2), True)
 
@@ -402,7 +348,7 @@ try:
 				inspectusingsq(str(dst))
 
 	if mode == "decrypt":
-		pepfails = False # TODO: put a flag somewhere to detect subsequent failures then auto-fallback (was: set to True if Postfix queue fills up with errors)
+		pepfails = False # TODO: store some sort of failure-counter (per message ID?) to detect subsequent failures then fallback to sq, then forward as-is
 		if not pepfails:
 			dbg(c("Decrypting message via pEp...", 2))
 			dst, keys, rating, flags = src.decrypt()
@@ -528,17 +474,7 @@ dbg("Sending mail via MX: " + (c("auto", 3) if nextmx is None else c(str(nextmx)
 dbg("From: " + ((c(src.from_.username, 2)) if len(src.from_.username) > 0 else "") + c(" <" + src.from_.address + ">", 3))
 dbg("  To: " + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "") + c(" <" + src.to[0].address + ">", 3))
 
-# if mode == "decrypt":
-	# TODO: add header with info about all keys to which the original msg was encrytped to
-	# TODO: if "PEPFEEDBACK" in msg body also return the above as separate mail to sender
-
-# if mode == "encrypt":
-	# TODO: add header with info about which keys the msg has been encrypted to (incl. extra keys)
-
-# sendmail("X-NextMX: 192.168.10.10:25\n" + inmail)
-# sendmail(inmail)
-
-if "discard" in src.to[0].address:
+if DEBUG and "discard" in src.to[0].address:
 	dbg("Keyword discard found in recipient address, skipping call to sendmail")
 else:
 	sendmail(dst)

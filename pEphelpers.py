@@ -119,30 +119,6 @@ def dbgmail(msg, rcpt=admin_addr, subject="[FATAL] pEp Gate @ " + socket.getfqdn
 
 	sendmail(mailcontent)
 
-def except_hook(type, value, tback):
-	dbg(c("!!! pEp Gate - Unhandled exception !!!", 1))
-	mailcontent = ""
-	for line in traceback.format_exception(type, value, tback):
-		dbg(line.strip())
-		mailcontent += line
-	dbgmail(mailcontent)
-	exit(31)
-
-def cleanup():
-	if dts is not None:
-		attachments = []
-		if logpath is not None:
-			for a in glob(os.path.join(logpath, "*.eml")):
-				attachments += [ a ]
-		dbgmail("As requested via activated Return Receipt here's your debug log:", dts, "[DEBUG LOG] pEp Gate @ " + socket.getfqdn(), attachments)
-
-	if os.path.isfile(lockfilepath):
-		try:
-			os.remove(lockfilepath)
-			dbg("Lockfile " + c(lockfilepath, 6) + " removed", pub=False)
-		except:
-			dbg("Can't remove Lockfile " + c(lockfilepath, 6), pub=False)
-
 # Set variables in the outer scope from within the inner scope "pEpgatemain"
 def setoutervar(var, val):
 	globals()[var] = val
@@ -478,16 +454,3 @@ def jsonlookup(jsonmapfile, key, bidilookup=False):
 	'''
 
 	return result
-
-def get_default(setting):
-	"""
-	Get the default value for the given setting with the following priority:
-	1. Env variable
-	2. String on settings.py file (aka vars loaded into the memory space)
-	"""
-	env_val = os.getenv(setting)
-	if env_val:
-		return env_val
-	settings_vars = globals()
-	settings_val = settings_vars.get(setting)
-	return settings_val
