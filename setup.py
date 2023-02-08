@@ -8,7 +8,7 @@ setup(
         "wheel",
     ],
     use_scm_version = {
-        'write_to': "pEpGate/__version__.py"
+        'write_to': "pepgate/__version__.py"
     },
-    entry_points = { 'console_scripts': 'pepgate' },
+    entry_points = { 'console_scripts': 'pepgate=pepgate.pEpgate:main' },
 )
