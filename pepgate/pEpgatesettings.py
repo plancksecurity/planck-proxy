@@ -37,3 +37,4 @@ def init_settings():
     settings['logpath']            = None
     settings['dts']                = None
     settings['lockfilepath']       = os.path.join(home, "pEpGate.lock")
+    settings['logfile']            = os.path.join(home, settings['logfile'])
