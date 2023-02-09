@@ -1,6 +1,7 @@
 import os
 import tomli
 
+from pathlib     import Path
 from datetime    import datetime
 
 settings = {}
@@ -12,7 +13,7 @@ def init_settings():
     global settings
     # Postfix sets this to "C" by default, we want full Unicode support though
     os.environ['LANG'] = os.environ['LC_ALL'] = "en_US.UTF-8"
-    home               = os.getcwd()
+    home               = str(Path(os.path.dirname(__file__)).parent)
 
     # Add data from the toml file to the settings dict
     settings_path = os.path.join(home, "settings.toml")
@@ -28,6 +29,7 @@ def init_settings():
 
     settings['home']               = home
     settings['locktimeout']        = 60
+    settings['gate_version']       = "2.12"
     settings['lastactiontime']     = datetime.now()
     settings['adminlog']           = ""
     settings['textlog']            = ""

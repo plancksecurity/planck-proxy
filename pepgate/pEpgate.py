@@ -2,11 +2,10 @@
 
 import argparse
 import atexit
-import tomli
 
-from .pEphelpers import get_default, cleanup
-from .pEpgatesettings import settings, init_settings
-from .pEpgatemain import *
+from pEphelpers import get_default, cleanup
+from pEpgatesettings import settings, init_settings
+from pEpgatemain import *
 
 def main():
 	init_settings()
@@ -63,4 +62,5 @@ def main():
 	log_session()
 
 
-
+if __name__ == '__main__':
+	main()

@@ -19,7 +19,7 @@ from datetime    import datetime
 from subprocess  import Popen, PIPE, STDOUT
 from glob        import glob
 
-from .pEpgatesettings import settings
+from pEpgatesettings import settings
 
 ### Parse args ####################################################################################
 

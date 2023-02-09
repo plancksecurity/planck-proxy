@@ -11,9 +11,9 @@ from glob        import glob
 from pathlib 	 import Path
 from subprocess  import Popen, PIPE, STDOUT
 
-from .pEpgatesettings import settings
-from .pEphelpers import *
-from .__version__ import version as gate_version
+from pEpgatesettings import settings
+from pEphelpers import *
+
 
 def print_init_info(args):
 	dbg("===== " + c("p≡pGate started", 2) + " in mode " + c(settings['mode'], 3)
@@ -579,7 +579,7 @@ def add_routing_and_headers(pEp, msg, us, them):
 	settings['nextmx'] = None
 	opts = {
 		"X-pEpGate-mode": settings['mode'],
-		"X-pEpGate-version": gate_version,
+		"X-pEpGate-version": settings['gate_version'],
 		"X-pEpEngine-version": pEp.engine_version,
 		"X-NextMX": "auto",
 	}
