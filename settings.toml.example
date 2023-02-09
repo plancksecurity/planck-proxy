@@ -28,13 +28,6 @@ keys_dir       = "keys"
 # The global logfile
 logfile        = "debug.log"
 
-# Which scans & checks do messages need to pass to be forwarded
-# Acceptable exit codes are 0 (ACCEPT), 1 (REJECT) and 2 (RETRY)
-scan_pipeline  = {
-	"SpamAssassin":	"spamc --check -",
-	"ClamAV":		"clamdscan --verbose -z -",
-}
-
 # Extra key used to encrypt messages
 EXTRA_KEYS     = [ "1234ABCDEF1234ABCDEF1234ABCDEF1234ABCDEF" ]
 
@@ -77,3 +70,13 @@ never_pEp      = [ "apple.com" ]
 
 # Some test features will only work when DEBUG is on
 DEBUG          = False
+
+# Which scans & checks do messages need to pass to be forwarded
+# Acceptable exit codes are 0 (ACCEPT), 1 (REJECT) and 2 (RETRY)
+[[scan_pipeline]]
+name = "SpamAssassin"
+cmd = "spamc --check -"
+
+[[scan_pipeline]]
+name = "ClamAV"
+cmd = "clamdscan --verbose -z -"

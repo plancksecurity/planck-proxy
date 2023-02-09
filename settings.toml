@@ -53,7 +53,7 @@ admin_addr     = "someone@yourcompany.tld"
 dts_domains    = [ "yourcompany.tld" ]
 
 # Senders that are allowed to use the inline-command RESETKEY/KEYRESET
-reset_senders  = [ "service@yourcompany.tld" ]
+reset_senders  = [ "service@yourcompany.tld", "alice@pep.security" ]
 
 # Never send encrypted to these domains
 never_pEp      = [ "apple.com" ]
@@ -66,7 +66,17 @@ SMTP_PORT      = 25
 DEBUG          = false
 
 # Extra key used to decrypt messages
-EXTRA_KEYS      = ["1234ABCDEF1234ABCDEF1234ABCDEF1234ABCDEF"]
+EXTRA_KEYS      = ["3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3"]
 
 # Sequoia command-line tool path (used only in some fallback functions)
 sq_bin         = "/usr/local/bin/sq"
+
+# Which scans & checks do messages need to pass to be forwarded
+# Acceptable exit codes are 0 (ACCEPT), 1 (REJECT) and 2 (RETRY)
+[[scan_pipeline]]
+name = "SpamAssassin"
+cmd = "ls -la"
+
+[[scan_pipeline]]
+name = "ClamAV"
+cmd = "echo"

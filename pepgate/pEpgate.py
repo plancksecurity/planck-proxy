@@ -2,7 +2,6 @@
 # import codecs
 # import random
 
-# from uuid        import uuid4
 # from shutil      import copytree
 import argparse
 import atexit
@@ -10,7 +9,7 @@ import tomli
 
 from .pEphelpers import get_default, cleanup
 from .pEpgatesettings import settings, init_settings
-from .pEpgatemain import print_init_info, init_lockfile, get_message, set_addresses, enable_dts
+from .pEpgatemain import *
 
 def main():
 
@@ -39,13 +38,36 @@ def main():
 	for key,val in vars(args).items():
 		settings[key] = val
 
+
+	msg = {}
+	us = {}
+	them = {}
+
 	print_init_info(args)
 	init_lockfile()
+	msg['inmail'] = get_message()
+	msg, us, them = set_addresses(msg, us, them)
+	enable_dts(msg)
+	msg = check_key_reset(msg, us, them)
+	us = addr_domain_rewrite(us)
+	init_workdir(us)
+	import_needed = check_initial_import()
+	print_summary_info(msg, us, them)
+	init_logging(msg, them)
+	pEp = load_pep()
+	if import_needed:
+		import_keys(pEp)
+	print_keys_and_keaders(msg)
+	if settings['mode'] == 'encrypt':
+		them = check_recipient_pubkey(pEp, them)
+	us = check_sender_privkey(us)
+	us = set_own_identity(pEp, us)
+	msg = create_pEp_message(pEp, msg, us, them)
+	msg = process_message(pEp, msg, us, them)
+	filter_message(msg)
+	msg = add_routing_and_headers(pEp, msg, us, them)
+	deliver_mail(msg)
+	log_session()
 
-	inmail = get_message()
-	ouraddr, theiraddr = set_addresses(inmail)
-	enable_dts(inmail)
-
-	print(ouraddr, theiraddr)
 
 

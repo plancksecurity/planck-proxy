@@ -1,11 +1,19 @@
 import os
 import sys
 import re
+import codecs
+import importlib
 
+from uuid        import uuid4
 from time        import sleep
+from datetime    import datetime
+from glob        import glob
+from pathlib 	 import Path
+from subprocess  import Popen, PIPE, STDOUT
 
 from .pEpgatesettings import settings
-from .pEphelpers import dbg, c, prettytable, cleanup, getmailheaders, get_contact_info
+from .pEphelpers import *
+from .__version__ import version as gate_version
 
 def print_init_info(args):
 	dbg("===== " + c("p≡pGate started", 2) + " in mode " + c(settings['mode'], 3)
@@ -13,6 +21,10 @@ def print_init_info(args):
 		+ " | GID " + c(str(os.getgid()), 7) + " =====")
 	if settings['DEBUG']:
 		dbg (c("┌ Parameters", 5) + "\n" + prettytable(args.__dict__))
+		cur_settings = settings.copy()
+		for setting in ['adminlog', 'textlog', 'htmllog']:
+			cur_settings.pop(setting)
+		dbg (c("┌ Settings (except logs)", 5) + "\n" + prettytable(cur_settings))
 
 
 def init_lockfile():
@@ -95,19 +107,28 @@ def get_message():
 		exit(2)
 	return inmail
 
-def set_addresses(inmail):
+def set_addresses(msg, us, them):
 	"""
 	Figure out how we have been contacted, what to do next
 	"""
-	msgfrom, msgto = get_contact_info(inmail)
+	msgfrom, msgto = get_contact_info(msg['inmail'])
 
 	ouraddr = (msgfrom if settings['mode'] == "encrypt" else msgto)
 	theiraddr = (msgto if settings['mode'] == "encrypt" else msgfrom)
-	return ouraddr, theiraddr
+	msg['msgfrom'] = msgfrom
+	msg['msgto'] = msgto
 
-### If sender enabled "Return receipt" allow cleanup() to send back debugging info ################
-def enable_dts(inmail):
-	dts = getmailheaders(inmail, "Disposition-Notification-To") # Debug To Sender
+	us['addr'] = ouraddr
+	them['addr'] = theiraddr
+
+	return msg, us, them
+
+
+def enable_dts(msg):
+	"""
+	If sender enabled "Return receipt" allow cleanup() to send back debugging info
+	"""
+	dts = getmailheaders(msg['inmail'], "Disposition-Notification-To") # Debug To Sender
 
 	if len(dts) > 0:
 		dts = addr = dts[0]
@@ -119,396 +140,501 @@ def enable_dts(inmail):
 		else:
 			dbg(c("Domain is not allowed to request a debug log", 1))
 
-# ### KEYRESET/RESETKEY command #####################################################################
+def check_key_reset(msg, us, them):
+	"""
+	If 'RESETKEY' or 'KEYRESET' are found in a mail in mode encrypt, delete theiraddr from ouraddr keyring.
+	"""
 
-# keywords = ("RESETKEY", "KEYRESET")
+	keywords = ("RESETKEY", "KEYRESET")
 
-# if any(kw in inmail for kw in keywords) and mode == "encrypt" and ouraddr in reset_senders and theiraddr not in reset_senders:
-# 	dbg("Resetting key for " + theiraddr + " in keyring " + ouraddr)
+	if any(kw in msg['inmail'] for kw in keywords) and settings['mode'] == "encrypt" and us['addr'] in settings['reset_senders'] and them['addr'] not in settings['reset_senders']:
+		dbg("Resetting key for " + them['addr'] + " in keyring " + us['addr'])
 
-# 	for kw in keywords:
-# 		inmail = inmail.replace(kw, "")
+		for kw in keywords:
+			msg['inmail'] = msg['inmail'].replace(kw, "")
 
-# 	cmd = [os.path.join(os.basepath(__file__), "delete.key.from.keyring.py"), ouraddr, theiraddr]
-# 	dbg("CMD: " + " ".join(cmd))
-# 	p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-# 	stdout, stderr = p.communicate()
-# 	dbg(c(stdout.decode("utf8"), 2))
+		script_path = Path(__file__).parent / 'scripts' / "delete.key.from.keyring.py"
+
+		cmd = [str(script_path), us['addr'], them['addr']]
+		dbg("CMD: " + " ".join(cmd))
+		p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+		stdout, stderr = p.communicate()
+		dbg(c(stdout.decode("utf8"), 2))
+
+	return msg
 
 # ### Address- & domain-rewriting (for asymmetric inbound/outbound domains) #########################
 
-# rewrite = jsonlookup(fwdmappath, ouraddr, False)
-# if rewrite is not None:
-# 	dbg("Rewriting our address from " + c(ouraddr, 1) + " to " + c(rewrite, 3))
-# 	ouraddr = rewrite
-# else:
-# 	if mode == "encrypt":
-# 		ourdomain = ouraddr[ouraddr.rfind("@"):]
-# 		rewrite = jsonlookup(fwdmappath, ourdomain, False)
-# 		if rewrite is not None:
-# 			dbg("Rewriting domain of outgoing message from " + c(ourdomain, 3) + " to " + c(rewrite, 1))
-# 			ouraddr = ouraddr.replace(ourdomain, rewrite)
+def addr_domain_rewrite(us):
+	"""
+	Address- & domain-rewriting (for asymmetric inbound/outbound domains)
+	"""
+
+	forwarding_map_path = os.path.join(settings['home'] , settings['forwarding_map'])
+	rewrite = jsonlookup(forwarding_map_path, us['addr'], False)
+	if rewrite is not None:
+		dbg("Rewriting our address from " + c(us['addr'], 1) + " to " + c(rewrite, 3))
+		us['addr'] = rewrite
+	else:
+		if settings['mode'] == "encrypt":
+			ourdomain = us['addr'][us['addr'].rfind("@"):]
+			rewrite = jsonlookup(forwarding_map_path, ourdomain, False)
+			if rewrite is not None:
+				dbg("Rewriting domain of outgoing message from " + c(ourdomain, 3) + " to " + c(rewrite, 1))
+				us['addr'] = us['addr'].replace(ourdomain, rewrite)
+	return us
 
 # ### Create & set working directory ################################################################
 
-# workdirpath = os.path.join(workdirpath, ouraddr)
-# if not os.path.exists(workdirpath):
-# 	os.makedirs(workdirpath);
+def init_workdir(us):
+	"""
+	Create workdir for ouraddr, and set it to the current $HOME
+	"""
+	global settings
+	workdirpath = os.path.join(settings['home'] , settings['work_dir'])
+	workdirpath = os.path.join(workdirpath, us['addr'])
+	if not os.path.exists(workdirpath):
+		os.makedirs(workdirpath)
 
-# os.environ['HOME'] = workdirpath
-# os.chdir(workdirpath)
+	os.environ['HOME'] = workdirpath
+	os.chdir(workdirpath)
 
-# ### Check if Sequoia-DB already exists, if not import keys later using p≡p ########################
+	settings['work_dir'] = workdirpath
+	if settings['DEBUG']:
+		dbg(f"init workdir to {settings['work_dir']}")
 
-# initialimport = not os.path.exists(os.environ["HOME"] + "/.pEp/keys.db")
+### Check if Sequoia-DB already exists, if not import keys later using p≡p ########################
+
+def check_initial_import():
+	keys_db_path = os.path.join(os.environ["HOME"], '.pEp', 'keys.db')
+	return not os.path.exists(keys_db_path)
 
 # ### Summary #######################################################################################
 
-# dbg("       Message from: " + c(str(msgfrom), 5))
-# dbg("         Message to: " + c(str(msgto), 5))
-# dbg("        Our address: " + c(ouraddr, 3))
-# dbg("      Their address: " + c(theiraddr, 3))
-# dbg("    Initital import: " + ("Yes" if initialimport else "No"))
+def print_summary_info(msg, us, them):
+	dbg("       msg from: " + c(str(msg['msgfrom']), 5))
+	dbg("         msg to: " + c(str(msg['msgto']), 5))
+	dbg("        Our address: " + c(us['addr'], 3))
+	dbg("      Their address: " + c(them['addr'], 3))
+	dbg("    Initital import: " + ("Yes" if check_initial_import() else "No"))
 
 # ### Logging #######################################################################################
 
-# logpath = os.path.join(workdirpath, theiraddr, datetime.now().strftime('%Y.%m.%d-%H.%M.%S.%f'))
-# setoutervar("logpath", logpath)
-# if not os.path.exists(logpath):
-# 	os.makedirs(logpath);
+def init_logging(msg, them):
+	"""
+	Log original message into the workdir
+	"""
+	global settings
+	logpath = os.path.join(settings['work_dir'], them['addr'], datetime.now().strftime('%Y.%m.%d-%H.%M.%S.%f'))
+	settings['logpath'] = logpath
+	if not os.path.exists(logpath):
+		os.makedirs(logpath)
 
-# logfilename = os.path.join(logpath, "in." + mode + ".original.eml")
-# dbg("   Original message: " + c(logfilename, 6)) # + "\n" + inmail)
-# logfile = codecs.open(logfilename, "w", "utf-8")
-# logfile.write(inmail)
-# logfile.close()
+	logfilename = os.path.join(logpath, "in." + settings['mode'] + ".original.eml")
+	dbg("   Original message: " + c(logfilename, 6)) # + "\n" + inmail)
+	logfile = codecs.open(logfilename, "w", "utf-8")
+	logfile.write(msg['inmail'])
+	logfile.close()
+
+	if settings['DEBUG']:
+		dbg(f"init logpath to {settings['logpath']}")
 
 # ### Load p≡p ######################################################################################
 
-# import pEp
-# pEp.set_debug_log_enabled(True) # TODO
-# pEp.message_to_send = messageToSend
-# pEp.notify_handshake = notifyHandshake
+def load_pep():
+	"""
+	Import the p≡p engine. This will create the .pEp folder in the current $HOME
+	This method should never be called before init_workdir
+	"""
+	pEp = importlib.import_module('pEp')
+	pEp.set_debug_log_enabled(True) # TODO
+	pEp.message_to_send = messageToSend
+	pEp.notify_handshake = notifyHandshake
 
-# dbg("p≡p (" + str(pEp.about).strip().replace("\n", ", ") + ", p≡p engine version " + pEp.engine_version + ") loaded in", True)
+	dbg("p≡p (" + str(pEp.about).strip().replace("\n", ", ") + ", p≡p engine version " + pEp.engine_version + ") loaded in", True)
+	return pEp
 
 # ### Import static / globally available / extra keys ###############################################
 
-# if initialimport:
-# 	dbg(c("Initializing keys.db...", 2))
-# 	for f in glob(os.path.join(keypath, "*.asc")):
-# 		keys = open(f, "rb").read()
-# 		dbg("")
-# 		pEp.import_key(keys)
-# 		dbg("Imported key(s) from " + f, True)
+def import_keys(pEp):
+	"""
+	Import keys from the keys_dir
+	"""
+	dbg(c("Initializing keys.db...", 2))
+	keys_path = os.path.join(settings['home'] , settings['keys_dir'])
+	key_files = glob(os.path.join(keys_path, "*.asc"))
+	for f in key_files:
+		keys = open(f, "rb").read()
+		dbg("")
+		pEp.import_key(keys)
+		dbg("Imported key(s) from " + f, True)
 
 # ### Show me what you got ##########################################################################
-
-# dbg(c("┌ Environment variables", 5) + "\n" + prettytable(os.environ), pub=False)
-# dbg(c("┌ Keys in this keyring (as stored in keys.db)", 5) + "\n" + prettytable(keysfromkeyring()))
-# dbg(c("┌ Headers in original message (as seen by non-p≡p clients)", 5) + "\n" + prettytable(getmailheaders(inmail)))
+def print_keys_and_keaders(msg):
+	dbg(c("┌ Environment variables", 5) + "\n" + prettytable(os.environ), pub=False)
+	dbg(c("┌ Keys in this keyring (as stored in keys.db)", 5) + "\n" + prettytable(keysfromkeyring()))
+	dbg(c("┌ Headers in original message (as seen by non-p≡p clients)", 5) + "\n" + prettytable(getmailheaders(msg['inmail'])))
 
 # ### Check if we have a public key for "them" ######################################################
 
-# if mode == "encrypt":
-# 	theirkey = keysfromkeyring(theiraddr)
-# 	if theirkey == False:
-# 		dbg("No public key for recipient " + c(theiraddr, 3) + ", p≡p won't be able to encrypt this time")
-# 		theirpepid = pEp.Identity(theiraddr, theiraddr)
-# 	else:
-# 		dbg(c("Found existing public key for recipient ", 2) + c(theiraddr, 5) + ":\n" + prettytable(theirkey))
-# 		# TODO: this doesn't support multiple UID's per key, we should figure out the most recent one
-# 		theirkeyname = theirkey[0]['key_blob']['username']
-# 		theirkeyaddr = theirkey[0]['pEp_keys.db']['UserID']
-# 		theirkeyfp   = theirkey[0]['pEp_keys.db']['KeyID']
-# 		dbg("Their key name: " + theirkeyname)
-# 		dbg("Their key addr: " + theirkeyaddr)
-# 		dbg("Their key fpr:  " + theirkeyfp)
+def check_recipient_pubkey(pEp, them):
+	"""
+	Check if we have a key to encrypt for the recipient and get their p≡p identity
+	"""
+	theirkey = keysfromkeyring(them['addr'])
+	them['key'] = theirkey
+	if theirkey == False:
+		dbg("No public key for recipient " + c(them['addr'], 3) + ", p≡p won't be able to encrypt this time")
+		theirpepid = pEp.Identity(them['addr'], them['addr'])
+	else:
+		dbg(c("Found existing public key for recipient ", 2) + c(them['addr'], 5) + ":\n" + prettytable(theirkey))
+		# TODO: this doesn't support multiple UID's per key, we should figure out the most recent one
+		theirkeyname = theirkey[0]['key_blob']['username']
+		theirkeyaddr = theirkey[0]['pEp_keys.db']['UserID']
+		theirkeyfpr   = theirkey[0]['pEp_keys.db']['KeyID']
+		dbg("Their key name: " + theirkeyname)
+		dbg("Their key addr: " + theirkeyaddr)
+		dbg("Their key fpr:  " + theirkeyfpr)
+		them['keyname'] = theirkeyname
+		them['keyaddr'] = theirkeyaddr
+		them['keyfpr'] = theirkeyfpr
 
-# 		theirpepid = pEp.Identity(theirkeyaddr, theirkeyname)
+		theirpepid = pEp.Identity(theirkeyaddr, theirkeyname)
+
+	them['pepid'] = theirpepid
+
+	return them
 
 # ### Check if we have a private key for "us" #######################################################
 
-# ourkey = keysfromkeyring(ouraddr)
-# if ourkey == False:
-# 	dbg("No private key for our address " + c(ouraddr, 3) + ", p≡p will have to generate one later")
-# else:
-# 	dbg(c("Found existing private key for our address ", 2) + c(ouraddr, 5) + ":\n" + prettytable(ourkey))
-# 	# TODO: this doesn't support multiple UID's per key, we should figure out the most recent one
-# 	ourkeyname = ourkey[0]['key_blob']['username']
-# 	ourkeyaddr = ourkey[0]['pEp_keys.db']['UserID']
-# 	ourkeyfp   = ourkey[0]['pEp_keys.db']['KeyID']
-# 	dbg("Our key name: " + ourkeyname)
-# 	dbg("Our key addr: " + ourkeyaddr)
-# 	dbg("Our key fpr:  " + ourkeyfp)
+def check_sender_privkey(us):
+	"""
+	Check if we have a public key for the sender
+	"""
+	ourkey = keysfromkeyring(us['addr'])
+	if ourkey == False:
+		dbg("No private key for our address " + c(us['addr'], 3) + ", p≡p will have to generate one later")
+		ourkeyname = ourkeyaddr = ourkeyfpr = None
+	else:
+		dbg(c("Found existing private key for our address ", 2) + c(us['addr'], 5) + ":\n" + prettytable(ourkey))
+		# TODO: this doesn't support multiple UID's per key, we should figure out the most recent one
+		ourkeyname = ourkey[0]['key_blob']['username']
+		ourkeyaddr = ourkey[0]['pEp_keys.db']['UserID']
+		ourkeyfpr   = ourkey[0]['pEp_keys.db']['KeyID']
+		dbg("Our key name: " + ourkeyname)
+		dbg("Our key addr: " + ourkeyaddr)
+		dbg("Our key fpr:  " + ourkeyfpr)
+
+		us['keyname'] = ourkeyname
+		us['keyaddr'] = ourkeyaddr
+		us['keyfpr'] = ourkeyfpr
+
+	return us
 
 # ### Create/set own identity ######################################################################
+def set_own_identity(pEp, us):
+	"""
+	Create or set our own p≡p identity
+	"""
+	username_map_path = os.path.join(settings['home'] , settings['username_map'])
+	ourname = jsonlookup(username_map_path, us['addr'], False)
 
-# ourname = jsonlookup(usermappath, ouraddr, False)
+	try:
+		us['keyname'], us['keyaddr'], us['keyfpr']
+	except KeyError:
+		dbg(c("No existing key found, letting p≡p generate one", 3))
+		if ourname is None:
+			import re
+			ourname = re.sub(r"\@", " at ", us['addr'])
+			ourname = re.sub(r"\.", " dot ", ourname)
+			ourname = re.sub(r"\W+", " ", ourname)
+			dbg(c("No matching name found", 1) + " for address " + c(us['addr'], 3) + ", using de-@'ed address as name: " + c(ourname, 5))
+		else:
+			dbg("Found name matching our address " + c(us['addr'], 3) + ": " + c(ourname, 2))
 
-# try:
-# 	ourkeyname, ourkeyaddr, ourkeyfp
-# except NameError:
-# 	dbg(c("No existing key found, letting p≡p generate one", 3))
-# 	if ourname is None:
-# 		import re
-# 		ourname = re.sub(r"\@", " at ", ouraddr)
-# 		ourname = re.sub(r"\.", " dot ", ourname)
-# 		ourname = re.sub(r"\W+", " ", ourname)
-# 		dbg(c("No matching name found", 1) + " for address " + c(ouraddr, 3) + ", using de-@'ed address as name: " + c(ourname, 5))
-# 	else:
-# 		dbg("Found name matching our address " + c(ouraddr, 3) + ": " + c(ourname, 2))
+		i = pEp.Identity(us['addr'], ourname)
+		pEp.myself(i)
+		ourpepid = pEp.Identity(us['addr'], ourname) # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
+	else:
+		dbg(c("Found existing key, p≡p will import/use it", 2))
+		if ourname is not None and ourname != us['keyname']:
+			dbg(c("Name inside existing key (" + us['keyname'] + ") differs from the one found in username.map (" + ourname + "), using the latter", 3))
+			i = pEp.Identity(us['keyaddr'], ourname)
+			ourpepid = pEp.Identity(us['keyaddr'], ourname) # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
+		else:
+			i = pEp.Identity(us['keyaddr'], us['keyname'])
+			ourpepid = pEp.Identity(us['keyaddr'], us['keyname']) # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
 
-# 	i = pEp.Identity(ouraddr, ourname)
-# 	pEp.myself(i)
-# 	ourpepid = pEp.Identity(ouraddr, ourname) # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
-# else:
-# 	dbg(c("Found existing key, p≡p will import/use it", 2))
-# 	if ourname is not None and ourname != ourkeyname:
-# 		dbg(c("Name inside existing key (" + ourkeyname + ") differs from the one found in username.map (" + ourname + "), using the latter", 3))
-# 		i = pEp.Identity(ourkeyaddr, ourname)
-# 		ourpepid = pEp.Identity(ourkeyaddr, ourname) # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
-# 	else:
-# 		i = pEp.Identity(ourkeyaddr, ourkeyname)
-# 		ourpepid = pEp.Identity(ourkeyaddr, ourkeyname) # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
+		i.fpr = us['keyfpr']
 
-# 	i.fpr = ourkeyfp
+	us['pepid'] = ourpepid
+
+	return us
 
 # ### Prepare message for processing by p≡p #########################################################
 
-# try:
-# 	src = pEp.Message(inmail)
+def create_pEp_message(pEp, msg, us, them):
+	"""
+	Create a p≡p message object
+	"""
+	try:
+		src = pEp.Message(msg['inmail'])
 
-# 	if mode == "encrypt":
-# 		src.sent = int(str(datetime.now().timestamp()).split('.')[0])
-# 		src.id = "pEp-" + uuid4().hex + "@" + socket.getfqdn()
-# 		src.from_ = ourpepid
-# 		src.to = [theirpepid]
+		if settings['mode'] == "encrypt":
+			src.sent = int(str(datetime.now().timestamp()).split('.')[0])
+			src.id = "pEp-" + uuid4().hex + "@" + socket.getfqdn()
+			src.from_ = us['pepid']
+			src.to = [them['pepid']]
 
-# 	if mode == "decrypt":
-# 		src.to = [ourpepid]
-# 		src.recv_by = ourpepid # TODO: implement proper echo-protocol handling
+		if settings['mode'] == "decrypt":
+			src.to = [us['pepid']]
+			src.recv_by = us['pepid'] # TODO: implement proper echo-protocol handling
 
-# 	# Get rid of CC and BCC for loop-avoidance (since Postfix gives us one separate message per recipient)
-# 	src.cc = []
-# 	src.bcc = []
+		# Get rid of CC and BCC for loop-avoidance (since Postfix gives us one separate message per recipient)
+		src.cc = []
+		src.bcc = []
 
-# except Exception:
-# 	e = sys.exc_info()
-# 	errmsg  = "ERROR 4: " + str(e[0]) + ": " + str(e[1]) + "\n"
-# 	errmsg += "Traceback:\n" + prettytable([line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])])
-# 	dbg(errmsg)
-# 	dbgmail(errmsg)
-# 	exit(4)
+	except Exception:
+		e = sys.exc_info()
+		errmsg  = "ERROR 4: " + str(e[0]) + ": " + str(e[1]) + "\n"
+		errmsg += "Traceback:\n" + prettytable([line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])])
+		dbg(errmsg)
+		dbgmail(errmsg)
+		exit(4)
 
-# try:
-# 	dbg("Processing message from " + ((c(src.from_.username, 2)) if len(src.from_.username) > 0 else "") + c(" <" + src.from_.address + ">", 3) + \
-# 							" to " + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "") + c(" <" + src.to[0].address + ">", 3))
-# except Exception:
-# 	e = sys.exc_info()
-# 	errmsg  = "Couldn't get src.from_ or src.to\n"
-# 	errmsg += "ERROR 5: " + str(e[0]) + ": " + str(e[1]) + "\n"
-# 	errmsg += "Traceback:\n" + prettytable([line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])])
-# 	dbg(errmsg)
-# 	dbgmail(errmsg)
-# 	exit(5)
+	try:
+		dbg("Processing message from " + ((c(src.from_.username, 2)) if len(src.from_.username) > 0 else "") + c(" <" + src.from_.address + ">", 3) + \
+								" to " + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "") + c(" <" + src.to[0].address + ">", 3))
+	except Exception:
+		e = sys.exc_info()
+		errmsg  = "Couldn't get src.from_ or src.to\n"
+		errmsg += "ERROR 5: " + str(e[0]) + ": " + str(e[1]) + "\n"
+		errmsg += "Traceback:\n" + prettytable([line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])])
+		dbg(errmsg)
+		dbgmail(errmsg)
+		exit(5)
 
-# ### Log parsed message ############################################################################
+	# Log parsed message
 
-# logfilename = os.path.join(logpath, "in." + mode + ".parsed.eml")
-# dbg("p≡p-parsed message: " + c(logfilename, 6))
-# # dbg(str(src)[0:3615])
-# logfile = codecs.open(logfilename, "w", "utf-8")
-# logfile.write(str(src))
-# logfile.close()
+	logfilename = os.path.join(settings['logpath'], "in." + settings['mode'] + ".parsed.eml")
+	dbg("p≡p-parsed message: " + c(logfilename, 6))
+	logfile = codecs.open(logfilename, "w", "utf-8")
+	logfile.write(str(src))
+	logfile.close()
+
+	msg['src'] = src
+
+	return msg
+
 
 # ### Let p≡p do it's magic #########################################################################
+def process_message(pEp, msg, us, them):
+	try:
+		if settings['mode'] == "encrypt":
+			# Silly workaround for senders that don't bother to include a username
+			if len(msg['src'].from_.username) == 0:
+				tmp = pEp.Identity(msg['src'].from_.address, msg['src'].from_.address)
+				msg['src'].from_ = tmp
+				dbg("Added missing username to src._from: " + repr(msg['src'].from_))
 
-# try:
-# 	if mode == "encrypt":
-# 		# Silly workaround for senders that don't bother to include a username
-# 		if len(src.from_.username) == 0:
-# 			tmp = pEp.Identity(src.from_.address, src.from_.address)
-# 			src.from_ = tmp
-# 			dbg("Added missing username to src._from: " + repr(src.from_))
+			# Blacklisted domains which don't like PGP
+			a = msg['src'].to[0].address
+			d = a[a.find("@") + 1:]
+			if d in settings['never_pEp']:
+				dbg(c("Domain " + d + " in never_pEp, not encrypting", 5))
+				dst = msg['src']
+			# Magic-string "NOENCRYPT" found inside the message
+			elif "NOENCRYPT" in msg['src'].longmsg + msg['src'].longmsg_formatted and settings['DEBUG']:
+				dbg(c(f"Found magic string 'NOENCRYPT' so not going to encrypt this message {settings['DEBUG']}", 1))
+				dst = msg['src']
+				dst.longmsg = dst.longmsg.replace("NOENCRYPT", "")
+				dst.longmsg_formatted = dst.longmsg_formatted.replace("NOENCRYPT", "")
+			elif msg['src'].from_.address == msg['src'].to[0].address:
+				dbg(c("Sender == recipient so probably a loopback/test-message, skipping encryption...", 1))
+				dst = msg['src']
+			else:
+				if them['key'] == False:
+					dbg("We DO NOT have a key for this recipient")
+					# TODO: add policy setting to enforce outbound encryption (allow/deny-list?)
+				else:
+					dbg("We have a key for this recipient:\n" + prettytable(them['key']))
 
-# 		# Blacklisted domains which don't like PGP
-# 		a = src.to[0].address
-# 		d = a[a.find("@") + 1:]
-# 		if d in never_pEp:
-# 			dbg(c("Domain " + d + " in never_pEp, not encrypting", 5))
-# 			dst = src
-# 		# Magic-string "NOENCRYPT" found inside the message
-# 		elif "NOENCRYPT" in src.longmsg + src.longmsg_formatted and DEBUG:
-# 			dbg(c(f"Found magic string 'NOENCRYPT' so not going to encrypt this message {DEBUG}", 1))
-# 			dst = src
-# 			dst.longmsg = dst.longmsg.replace("NOENCRYPT", "")
-# 			dst.longmsg_formatted = dst.longmsg_formatted.replace("NOENCRYPT", "")
-# 		elif src.from_.address == src.to[0].address:
-# 			dbg(c("Sender == recipient so probably a loopback/test-message, skipping encryption...", 1))
-# 			dst = src
-# 		else:
-# 			if theirkey == False:
-# 				dbg("We DO NOT have a key for this recipient")
-# 				# TODO: add policy setting to enforce outbound encryption (allow/deny-list?)
-# 			else:
-# 				dbg("We have a key for this recipient:\n" + prettytable(theirkey))
+				dbg(c("Encrypting message...", 2))
+				# pEp.unencrypted_subject(True)
+				if len(settings['EXTRA_KEYS']) == 0:
+					dst = msg['src'].encrypt()
+				else:
+					dbg("└ with extra key(s): " + ", ".join(settings['EXTRA_KEYS']))
+					dst = msg['src'].encrypt(settings['EXTRA_KEYS'], 0)
+				dbg(c("Encrypted in", 2), True)
 
-# 			dbg(c("Encrypting message...", 2))
-# 			# pEp.unencrypted_subject(True)
-# 			if len(EXTRA_KEYS) == 0:
-# 				dst = src.encrypt()
-# 			else:
-# 				dbg("└ with extra key(s): " + ", ".join(EXTRA_KEYS))
-# 				dst = src.encrypt(EXTRA_KEYS, 0)
-# 			dbg(c("Encrypted in", 2), True)
+				if settings['DEBUG']:
+					dbg("Full dst:\n" + str(dst))
+					inspectusingsq(str(dst))
 
-# 			if DEBUG:
-# 				dbg("Full dst:\n" + str(dst))
-# 				inspectusingsq(str(dst))
+		if settings['mode'] == "decrypt":
+			pepfails = False # TODO: store some sort of failure-counter (per message ID?) to detect subsequent failures then fallback to sq, then forward as-is
+			if not pepfails:
+				dbg(c("Decrypting message via pEp...", 2))
+				dst, keys, rating, flags = msg['src'].decrypt()
+				dbg(c("Decrypted in", 2), True)
+				dst.to = [us['pepid']] # Lower the (potentially rewritten) outer recipient back into the inner message
+			else:
+				dbg(c("Decrypting message via Sequoia...", 2))
+				tmp = decryptusingsq(msg['inmail'], os.path.join(settings['work_dir'], "sec.*.key"))
+				dst, keys, rating, flags = pEp.Message(tmp[0]), tmp[1], None, None
+				dbg(c("Decrypted in", 2), True)
 
-# 	if mode == "decrypt":
-# 		pepfails = False # TODO: store some sort of failure-counter (per message ID?) to detect subsequent failures then fallback to sq, then forward as-is
-# 		if not pepfails:
-# 			dbg(c("Decrypting message via pEp...", 2))
-# 			dst, keys, rating, flags = src.decrypt()
-# 			dbg(c("Decrypted in", 2), True)
-# 			dst.to = [ourpepid] # Lower the (potentially rewritten) outer recipient back into the inner message
-# 		else:
-# 			dbg(c("Decrypting message via Sequoia...", 2))
-# 			tmp = decryptusingsq(inmail, os.path.join(workdirpath, "sec.*.key"))
-# 			dst, keys, rating, flags = pEp.Message(tmp[0]), tmp[1], None, None
-# 			dbg(c("Decrypted in", 2), True)
+			# if settings['DEBUG']:
+				# dbg("Decrypted message:\n" + c(str(dst), 2))
+				# dbg("Keys used: " + ", ".join(keys))
+				# dbg("Rating: " + str(rating))
+				# dbg("Flags: " + str(flags))
 
-# 		# if DEBUG:
-# 			# dbg("Decrypted message:\n" + c(str(dst), 2))
-# 			# dbg("Keys used: " + ", ".join(keys))
-# 			# dbg("Rating: " + str(rating))
-# 			# dbg("Flags: " + str(flags))
+			if str(rating) == "have_no_key":
+				keys_path = os.path.join(settings['home'] , settings['keys_dir'])
+				dbg(c("No matching key found to decrypt the message. Please put a matching key into the " + c(keys_path, 5) + " folder. Returning non-null exit code to Postfix so the message remains queued.", 1))
+				exit(7)
 
-# 		if str(rating) == "have_no_key":
-# 			dbg(c("No matching key found to decrypt the message. Please put a matching key into the " + c(keys_dir, 5) + " folder. Returning non-null exit code to Postfix so the message remains queued.", 1))
-# 			exit(7)
+			if keys is None or len(keys) == 0:
+				dbg(c("Original message was NOT encrypted", 1))
+				# TODO: add policy setting to enforce inbound encryption (allow/deny-list?)
+			else:
+				dbg(c("Original message was encrypted to these keys", 2) + ":\n" + prettytable(list(set(keys))))
 
-# 		if keys is None or len(keys) == 0:
-# 			dbg(c("Original message was NOT encrypted", 1))
-# 			# TODO: add policy setting to enforce inbound encryption (allow/deny-list?)
-# 		else:
-# 			dbg(c("Original message was encrypted to these keys", 2) + ":\n" + prettytable(list(set(keys))))
+		# Workaround for engine converting plaintext-only messages into a msg.txt inline-attachment
+		# dst = str(dst).replace(' filename="msg.txt"', "")
 
-# 	# Workaround for engine converting plaintext-only messages into a msg.txt inline-attachment
-# 	# dst = str(dst).replace(' filename="msg.txt"', "")
+	except Exception:
+		e = sys.exc_info()
+		errmsg  = "ERROR 7: " + str(e[0]) + ": " + str(e[1]) + "\n"
+		errmsg += "Traceback:\n" + prettytable([line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])])
+		dbg(errmsg)
+		dbgmail(errmsg)
+		exit(7)
+		# Alternatively: fall back to forwarding the message as-is
+		# dst, keys, rating, flags = src, None, None, None
+		# pass
 
-# except Exception:
-# 	e = sys.exc_info()
-# 	errmsg  = "ERROR 7: " + str(e[0]) + ": " + str(e[1]) + "\n"
-# 	errmsg += "Traceback:\n" + prettytable([line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])])
-# 	dbg(errmsg)
-# 	dbgmail(errmsg)
-# 	exit(7)
-# 	# Alternatively: fall back to forwarding the message as-is
-# 	# dst, keys, rating, flags = src, None, None, None
-# 	# pass
+	msg['dst'] = dst
+	return msg
 
 # ### Scan pipeline #################################################################################
 
-# scanresults = {}
-# desc = { 0: "PASS", 1: "FAIL", 2: "RETRY" }
-# cols = { 0: 2,      1: 1,      2: 3 }
-# for name, cmd in scan_pipeline.items():
-# 	if mode == "encrypt":
-# 		dbg("Passing original message to scanner " + c(name, 3))
-# 		msgtoscan = str(src)
-# 	if mode == "decrypt":
-# 		dbg("Passing decrypted message to scanner " + c(name, 3))
-# 		msgtoscan = str(dst)
+def filter_message(msg):
+	"""
+	Run all the commands on the scan_pipeline for the message
+	"""
+	scanresults = {}
+	desc = { 0: "PASS", 1: "FAIL", 2: "RETRY" }
+	cols = { 0: 2,      1: 1,      2: 3 }
+	for filter in settings['scan_pipeline']:
+		name = filter['name']
+		cmd = filter['cmd']
+		if settings['mode'] == "encrypt":
+			dbg("Passing original message to scanner " + c(name, 3))
+			msgtoscan = str(msg['src'])
+		if settings['mode'] == "decrypt":
+			dbg("Passing decrypted message to scanner " + c(name, 3))
+			msgtoscan = str(msg['dst'])
 
-# 	p = Popen(cmd.split(" "), shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-# 	p.stdin.write(msgtoscan.encode("utf8"))
-# 	stdout, stderr = p.communicate()
-# 	rc = p.returncode
+		p = Popen(cmd.split(" "), shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+		p.stdin.write(msgtoscan.encode("utf8"))
+		stdout, stderr = p.communicate()
+		rc = p.returncode
 
-# 	if rc in desc.keys():
-# 		scanresults[name] = rc
-# 		dbg("Result: " + c(desc[rc], cols[rc]))
-# 	else:
-# 		dbg("Unknown return code for scanner " + name + ": " + rc)
+		if rc in desc.keys():
+			scanresults[name] = rc
+			dbg("Result: " + c(desc[rc], cols[rc]))
+		else:
+			dbg("Unknown return code for scanner " + name + ": " + rc)
 
-# 	if rc == 2:
-# 		dbgmail("Error detected with scanner " + name)
-# 		exit(11)
+		if rc == 2:
+			dbgmail("Error detected with scanner " + name)
+			exit(11)
 
-# 	if DEBUG:
-# 		if len(stdout) > 0: dbg(c("STDOUT:\n", 2) + prettytable(stdout.decode("utf8").strip().split("\n")))
-# 		if len(stderr) > 0: dbg(c("STDERR:\n", 1) + prettytable(stderr.decode("utf8").strip().split("\n")))
-# 		# dbg("Return code: " + c(str(rc), 3));
+		if settings['DEBUG']:
+			if len(stdout) > 0: dbg(c("STDOUT:\n", 2) + prettytable(stdout.decode("utf8").strip().split("\n")))
+			if len(stderr) > 0: dbg(c("STDERR:\n", 1) + prettytable(stderr.decode("utf8").strip().split("\n")))
+			# dbg("Return code: " + c(str(rc), 3));
 
-# dbg("Combined scan results:\n" + prettytable(scanresults))
+	dbg("Combined scan results:\n" + prettytable(scanresults))
 
-# if sum(scanresults.values()) == 0:
-# 	dbg("All scans " + c("PASSED", 2) + ", relaying message", 2)
-# else:
-# 	dbg("Some scans " + c("FAILED", 1) + ", not relaying message (keeping it in the Postfix queue for now)")
-# 	exit(1) # keep message on hold
-# 	# exit(0) # silently drop the message
-# 	# TODO: inform the admin and/or the (likely spoofed) sender
+	if sum(scanresults.values()) == 0:
+		dbg("All scans " + c("PASSED", 2) + ", relaying message", 2)
+	else:
+		dbg("Some scans " + c("FAILED", 1) + ", not relaying message (keeping it in the Postfix queue for now)")
+		exit(1) # keep message on hold
+		# exit(0) # silently drop the message
+		# TODO: inform the admin and/or the (likely spoofed) sender
 
 # ### Add MX routing and version information headers ################################################
 
-# opts = {
-# 	"X-pEpGate-mode": mode,
-# 	"X-pEpGate-version": gate_version,
-# 	"X-pEpEngine-version": pEp.engine_version,
-# 	"X-NextMX": "auto",
-# }
+def add_routing_and_headers(pEp, msg, us, them):
+	global settings
+	settings['nextmx'] = None
+	opts = {
+		"X-pEpGate-mode": settings['mode'],
+		"X-pEpGate-version": gate_version,
+		"X-pEpEngine-version": pEp.engine_version,
+		"X-NextMX": "auto",
+	}
 
-# if mode == "encrypt":
-# 	nextmx = jsonlookup(nextmxpath, theirpepid.address[theirpepid.address.rfind("@") + 1:], False)
+	nextmx_path = os.path.join(settings['home'] , settings['nextmx_map'])
+	if settings['mode'] == "encrypt":
+		nextmx = jsonlookup(nextmx_path, them['pepid'].address[them['pepid'].address.rfind("@") + 1:], False)
 
-# if mode == "decrypt":
-# 	nextmx = jsonlookup(nextmxpath, ourpepid.address[ourpepid.address.rfind("@") + 1:], False)
+	if settings['mode'] == "decrypt":
+		nextmx = jsonlookup(nextmx_path, us['pepid'].address[us['pepid'].address.rfind("@") + 1:], False)
 
-# if nextmx is not None:
-# 	dbg(c("Overriding next MX: " + nextmx, 3))
-# 	opts['X-NextMX'] = nextmx
+	if nextmx is not None:
+		settings['netmx'] = nextmx
+		dbg(c("Overriding next MX: " + nextmx, 3))
+		opts['X-NextMX'] = nextmx
 
-# opts.update(dst.opt_fields)
-# dst.opt_fields = opts
+	opts.update(msg['dst'].opt_fields)
+	msg['dst'].opt_fields = opts
 
-# if DEBUG:
-# 	dbg("Optional headers:\n" + prettytable(dst.opt_fields), pub=False)
+	if settings['DEBUG']:
+		dbg("Optional headers:\n" + prettytable(msg['dst'].opt_fields), pub=False)
 
-# ### Log processed message #########################################################################
+	dst = str(msg['dst'])
+	msg['dst'] = dst
 
-# dst = str(dst)
+	# Log processed message
+	logfilename = os.path.join(settings['logpath'], "in." + settings['mode'] + ".processed.eml")
+	dbg("p≡p-processed message: " + c(logfilename, 6) + "\n" + str(dst)[0:1337])
+	logfile = codecs.open(logfilename, "w", "utf-8")
+	logfile.write(dst)
+	logfile.close()
 
-# logfilename = os.path.join(logpath, "in." + mode + ".processed.eml")
-# dbg("p≡p-processed message: " + c(logfilename, 6) + "\n" + str(dst)[0:1337])
-# logfile = codecs.open(logfilename, "w", "utf-8")
-# logfile.write(dst)
-# logfile.close()
+	return msg
+
 
 # ### Hand reply over to sendmail ###################################################################
 
-# dbg("Sending mail via MX: " + (c("auto", 3) if nextmx is None else c(str(nextmx), 1)))
-# dbg("From: " + ((c(src.from_.username, 2)) if len(src.from_.username) > 0 else "") + c(" <" + src.from_.address + ">", 3))
-# dbg("  To: " + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "") + c(" <" + src.to[0].address + ">", 3))
+def deliver_mail(msg):
+	dbg("Sending mail via MX: " + (c("auto", 3) if settings['nextmx'] is None else c(str(settings['nextmx']), 1)))
+	dbg("From: " + ((c(msg['src'].from_.username, 2)) if len(msg['src'].from_.username) > 0 else "") + c(" <" + msg['src'].from_.address + ">", 3))
+	dbg("  To: " + ((c(msg['src'].to[0].username, 2)) if len(msg['src'].to[0].username) > 0 else "") + c(" <" + msg['src'].to[0].address + ">", 3))
 
-# if DEBUG and "discard" in src.to[0].address:
-# 	dbg("Keyword discard found in recipient address, skipping call to sendmail")
-# else:
-# 	sendmail(dst)
+	if settings['DEBUG'] and "discard" in msg['src'].to[0].address:
+		dbg("Keyword discard found in recipient address, skipping call to sendmail")
+	else:
+		sendmail(msg['dst'])
 
-# dbg("===== " + c("p≡pGate ended", 1) + " =====")
+	dbg("===== " + c("p≡pGate ended", 1) + " =====")
 
 # ### Per-session logfile ###########################################################################
 
-# logfilename = os.path.join(logpath, "debug.log")
-# logfile = codecs.open(logfilename, "w", "utf-8")
-# logfile.write(getlog("textlog"))
-# logfile.close()
+def log_session():
 
-# logfilename = os.path.join(logpath, "debug.html")
-# logfile = codecs.open(logfilename, "w", "utf-8")
-# logfile.write(getlog("htmllog"))
-# logfile.close()
+	logfilename = os.path.join(settings['logpath'], "debug.log")
+	logfile = codecs.open(logfilename, "w", "utf-8")
+	logfile.write(getlog("textlog"))
+	logfile.close()
+
+	logfilename = os.path.join(settings['logpath'], "debug.html")
+	logfile = codecs.open(logfilename, "w", "utf-8")
+	logfile.write(getlog("htmllog"))
+	logfile.close()
