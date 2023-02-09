@@ -2,21 +2,34 @@
 
 import sqlite3
 import sys
+import argparse
 
-if len(sys.argv) < 3:
-	print("Usage: " + sys.argv[0] + " <keyring> <address>")
-	exit(1)
-else:
-	print("Deleting key(s) of address " + sys.argv[2] + " from keyring " + sys.argv[1])
+#Parse args
+parser = argparse.ArgumentParser(usage='delete.key.from.keyring.py alice@pep.security bob@pep.security --WORK_DIR ~/work_dir', description='Delete a user key from another user\'s DataBase')
+parser.add_argument('keyring', help='Email of user whose DB to delete from')
+parser.add_argument('address', help='Email of user whose key to delete')
+parser.add_argument('--WORK_DIR', default='work', help='Location of the work folder')
+
+args = parser.parse_args()
+
+#Set var and correct work_dir if needed
+keyring = args.keyring
+address = args.address
+work_dir = args.WORK_DIR
+
+if work_dir.endswith("/"):
+	work_dir = work_dir[:-1]
+
+print("Deleting key(s) of address " + address + " from keyring " + keyring)
 
 def collate_email(a, b):
 	return 1 if a > b else -1 if a < b else 0
 
 ### keys.db
-db = sqlite3.connect("work/" + sys.argv[1] + "/.pEp/keys.db")
+db = sqlite3.connect(work_dir + "/" + keyring + "/.pEp/keys.db")
 db.create_collation("EMAIL", collate_email)
 
-q = db.execute("SELECT * FROM userids WHERE userid = ?;", (sys.argv[2],))
+q = db.execute("SELECT * FROM userids WHERE userid = ?;", (address,))
 for r in q:
 	print("== " + r[0] + " -> " + r[1])
 
@@ -32,15 +45,15 @@ for r in q:
 db.commit()
 
 ### management.db
-db = sqlite3.connect("work/" + sys.argv[1] + "/.pEp/management.db")
+db = sqlite3.connect(work_dir + "/" + keyring + "/.pEp/management.db")
 
-d = db.execute("DELETE FROM trust WHERE user_id = ?;", ("TOFU_" + sys.argv[2],))
+d = db.execute("DELETE FROM trust WHERE user_id = ?;", ("TOFU_" + address,))
 print("Removed trust tofu: " + str(d.rowcount))
 
-d = db.execute("DELETE FROM person WHERE id = ?;", ("TOFU_" + sys.argv[2],))
+d = db.execute("DELETE FROM person WHERE id = ?;", ("TOFU_" + address,))
 print("Removed person tofu: " + str(d.rowcount))
 
-d = db.execute("DELETE FROM identity WHERE address = ?;", (sys.argv[2],))
+d = db.execute("DELETE FROM identity WHERE address = ?;", (address,))
 print("Removed identity: " + str(d.rowcount))
 
 db.commit()
