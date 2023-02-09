@@ -73,7 +73,7 @@ def init_lockfile():
 	dbg("Lockfile created", pub=False)
 
 
-def get_message():
+def get_message(msg):
 	"""
 	Read original message from stdin or use a testmail
 	"""
@@ -105,7 +105,9 @@ def get_message():
 	if len(inmail) == 0:
 		dbg(c("No message was passed to me. Aborting.", 1), pub=False)
 		exit(2)
-	return inmail
+
+	msg['inmail'] = inmail
+	return msg
 
 def set_addresses(msg, us, them):
 	"""
@@ -568,9 +570,11 @@ def filter_message(msg):
 		# exit(0) # silently drop the message
 		# TODO: inform the admin and/or the (likely spoofed) sender
 
-# ### Add MX routing and version information headers ################################################
 
 def add_routing_and_headers(pEp, msg, us, them):
+	"""
+	Complete mail headers with MX routing snd version information
+	"""
 	global settings
 	settings['nextmx'] = None
 	opts = {
@@ -611,9 +615,10 @@ def add_routing_and_headers(pEp, msg, us, them):
 	return msg
 
 
-# ### Hand reply over to sendmail ###################################################################
-
 def deliver_mail(msg):
+	"""
+	Send outgoing mail
+	"""
 	dbg("Sending mail via MX: " + (c("auto", 3) if settings['nextmx'] is None else c(str(settings['nextmx']), 1)))
 	dbg("From: " + ((c(msg['src'].from_.username, 2)) if len(msg['src'].from_.username) > 0 else "") + c(" <" + msg['src'].from_.address + ">", 3))
 	dbg("  To: " + ((c(msg['src'].to[0].username, 2)) if len(msg['src'].to[0].username) > 0 else "") + c(" <" + msg['src'].to[0].address + ">", 3))
@@ -625,9 +630,10 @@ def deliver_mail(msg):
 
 	dbg("===== " + c("p≡pGate ended", 1) + " =====")
 
-# ### Per-session logfile ###########################################################################
-
 def log_session():
+	"""
+	Save per-session logfiles
+	"""
 
 	logfilename = os.path.join(settings['logpath'], "debug.log")
 	logfile = codecs.open(logfilename, "w", "utf-8")

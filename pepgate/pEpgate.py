@@ -1,8 +1,5 @@
 #!/usr/bin/env -S python3 -B
-# import codecs
-# import random
 
-# from shutil      import copytree
 import argparse
 import atexit
 import tomli
@@ -12,11 +9,7 @@ from .pEpgatesettings import settings, init_settings
 from .pEpgatemain import *
 
 def main():
-
-	with open("./settings.toml", "rb") as f:
-		filesettings = tomli.load(f)
-
-	init_settings(filesettings)
+	init_settings()
 	atexit.register(cleanup)
 
 	parser = argparse.ArgumentParser(description='pEp Proxy CLI.')
@@ -45,7 +38,7 @@ def main():
 
 	print_init_info(args)
 	init_lockfile()
-	msg['inmail'] = get_message()
+	msg = get_message(msg)
 	msg, us, them = set_addresses(msg, us, them)
 	enable_dts(msg)
 	msg = check_key_reset(msg, us, them)
