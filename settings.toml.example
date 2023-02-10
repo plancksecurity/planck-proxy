@@ -1,25 +1,4 @@
 # Working directory, will be populated with a structure like this:
-# ├── <Recipient address>
-# │   ├── <Sender address>
-# │   │   ├── <Date/Time>
-# │   │   │   ├── debug.html
-# │   │   │   ├── debug.log
-# │   │   │   ├── in.{decrypt|encrypt}.original.eml
-# │   │   │   ├── in.{decrypt|encrypt}.parsed.eml
-# │   │   │   └── in.{decrypt|encrypt}.processed.eml
-# │   │   ├── <Another Date/Time>
-# │   │   │   ├── [...]
-# │   ├── <Another Sender address>
-# │   │   ├── <Date/Time>
-# │   │   │   ├── [...]
-# │   ├── .pEp
-# │   │   ├── keys.db
-# │   │   ├── management.db
-# │   ├── sec.<recipient address>.key (maybe several)
-# │   └── pub.<sender address>.key (likely several)
-# ├── <Another Recipient address>
-# │   ├── <Sender address>
-# │   │   ├── [...]
 work_dir       = "work"
 
 # Put the private extra keys in here as *.asc files

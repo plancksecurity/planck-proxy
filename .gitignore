@@ -1,5 +1,5 @@
 debug.log
-settings.toml
+settings.json
 pytestdebug.log
 keys/*.asc
 work/**

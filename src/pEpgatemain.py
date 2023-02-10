@@ -530,7 +530,7 @@ def filter_message(msg):
 	scanresults = {}
 	desc = { 0: "PASS", 1: "FAIL", 2: "RETRY" }
 	cols = { 0: 2,      1: 1,      2: 3 }
-	for filter in settings['scan_pipeline']:
+	for filter in settings['scan_pipes']:
 		name = filter['name']
 		cmd = filter['cmd']
 		if settings['mode'] == "encrypt":
