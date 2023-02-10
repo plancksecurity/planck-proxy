@@ -19,7 +19,7 @@ from datetime    import datetime
 from subprocess  import Popen, PIPE, STDOUT
 from glob        import glob
 
-from .pEpgatesettings import settings
+from pEpgatesettings import settings
 
 ### Parse args ####################################################################################
 
@@ -79,7 +79,7 @@ def dbg(text, printtiming=False, pub=True):
 		+ (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
 
 	# Unconditionally write to the global logfile
-	with codecs.open(settings['logfilepath'], "a+", "utf-8") as d:
+	with codecs.open(settings['logfile'], "a+", "utf-8") as d:
 		d.write(c(str(os.getpid()), 5) + " | " + text + "\n")
 	d.close()
 
@@ -127,7 +127,7 @@ def tohtml(text):
 	return ret
 
 def getlog(type):
-	return globals()[type] if type in ["textlog", "htmllog"] else ""
+	return settings[type] if type in ["textlog", "htmllog"] else ""
 
 def sendmail(msg):
 	# Replace dots at the beginning of a line with the MIME-encoded, quoted-printable counterpart. Fuck you very much, Outlook!
@@ -450,7 +450,8 @@ def get_contact_info(inmail, reinjection=False):
 		except:
 			pass
 
-	aliases = jsonlookup(settings['aliasespath'], msgto, False)
+	aliases_map_path = os.path.join(settings['home'] , settings['aliases_map'])
+	aliases = jsonlookup(aliases_map_path, msgto, False)
 	if aliases is not None:
 		dbg("Delivered-To is an aliased address: " + c(", ".join(aliases), 3))
 
