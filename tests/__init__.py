@@ -2,7 +2,11 @@ from pathlib import Path
 import sys
 import os
 # Adding the path to the root folder so the files can be imported in the tests
-ROOT_PATH = Path(__file__).parent.parent
-sys.path.insert(0, str(ROOT_PATH))
 
-os.environ['TEST_ROOT'] = str(Path(__file__).parent)
+TESTS_ROOT = Path(os.path.dirname(__file__))
+PROJECT_ROOT_PATH = TESTS_ROOT.parent
+MAIN_PROJECT_FILES_PATH = PROJECT_ROOT_PATH / 'src'
+# sys.path.insert(0, str(PROJECT_ROOT_PATH))
+sys.path.insert(0, str(MAIN_PROJECT_FILES_PATH))
+
+os.environ['TEST_ROOT'] = str(Path(TESTS_ROOT))

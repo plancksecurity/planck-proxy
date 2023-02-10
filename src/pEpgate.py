@@ -58,7 +58,7 @@ def main():
 	msg = process_message(pEp, msg, us, them)
 	filter_message(msg)
 	msg = add_routing_and_headers(pEp, msg, us, them)
-	deliver_mail(msg)
+	# deliver_mail(msg)
 	log_session()
 
 
