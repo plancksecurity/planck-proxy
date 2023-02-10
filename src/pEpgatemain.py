@@ -179,12 +179,11 @@ def addr_domain_rewrite(us):
 		dbg("Rewriting our address from " + c(us['addr'], 1) + " to " + c(rewrite, 3))
 		us['addr'] = rewrite
 	else:
-		if settings['mode'] == "encrypt":
-			ourdomain = us['addr'][us['addr'].rfind("@"):]
-			rewrite = jsonlookup(forwarding_map_path, ourdomain, False)
-			if rewrite is not None:
-				dbg("Rewriting domain of outgoing message from " + c(ourdomain, 3) + " to " + c(rewrite, 1))
-				us['addr'] = us['addr'].replace(ourdomain, rewrite)
+		ourdomain = us['addr'][us['addr'].rfind("@"):]
+		rewrite = jsonlookup(forwarding_map_path, ourdomain, False)
+		if rewrite is not None:
+			dbg("Rewriting domain of message from " + c(ourdomain, 3) + " to " + c(rewrite, 1))
+			us['addr'] = us['addr'].replace(ourdomain, rewrite)
 	return us
 
 # ### Create & set working directory ################################################################
@@ -214,8 +213,8 @@ def check_initial_import():
 # ### Summary #######################################################################################
 
 def print_summary_info(msg, us, them):
-	dbg("       msg from: " + c(str(msg['msgfrom']), 5))
-	dbg("         msg to: " + c(str(msg['msgto']), 5))
+	dbg("       Message from: " + c(str(msg['msgfrom']), 5))
+	dbg("         Message to: " + c(str(msg['msgto']), 5))
 	dbg("        Our address: " + c(us['addr'], 3))
 	dbg("      Their address: " + c(them['addr'], 3))
 	dbg("    Initital import: " + ("Yes" if check_initial_import() else "No"))

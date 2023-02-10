@@ -25,10 +25,11 @@
 	"__@gate.peptest.ch":               "@peptest.ch",
 
 	"@pproxy.onmicrosoft.com":        "@peptest.ch",
+
+	"@gate.peptest.ch":               "@peptest.ch",
 	"@peptest.ch":                    "@gate.peptest.ch",
 
 	"andy@proxy365.peptest.ch":       "andy@peptest.ch",
-	"andy@gate.peptest.ch":           "andy@peptest.ch",
 
 	"valentin.pproxy@peptest.ch":     "andy@peptest.ch",
 
