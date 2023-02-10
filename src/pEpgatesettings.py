@@ -1,5 +1,5 @@
 import os
-import tomli
+import json
 
 from pathlib     import Path
 from datetime    import datetime
@@ -16,13 +16,13 @@ def init_settings():
     home               = str(Path(os.path.dirname(__file__)).parent)
 
     # Add data from the toml file to the settings dict
-    settings_path = os.path.join(home, "settings.toml")
+    settings_path = os.path.join(home, "settings.json")
     if not os.path.isfile(settings_path):
         print(f"No settings found at {settings_path}, please set all the settings into environment" \
-        "variables or create a settings.toml file.")
+        "variables or create a settings.json file.")
     else:
         with open(settings_path, "rb") as f:
-            filesettings = tomli.load(f)
+            filesettings = json.load(f)
 
         for setting, value in filesettings.items():
             settings[setting] = value
@@ -38,3 +38,5 @@ def init_settings():
     settings['dts']                = None
     settings['lockfilepath']       = os.path.join(home, "pEpGate.lock")
     settings['logfile']            = os.path.join(home, settings['logfile'])
+
+    return settings

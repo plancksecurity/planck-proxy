@@ -6,6 +6,7 @@ import pytest
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
+from pEpgatesettings import settings, init_settings
 
 
 @dataclass
@@ -13,15 +14,12 @@ class Key:
     name: str
     address: str
     fpr: str
-    def get_public(self):
-        return self.fpr + '.pub.asc'
-    def get_private(self):
-        return self.fpr + '.sec.asc'
 
 
 
 EXTRA_KEY = Key('extra', 'proxy@test.com', "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3")
 BOB_KEY = Key('bob', 'bob@pep.security', "CC47DB45FDAF07712F1D9F5BFE0D6DE1B8C05AE8")
+ALICE_KEY = Key('alice', 'alice@pep.security', "")
 
 @pytest.hookimpl(trylast=True)  # run after configure for TempPathFactory
 def pytest_configure(config):
@@ -62,8 +60,8 @@ def reset_pep_folder(tmp_path):
 
 @pytest.fixture
 def extra_keypair(test_dirs):
-    pubkey = test_dirs['test_keys'] / EXTRA_KEY.get_public()
-    privkey = test_dirs['test_keys'] / EXTRA_KEY.get_private()
+    pubkey = test_dirs['test_keys'] / str(EXTRA_KEY.fpr + '.pub.asc')
+    privkey = test_dirs['test_keys'] / str(EXTRA_KEY.fpr + '.sec.asc')
 
     if not os.path.exists(test_dirs['keys']):
         os.makedirs(test_dirs['keys'])
@@ -74,7 +72,7 @@ def extra_keypair(test_dirs):
 
 @pytest.fixture
 def bob_key(test_dirs):
-    pubkey = test_dirs['test_keys'] / BOB_KEY.get_public()
+    pubkey = test_dirs['test_keys'] / str(BOB_KEY.fpr + '.pub.asc')
 
     if not os.path.exists(test_dirs['keys']):
         os.makedirs(test_dirs['keys'])
@@ -99,3 +97,7 @@ def collect_email(request):
     email = glob.glob(os.environ["TEST_ROOT"] + '/emails/' + request.param)[0]
     with open(email) as f:
         return f.read()
+
+@pytest.fixture
+def settings():
+    return init_settings()

@@ -193,8 +193,7 @@ def init_workdir(us):
 	Create workdir for ouraddr, and set it to the current $HOME
 	"""
 	global settings
-	workdirpath = os.path.join(settings['home'] , settings['work_dir'])
-	workdirpath = os.path.join(workdirpath, us['addr'])
+	workdirpath = os.path.join(settings['home'] , settings['work_dir'], us['addr'])
 	if not os.path.exists(workdirpath):
 		os.makedirs(workdirpath)
 
@@ -530,7 +529,7 @@ def filter_message(msg):
 	scanresults = {}
 	desc = { 0: "PASS", 1: "FAIL", 2: "RETRY" }
 	cols = { 0: 2,      1: 1,      2: 3 }
-	for filter in settings['scan_pipeline']:
+	for filter in settings['scan_pipes']:
 		name = filter['name']
 		cmd = filter['cmd']
 		if settings['mode'] == "encrypt":

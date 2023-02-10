@@ -5,11 +5,11 @@ from pEphelpers import get_contact_info
 
 
 @pytest.mark.parametrize('collect_email', ["basic_noencrypt.eml"], indirect=True)
-def test_encrypt_noencrypt_message(test_dirs, collect_email, extra_keypair):
+def test_encrypt_noencrypt_message(settings, test_dirs, collect_email, extra_keypair, bob_key):
     cmd_env = os.environ.copy()
     cmd_env['work_dir'] = test_dirs['work']
     cmd_env['keys_dir'] = test_dirs['keys']
-    cmd_env['EXTRA_KEY'] = extra_keypair.fpr
+    cmd_env['EXTRA_KEYS'] = extra_keypair.fpr
     test_email_from, test_email_to = get_contact_info(collect_email)
     with open(test_dirs['emails'] / 'basic_noencrypt.eml', 'rb') as email:
         subprocess.run(['./pEpgate encrypt --DEBUG'], shell=True,
@@ -24,14 +24,15 @@ def test_encrypt_noencrypt_message(test_dirs, collect_email, extra_keypair):
     assert "NOENCRYPT" not in encrypted_data
 
 @pytest.mark.parametrize('collect_email', ["basic_noencrypt.eml"], indirect=True)
-def test_encrypt_noencrypt_message_no_debug(test_dirs, collect_email, extra_keypair, bob_key):
+def test_encrypt_noencrypt_message_no_debug(settings, test_dirs, collect_email, extra_keypair, bob_key):
     cmd_env = os.environ.copy()
     cmd_env['work_dir'] = test_dirs['work']
     cmd_env['keys_dir'] = test_dirs['keys']
-    cmd_env['EXTRA_KEY'] = extra_keypair.fpr
+    cmd_env['EXTRA_KEYS'] = extra_keypair.fpr
+    cmd_env['DEBUG'] = 'False'
     test_email_from, test_email_to = get_contact_info(collect_email)
     with open(test_dirs['emails'] / 'basic_noencrypt.eml', 'rb') as email:
-        subprocess.run(['./pEpgate encrypt'], shell=True,
+        p = subprocess.run(['./pEpgate encrypt'], shell=True,
             capture_output=True, input=email.read(), env=cmd_env)
 
     decrypt_out_path = test_dirs['work'] / test_email_from / test_email_to

@@ -23,7 +23,7 @@ from pEpgatesettings import settings
 
 ### Parse args ####################################################################################
 
-def get_default(setting):
+def get_default(setting, type=str):
 	"""
 	Get the default value for the given setting with the following priority:
 	1. Env variable
@@ -31,6 +31,12 @@ def get_default(setting):
 	"""
 	env_val = os.getenv(setting)
 	if env_val:
+		if type is list:
+			return env_val.split(' ')
+		if type is bool:
+			if env_val in ['True', 'true', '1']:
+				return True
+			return False
 		return env_val
 	return settings.get(setting)
 

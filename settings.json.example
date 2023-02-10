@@ -1,0 +1,38 @@
+{
+
+    "work_dir":         "work",
+
+"keys_dir":         "keys",
+
+"logfile":          "debug.log",
+
+"EXTRA_KEYS":       [ "1234ABCDEF1234ABCDEF1234ABCDEF1234ABCDEF" ],
+
+"SMTP_HOST":        "127.0.0.1",
+"SMTP_PORT":        "25",
+
+"sq_bin":           "/usr/local/bin/sq",
+
+"forwarding_map":   "forwarding.map",
+
+"username_map":     "username.map",
+
+"nextmx_map":       "nextmx.map",
+
+"aliases_map":      "aliases.map",
+
+"admin_addr":       "someone@yourcompany.tld",
+
+"dts_domains":      [ "yourcompany.tld" ],
+
+"reset_senders":     [ "service@yourcompany.tld" ],
+
+"never_pEp":        [ "apple.com" ],
+
+"DEBUG":            false,
+
+"scan_pipes": [
+    {"name": "SpamAssassin", "cmd": "spamc --check -"},
+    {"name": "ClamAV", "cmd": "clamdscan --verbose -z -"}
+]
+}
