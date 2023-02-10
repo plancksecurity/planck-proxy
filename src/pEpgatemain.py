@@ -130,11 +130,12 @@ def enable_dts(msg):
 	"""
 	If sender enabled "Return receipt" allow cleanup() to send back debugging info
 	"""
+	global settings
 	dts = getmailheaders(msg['inmail'], "Disposition-Notification-To") # Debug To Sender
 
 	if len(dts) > 0:
-		dts = addr = dts[0]
-		dts = "-".join(re.findall(re.compile(r"<.*@(\w{2,}\.\w{2,})>"), dts))
+		addr = dts[0]
+		dts = "-".join(re.findall(re.compile(r"<?.*@(\w{2,}\.\w{2,})>?"), addr))
 		dbg(c("Return receipt (debug log) requested by: " + str(addr), 3))
 		if dts in settings['dts_domains']:
 			dbg(c("Domain " + c(dts, 5) + " is allowed to request a debug log", 2))
