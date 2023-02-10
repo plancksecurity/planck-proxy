@@ -34,7 +34,7 @@ def main():
 
 	msg = {}
 	us = {}
-	them = {}
+	them = us.copy()
 
 	print_init_info(args)
 	init_lockfile()
@@ -59,8 +59,12 @@ def main():
 	msg = process_message(pEp, msg, us, them)
 	filter_message(msg)
 	msg = add_routing_and_headers(pEp, msg, us, them)
-	# deliver_mail(msg)
+	deliver_mail(msg)
 	log_session()
+
+	# print(msg)
+	# print(us)
+	# print(them)
 
 
 if __name__ == '__main__':
