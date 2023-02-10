@@ -19,9 +19,9 @@ def get_last_line(file_path):
         last_line = f.readline().decode()
     return last_line
 
-def test_dbg():
+def test_dbg(settings):
     dbg("TEST")
-    assert 'TEST' in get_last_line(logfilepath)
+    assert 'TEST' in get_last_line(settings['logfile'])
 
 @pytest.mark.parametrize("text, color, output",
     [
@@ -66,7 +66,7 @@ def test_keys_from_keyring_empty(extra_keypair, test_dirs):
 def test_keys_from_keyring(extra_keypair, test_dirs):
     import pEp
 
-    key_file = test_dirs['keys'] / extra_keypair.get_public()
+    key_file = test_dirs['keys'] / str(extra_keypair.fpr + '.pub.asc')
     with open(key_file, "rb") as kf:
         pEp.import_key(kf.read())
 

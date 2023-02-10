@@ -5,7 +5,7 @@ from pEphelpers import get_contact_info
 
 
 @pytest.mark.parametrize('collect_email', ["basic_noencrypt.eml"], indirect=True)
-def test_encrypt_noencrypt_message(test_dirs, collect_email, extra_keypair):
+def test_encrypt_noencrypt_message(settings, test_dirs, collect_email, extra_keypair):
     cmd_env = os.environ.copy()
     cmd_env['work_dir'] = test_dirs['work']
     cmd_env['keys_dir'] = test_dirs['keys']
@@ -24,7 +24,7 @@ def test_encrypt_noencrypt_message(test_dirs, collect_email, extra_keypair):
     assert "NOENCRYPT" not in encrypted_data
 
 @pytest.mark.parametrize('collect_email', ["basic_noencrypt.eml"], indirect=True)
-def test_encrypt_noencrypt_message_no_debug(test_dirs, collect_email, extra_keypair, bob_key):
+def test_encrypt_noencrypt_message_no_debug(settings, test_dirs, collect_email, extra_keypair, bob_key):
     cmd_env = os.environ.copy()
     cmd_env['work_dir'] = test_dirs['work']
     cmd_env['keys_dir'] = test_dirs['keys']

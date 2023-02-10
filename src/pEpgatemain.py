@@ -193,8 +193,7 @@ def init_workdir(us):
 	Create workdir for ouraddr, and set it to the current $HOME
 	"""
 	global settings
-	workdirpath = os.path.join(settings['home'] , settings['work_dir'])
-	workdirpath = os.path.join(workdirpath, us['addr'])
+	workdirpath = os.path.join(settings['home'] , settings['work_dir'], us['addr'])
 	if not os.path.exists(workdirpath):
 		os.makedirs(workdirpath)
 

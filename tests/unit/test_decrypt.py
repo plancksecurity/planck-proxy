@@ -8,17 +8,12 @@ from pEphelpers import decryptusingsq
 from pathlib import Path
 
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
-def test_import_extra_key(test_dirs, collect_email, extra_keypair):
+def test_import_extra_key(settings, test_dirs, collect_email, extra_keypair):
     test_key_fpr = extra_keypair.fpr
     test_email_from, test_email_to = get_contact_info(collect_email)
     cmd_env = os.environ.copy()
     cmd_env['work_dir'] = test_dirs['work']
     cmd_env['keys_dir'] = test_dirs['keys']
-
-    # Make sure work dir is clean and that we have our test key
-    shutil.rmtree(test_dirs['work'], ignore_errors=True)
-    assert os.path.isdir(test_dirs['work']) is False
-    assert os.path.isdir(test_dirs['keys']) is True
 
     # Run the command
     with open(test_dirs['emails'] / 'basic.enc.eml', 'rb') as email:
@@ -43,7 +38,7 @@ def test_decrypt_message_no_key(test_dirs):
     assert res.returncode == 7 # Return code 7 is "have_no_key"
 
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
-def test_decrypt_message(test_dirs, collect_email, extra_keypair):
+def test_decrypt_message(settings, test_dirs, collect_email, extra_keypair):
     cmd_env = os.environ.copy()
     cmd_env['work_dir'] = test_dirs['work']
     cmd_env['keys_dir'] = test_dirs['keys']
@@ -62,9 +57,9 @@ def test_decrypt_message(test_dirs, collect_email, extra_keypair):
         decrypted_data = decrypted_email.read()
     assert "Hello back, I am encrypted!" in decrypted_data
 
-@pytest.mark.xfail(reason="Message needs a message Id in the theder to find") #FIXME
+@pytest.mark.xfail(reason="UnboundLocalError: local variable 'keyused' referenced before assignment") #FIXME
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
 def test_sq_decrypt(collect_email, extra_keypair, test_dirs):
-    key_path = test_dirs['keys'] / extra_keypair.get_private()
+    key_path = test_dirs['keys'] / str(extra_keypair.fpr + '.sec.asc')
     dec_msg = decryptusingsq(collect_email, str(key_path))
     assert dec_msg is 0
