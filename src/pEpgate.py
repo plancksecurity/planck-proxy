@@ -14,8 +14,8 @@ def main():
 	parser = argparse.ArgumentParser(description='pEp Proxy CLI.')
 	parser.add_argument('mode', choices=["encrypt", "decrypt"], help='Mode')
 	parser.add_argument('--DEBUG', action='store_true',
-		default=get_default("DEBUG"), help=f'Set DEBUG mode, default is {get_default("DEBUG")}')
-	parser.add_argument('--EXTRA_KEYS', nargs='*', default=get_default("EXTRA_KEYS"),
+		default=get_default("DEBUG", type=bool), help=f'Set DEBUG mode, default is {get_default("DEBUG")}')
+	parser.add_argument('--EXTRA_KEYS', nargs='*', default=get_default("EXTRA_KEYS", type=list),
 		help=f'Space-separated fingerprint(s) to use as extra key(s) when encrypting messages, default is "{get_default("EXTRA_KEYS")}"')
 	parser.add_argument('--keys_dir', default=get_default("keys_dir"),
 		help=f'Directory where the extra key should be imported from, default is "{get_default("keys_dir")}"')
@@ -27,6 +27,7 @@ def main():
 		help=f'Port of the SMTP host used to send the messages. Default "{get_default("SMTP_PORT")}"')
 
 	args = parser.parse_args()
+
 	for key,val in vars(args).items():
 		settings[key] = val
 
