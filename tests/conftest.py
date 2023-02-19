@@ -101,3 +101,8 @@ def collect_email(request):
 @pytest.fixture
 def settings():
     return init_settings()
+
+@pytest.fixture
+def get_dummy_dir(test_dirs):
+    dummy_route = (f"{test_dirs['root']}/dummy_filter.py")
+    return dummy_route
