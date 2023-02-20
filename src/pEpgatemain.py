@@ -551,6 +551,7 @@ def filter_message(msg):
 			dbg("Unknown return code for scanner " + name + ": " + rc)
 
 		if rc == 2:
+			dbg("Resulti is 2")
 			dbgmail("Error detected with scanner " + name)
 			exit(11)
 

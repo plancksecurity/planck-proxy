@@ -62,10 +62,5 @@ def main():
 	deliver_mail(msg)
 	log_session()
 
-	# print(msg)
-	# print(us)
-	# print(them)
-
-
 if __name__ == '__main__':
 	main()
