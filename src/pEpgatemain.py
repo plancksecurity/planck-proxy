@@ -13,6 +13,7 @@ from subprocess  import Popen, PIPE, STDOUT
 
 from pEpgatesettings import settings
 from pEphelpers import *
+from scripts import deletekeyfromkeyring
 
 
 def print_init_info(args):
@@ -156,13 +157,7 @@ def check_key_reset(msg, us, them):
 		for kw in keywords:
 			msg['inmail'] = msg['inmail'].replace(kw, "")
 
-		script_path = Path(__file__).parent / 'scripts' / "delete.key.from.keyring.py"
-
-		cmd = [str(script_path), us['addr'], them['addr']]
-		dbg("CMD: " + " ".join(cmd))
-		p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-		stdout, stderr = p.communicate()
-		dbg(c(stdout.decode("utf8"), 2))
+		deletekeyfromkeyring.delete_key(us['addr'], them['addr'], settings['work_dir'])
 
 	return msg
 
