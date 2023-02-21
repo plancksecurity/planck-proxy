@@ -4,8 +4,10 @@ import sys
 
 def main():
     test_message = ''.join(sys.stdin.readlines())
-    if 'EVIL' in test_message:
+    if 'FAIL' in test_message:
         sys.exit(1)
+    if 'RETRY' in test_message:
+        sys.exit(2)
 
     sys.exit(0)
 
