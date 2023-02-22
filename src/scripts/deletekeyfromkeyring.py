@@ -2,66 +2,66 @@
 
 import sqlite3
 import sys
-import argparse
 
 def delete_key(keyring, address, work_dir):
-	"""Takes keyring, address and workdir and deletes address from the keyring."""
+    """Takes keyring, address and workdir and deletes address from the keyring."""
 
-	#Parse args
-	parser = argparse.ArgumentParser(usage='delete.key.from.keyring.py alice@pep.security bob@pep.security --WORK_DIR ~/work_dir', description='Delete a user key from another user\'s DataBase')
-	parser.add_argument('keyring', help='Email of user whose DB to delete from')
-	parser.add_argument('address', help='Email of user whose key to delete')
-	parser.add_argument('--WORK_DIR', default='work', help='Location of the work folder')
+    print("Deleting key(s) of address " + address + " from keyring " + keyring)
 
-	args = parser.parse_args()
+    def collate_email(a, b):
+        return 1 if a > b else -1 if a < b else 0
 
-	#Check if vars from function call then set var and correct work_dir if needed
-	if keyring == 0:
-		keyring = args.keyring
-		address = args.address
-		work_dir = args.WORK_DIR
+    ### keys.db
+    db = sqlite3.connect(work_dir + "/" + keyring + "/.pEp/keys.db")
+    db.create_collation("EMAIL", collate_email)
 
-	if work_dir.endswith("/"):
-		work_dir = work_dir[:-1]
+    q = db.execute("SELECT * FROM userids WHERE userid = ?;", (address,))
+    for r in q:
+        print("== " + r[0] + " -> " + r[1])
 
-	print("Deleting key(s) of address " + address + " from keyring " + keyring)
+        d = db.execute("DELETE FROM subkeys WHERE primary_key = ?;", (r[1],))
+        print("Removed subkeys: " + str(d.rowcount))
 
-	def collate_email(a, b):
-		return 1 if a > b else -1 if a < b else 0
+        d = db.execute("DELETE FROM keys WHERE primary_key = ?;", (r[1],))
+        print("   Removed keys: " + str(d.rowcount))
 
-	### keys.db
-	db = sqlite3.connect(work_dir + "/" + keyring + "/.pEp/keys.db")
-	db.create_collation("EMAIL", collate_email)
+        d = db.execute("DELETE FROM userids WHERE userid = ?;", (r[0],))
+        print("Removed userids: " + str(d.rowcount))
 
-	q = db.execute("SELECT * FROM userids WHERE userid = ?;", (address,))
-	for r in q:
-		print("== " + r[0] + " -> " + r[1])
+    db.commit()
 
-		d = db.execute("DELETE FROM subkeys WHERE primary_key = ?;", (r[1],))
-		print("Removed subkeys: " + str(d.rowcount))
+    ### management.db
+    db = sqlite3.connect(work_dir + "/" + keyring + "/.pEp/management.db")
 
-		d = db.execute("DELETE FROM keys WHERE primary_key = ?;", (r[1],))
-		print("   Removed keys: " + str(d.rowcount))
+    d = db.execute("DELETE FROM trust WHERE user_id = ?;", ("TOFU_" + address,))
+    print("Removed trust tofu: " + str(d.rowcount))
 
-		d = db.execute("DELETE FROM userids WHERE userid = ?;", (r[0],))
-		print("Removed userids: " + str(d.rowcount))
+    d = db.execute("DELETE FROM person WHERE id = ?;", ("TOFU_" + address,))
+    print("Removed person tofu: " + str(d.rowcount))
 
-	db.commit()
+    d = db.execute("DELETE FROM identity WHERE address = ?;", (address,))
+    print("Removed identity: " + str(d.rowcount))
 
-	### management.db
-	db = sqlite3.connect(work_dir + "/" + keyring + "/.pEp/management.db")
-
-	d = db.execute("DELETE FROM trust WHERE user_id = ?;", ("TOFU_" + address,))
-	print("Removed trust tofu: " + str(d.rowcount))
-
-	d = db.execute("DELETE FROM person WHERE id = ?;", ("TOFU_" + address,))
-	print("Removed person tofu: " + str(d.rowcount))
-
-	d = db.execute("DELETE FROM identity WHERE address = ?;", (address,))
-	print("Removed identity: " + str(d.rowcount))
-
-	db.commit()
+    db.commit()
 
 
 if __name__ == '__main__':
-	delete_key(0, 0, 0)
+    import argparse
+
+    #Parse args
+    parser = argparse.ArgumentParser(usage='delete.key.from.keyring.py alice@pep.security bob@pep.security --WORK_DIR ~/work_dir', description='Delete a user key from another user\'s DataBase')
+    parser.add_argument('keyring', help='Email of user whose DB to delete from')
+    parser.add_argument('address', help='Email of user whose key to delete')
+    parser.add_argument('--WORK_DIR', default='work', help='Location of the work folder')
+
+    args = parser.parse_args()
+
+    #Extract params and add into input vars for the fuction
+    keyring = args.keyring
+    address = args.address
+    work_dir = args.WORK_DIR
+
+    if work_dir.endswith("/"):
+        work_dir = work_dir[:-1]
+    
+    delete_key(keyring, address, work_dir)
