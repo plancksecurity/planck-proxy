@@ -55,7 +55,7 @@ def test_decrypt_message(settings, test_dirs, collect_email, extra_keypair):
     decrypted = out_folder + '/in.decrypt.processed.eml'
     with open(decrypted) as decrypted_email:
         decrypted_data = decrypted_email.read()
-    assert "Hello back, I am encrypted!" in decrypted_data
+    assert "Hello encrypted world!" in decrypted_data
 
 @pytest.mark.xfail(reason="UnboundLocalError: local variable 'keyused' referenced before assignment") #FIXME
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
