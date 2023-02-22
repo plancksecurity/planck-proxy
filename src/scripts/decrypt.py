@@ -1,6 +1,5 @@
 
 import argparse
-import sys
 import os
 
 def decrypt_msg(msg, key, home_dir):
