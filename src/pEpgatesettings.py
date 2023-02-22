@@ -39,4 +39,10 @@ def init_settings():
     settings['lockfilepath']       = os.path.join(home, "pEpGate.lock")
     settings['logfile']            = os.path.join(home, settings['logfile'])
 
+    # WIP, to pass non-parameter settings through env
+    # for setting in settings.keys():
+    #     if os.getenv(setting):
+    #         env_setting = os.getenv(setting)
+    #         settings[setting] = env_setting
+
     return settings
