@@ -54,13 +54,6 @@ def test_filtering_evil(settings, test_dirs, collect_email):
 
 @pytest.mark.parametrize('collect_email', ["basic_filter_retry.eml"], indirect=True)
 def test_filtering_retry(settings, test_dirs, collect_email, monkeypatch):
-    # dbgmail needs to be mocked otherwise the send method call crashes the test
-    # TODO: maybe mock send() globally in a fixture
-    # TODO: maybe do the same for dbg() so we don't pollute the logs while testing
-    import pEpgatemain
-    def mock_dbgmail(msg):
-        return True
-    monkeypatch.setattr(pEpgatemain, "dbgmail", mock_dbgmail)
 
     filter_command = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
     settings['mode']  = 'decrypt'

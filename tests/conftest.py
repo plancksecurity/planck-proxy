@@ -4,10 +4,13 @@ import random
 import string
 import pytest
 import shutil
+
+import pEphelpers
+import pEpgatemain
+
 from dataclasses import dataclass
 from pathlib import Path
 from pEpgatesettings import settings, init_settings
-
 
 @dataclass
 class Key:
@@ -42,6 +45,7 @@ def test_dirs(tmp_path):
     return {
         'tmp': tmp_path,
         'root': Path(os.environ['TEST_ROOT']),
+        'project_root': Path(os.environ['PROJECT_ROOT']),
         'keys': tmp_path / "keys",
         'test_keys': Path(os.environ['TEST_ROOT']) / "test_keys",
         'work': tmp_path / "work",
@@ -101,3 +105,15 @@ def collect_email(request):
 @pytest.fixture
 def settings():
     return init_settings()
+
+@pytest.fixture(autouse=True)
+def run_before_and_after_tests(monkeypatch, settings):
+    """Fixture to execute asserts before and after a test is run"""
+
+    # overwrite sendmail for tests
+    monkeypatch.setattr(pEpgatemain, "sendmail", lambda msg: True)
+    monkeypatch.setattr(pEphelpers, "sendmail", lambda msg: True)
+
+    yield # this is where the testing happens
+
+    pEphelpers.cleanup()
