@@ -10,3 +10,4 @@ MAIN_PROJECT_FILES_PATH = PROJECT_ROOT_PATH / 'src'
 sys.path.insert(0, str(MAIN_PROJECT_FILES_PATH))
 
 os.environ['TEST_ROOT'] = str(Path(TESTS_ROOT))
+os.environ['PROJECT_ROOT'] = str(PROJECT_ROOT_PATH)
