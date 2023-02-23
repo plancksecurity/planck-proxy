@@ -52,15 +52,15 @@ def test_dirs(tmp_path):
         'emails': Path(os.environ['TEST_ROOT']) / "emails",
     }
 
-@pytest.fixture
-def reset_pep_folder(tmp_path):
-    # TODO: Fix: Does not work for Windows
-    os.environ["HOME"] = str(tmp_path)
-    os.environ["PEP_HOME"] = str(tmp_path)
-    pep_folder = per_user_directory()
-    assert not pep_folder.exists()
-    pep_folder.mkdir(parents=True)
-    return pep_folder
+# @pytest.fixture
+# def reset_pep_folder(tmp_path):
+#     # TODO: Fix: Does not work for Windows
+#     os.environ["HOME"] = str(tmp_path)
+#     os.environ["PEP_HOME"] = str(tmp_path)
+#     pep_folder = per_user_directory()
+#     assert not pep_folder.exists()
+#     pep_folder.mkdir(parents=True)
+#     return pep_folder
 
 @pytest.fixture
 def extra_keypair(test_dirs):
@@ -107,8 +107,9 @@ def settings():
     return init_settings()
 
 @pytest.fixture(autouse=True)
-def run_before_and_after_tests(monkeypatch, settings):
+def run_before_and_after_tests(monkeypatch, settings, tmp_path):
     """Fixture to execute asserts before and after a test is run"""
+    os.environ['HOME'] = str(tmp_path)
 
     # overwrite sendmail for tests
     monkeypatch.setattr(pEpgatemain, "sendmail", lambda msg: True)
