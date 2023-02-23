@@ -260,7 +260,7 @@ def prettytable(thing, colwidth=26):
 
 def keysfromkeyring(userid=None):
 	sq_bin = settings['sq_bin']
-	db = sqlite3.connect(os.environ["HOME"] + "/.pEp/keys.db")
+	db = sqlite3.connect(os.path.join(os.environ['HOME'], ".pEp", "keys.db"))
 
 	if userid is not None:
 		dbg("Looking up key of " + c(userid, 5) + " from keyring...")
