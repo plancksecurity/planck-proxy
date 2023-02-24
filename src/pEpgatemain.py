@@ -533,11 +533,14 @@ def filter_message(msg):
 		if settings['mode'] == "decrypt":
 			dbg("Passing decrypted message to scanner " + c(name, 3))
 			msgtoscan = str(msg['dst'])
-
-		p = Popen(cmd.split(" "), shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-		p.stdin.write(msgtoscan.encode("utf8"))
-		stdout, stderr = p.communicate()
-		rc = p.returncode
+		try:
+			p = Popen(cmd.split(" "), shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+			p.stdin.write(msgtoscan.encode("utf8"))
+			stdout, stderr = p.communicate()
+			rc = p.returncode
+		except Exception:
+			rc = 1
+			dbg(f"Scanner {name} not available: {rc}")
 
 		if rc in desc.keys():
 			scanresults[name] = rc
@@ -546,7 +549,7 @@ def filter_message(msg):
 			dbg("Unknown return code for scanner " + name + ": " + rc)
 
 		if rc == 2:
-			dbgmail("Error detected with scanner " + name)
+			dbg(f"Error detected with scanner {name}")
 			exit(11)
 
 		if settings['DEBUG']:
