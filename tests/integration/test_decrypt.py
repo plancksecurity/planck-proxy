@@ -8,17 +8,14 @@ from pEphelpers import decryptusingsq
 from pathlib import Path
 
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
-def test_import_extra_key(settings, test_dirs, collect_email, extra_keypair):
+def test_import_extra_key(settings, test_dirs, collect_email, extra_keypair, cmd_env):
     test_key_fpr = extra_keypair.fpr
-    test_email_from, test_email_to = get_contact_info(collect_email)
-    cmd_env = os.environ.copy()
-    cmd_env['work_dir'] = test_dirs['work']
-    cmd_env['keys_dir'] = test_dirs['keys']
+    email = collect_email.decode()
+    test_email_from, test_email_to = get_contact_info(email)
 
     # Run the command
-    with open(test_dirs['emails'] / 'basic.enc.eml', 'rb') as email:
-        subprocess.run(['./pEpgate decrypt'], shell=True,
-            capture_output=True, input=email.read(), env=cmd_env)
+    subprocess.run(['./pEpgate decrypt'], shell=True, capture_output=True,
+                   input=collect_email, env=cmd_env)
 
     # Check that the key is in the pEp Database
     keys_db = test_dirs['work'] / test_email_to / '.pEp' / 'keys.db'
@@ -26,27 +23,21 @@ def test_import_extra_key(settings, test_dirs, collect_email, extra_keypair):
     keys = db.execute("SELECT primary_key FROM keys")
     assert test_key_fpr in [key[0] for key in keys]
 
-
-def test_decrypt_message_no_key(test_dirs):
-    cmd_env = os.environ.copy()
-    cmd_env['work_dir'] = test_dirs['work']
+@pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
+def test_decrypt_message_no_key(collect_email, test_dirs, cmd_env):
     cmd_env['keys_dir'] = test_dirs['root'] / "_keys" # We point the command to a non-existing test dir
-    with open(test_dirs['emails'] / 'basic.enc.eml', 'rb') as email:
-        res = subprocess.run(['./pEpgate decrypt'], shell=True,
-            capture_output=True, input=email.read(), env=cmd_env)
+    res = subprocess.run(['./pEpgate decrypt'], shell=True,
+            capture_output=True, input=collect_email, env=cmd_env)
 
     assert res.returncode == 7 # Return code 7 is "have_no_key"
 
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
-def test_decrypt_message(settings, test_dirs, collect_email, extra_keypair):
-    cmd_env = os.environ.copy()
-    cmd_env['work_dir'] = test_dirs['work']
-    cmd_env['keys_dir'] = test_dirs['keys']
+def test_decrypt_message(settings, test_dirs, collect_email, extra_keypair, cmd_env):
     cmd_env['DEBUG'] = 'True'
-    test_email_from, test_email_to = get_contact_info(collect_email)
-    with open(test_dirs['emails'] / 'basic.enc.eml', 'rb') as email:
-        subprocess.run(['./pEpgate decrypt'], shell=True,
-            capture_output=True, input=email.read(), env=cmd_env)
+    email = collect_email.decode()
+    test_email_from, test_email_to = get_contact_info(email)
+    subprocess.run(['./pEpgate decrypt'], shell=True,
+            capture_output=True, input=collect_email, env=cmd_env)
 
     # We read the unencrypted email output for the data
     # TODO: Make sure this emails are only kept in debug mode

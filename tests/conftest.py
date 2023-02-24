@@ -99,12 +99,22 @@ def collect_email(request):
     Get the contents of a file in the /tests/emails/ folder where the filename matches the expr
     """
     email = glob.glob(os.environ["TEST_ROOT"] + '/emails/' + request.param)[0]
-    with open(email) as f:
+    with open(email, 'rb') as f:
         return f.read()
 
 @pytest.fixture
 def settings():
     return init_settings()
+
+@pytest.fixture
+def cmd_env(test_dirs):
+    """
+    Set the basic environment values to run a subprocess command
+    """
+    cmd_env = os.environ.copy()
+    cmd_env['work_dir'] = test_dirs['work']
+    cmd_env['keys_dir'] = test_dirs['keys']
+    return cmd_env
 
 @pytest.fixture(autouse=True)
 def run_before_and_after_tests(monkeypatch, settings, tmp_path):

@@ -11,7 +11,7 @@ from pEpgatemain import filter_message
 def test_dummy_filter(collect_email, expected, test_dirs):
 
     filter_command = test_dirs['root'] / 'dummy_filter.py'
-    p1 = subprocess.run(['python', filter_command], input=collect_email.encode('utf-8'))
+    p1 = subprocess.run(['python', filter_command], input=collect_email)
 
     assert p1.returncode == expected
 
@@ -24,7 +24,7 @@ def test_dummy_filter(collect_email, expected, test_dirs):
 def test_dummy_filter_2(collect_email, expected, test_dirs):
 
     filter_command = test_dirs['root'] / 'dummy_filter_2.py'
-    p1 = subprocess.run(['python', filter_command], input=collect_email.encode('utf-8'))
+    p1 = subprocess.run(['python', filter_command], input=collect_email)
 
     assert p1.returncode == expected
 
