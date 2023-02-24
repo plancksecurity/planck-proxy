@@ -1,4 +1,4 @@
-"""This dummy filter searches for 'EVIL' in a given string and outputs 0 or 1 as required"""
+"""This dummy filter searches for 'FAIL' or 'RETRY' in a given string and outputs 0 1 or 2 as required"""
 
 import sys
 
