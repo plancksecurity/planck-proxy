@@ -38,7 +38,10 @@ def encrypt_msg(msg, dest_key, extra_key, extra_key_fpr, home_dir, debug):
         print(msg)
 
     msg = pEp.Message(msg)
-    msg = msg.encrypt([extra_key_fpr], 0)
+    if extra_key:
+        msg = msg.encrypt([extra_key_fpr], 0)
+    else:
+        msg = msg.encrypt()
 
     if debug:
         print('=================')
