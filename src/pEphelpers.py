@@ -136,6 +136,9 @@ def getlog(type):
 	return settings[type] if type in ["textlog", "htmllog"] else ""
 
 def sendmail(msg):
+	if settings.get('test-nomails'):
+		dbg("Test mode, mail sending skip")
+		return
 	# Replace dots at the beginning of a line with the MIME-encoded, quoted-printable counterpart. Fuck you very much, Outlook!
 	msg = re.sub('^\.', '=2E', msg, flags=re.M)
 	try:
