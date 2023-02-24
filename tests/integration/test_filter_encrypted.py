@@ -1,53 +1,53 @@
-# import os
-# import pytest
+import pytest
+import subprocess
 
-# import pEpgate
+@pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
+def test_filter_enc_good(test_dirs, extra_keypair, collect_email):
 
-# @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
-# def test_filter_enc_good(settings, test_dirs, extra_keypair, collect_email, monkeypatch):
+    filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
+    test_settings = {}
+    test_settings['test-nomails']  = True
+    test_settings['work_dir'] = str(test_dirs['work'])
+    test_settings['keys_dir'] = str(test_dirs['keys'])
+    test_settings['mode']  = 'decrypt'
+    test_settings['scan_pipes']  = [{"name": "dummy filter", "cmd": filter_command}]
 
+    command = f'python ./src/scripts/_gate_test_runner.py "{str(test_settings)}"'
+    p = subprocess.run([command], shell=True, capture_output=True, input=collect_email)
 
-#     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
-
-#     settings['work_dir'] = test_dirs['work']
-#     settings['keys_dir'] = test_dirs['keys']
-#     settings['mode']  = 'decrypt'
-#     settings['scan_pipes']  = [
-#         {"name": "dummy filter", "cmd": filter_command}
-#     ]
-
-#     # We bypass the stdin read and retrieve manually the message
-#     def mail_getter(msg):
-#         msg['inmail'] = collect_email
-#         return msg
-
-#     monkeypatch.setattr(pEpgate, "get_message", mail_getter)
-
-#     pEpgate.main([])
+    assert p.returncode is 0
 
 
+@pytest.mark.parametrize('collect_email', ["basic_filter_evil.enc.eml"], indirect=True)
+def test_filter_enc_evil(test_dirs, extra_keypair, collect_email):
 
-# @pytest.mark.parametrize('collect_email', ["basic_filter_evil.enc.eml"], indirect=True)
-# def test_filter_enc_evil(settings, test_dirs, extra_keypair, collect_email, monkeypatch):
+    filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
+    test_settings = {}
+    test_settings['test-nomails']  = True
+    test_settings['work_dir'] = str(test_dirs['work'])
+    test_settings['keys_dir'] = str(test_dirs['keys'])
+    test_settings['mode']  = 'decrypt'
+    test_settings['scan_pipes']  = [{"name": "dummy filter", "cmd": filter_command}]
+
+    command = f'python ./src/scripts/_gate_test_runner.py "{str(test_settings)}"'
+    p = subprocess.run([command], shell=True, capture_output=True, input=collect_email)
+
+    assert p.returncode is 1
+    assert p.stderr is b''
 
 
-#     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
+@pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
+def test_filter_av_fails(test_dirs, extra_keypair, collect_email):
 
-#     settings['work_dir'] = test_dirs['work']
-#     settings['keys_dir'] = test_dirs['keys']
-#     settings['mode']  = 'decrypt'
-#     settings['scan_pipes']  = [
-#         {"name": "dummy filter", "cmd": filter_command}
-#     ]
+    test_settings = {}
+    test_settings['test-nomails']  = True
+    test_settings['work_dir'] = str(test_dirs['work'])
+    test_settings['keys_dir'] = str(test_dirs['keys'])
+    test_settings['mode']  = 'decrypt'
+    test_settings['scan_pipes']  = [{"name": "broken filter", "cmd": "no_filter_command"}]
 
-#     # We bypass the stdin read and retrieve manually the message
-#     def mail_getter(msg):
-#         msg['inmail'] = collect_email
-#         return msg
+    command = f'python ./src/scripts/_gate_test_runner.py "{str(test_settings)}"'
+    p = subprocess.run([command], shell=True, capture_output=True, input=collect_email)
 
-#     monkeypatch.setattr(pEpgate, "get_message", mail_getter)
-
-#     with pytest.raises(SystemExit) as exec_info:
-#         pEpgate.main([])
-#     assert exec_info.type == SystemExit
-#     assert exec_info.value.code == 1
+    assert p.returncode is 1
+    assert p.stderr is b''
