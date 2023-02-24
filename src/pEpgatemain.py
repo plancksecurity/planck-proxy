@@ -489,8 +489,8 @@ def process_message(pEp, msg, us, them):
 
 			if str(rating) == "have_no_key":
 				keys_path = os.path.join(settings['home'] , settings['keys_dir'])
-				dbg(c("No matching key found to decrypt the message. Please put a matching key into the " + c(keys_path, 5) + " folder. Returning non-null exit code to Postfix so the message remains queued.", 1))
-				exit(7)
+				dbg(c("No matching key found to decrypt the message. Please put a matching key into the " + c(keys_path, 5) + " folder. It will be sent encrypted to the scanner", 1))
+				# exit(7)
 
 			if keys is None or len(keys) == 0:
 				dbg(c("Original message was NOT encrypted", 1))
