@@ -24,21 +24,6 @@ EXTRA_KEY = Key('extra', 'proxy@test.com', "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035
 BOB_KEY = Key('bob', 'bob@pep.security', "CC47DB45FDAF07712F1D9F5BFE0D6DE1B8C05AE8")
 ALICE_KEY = Key('alice', 'alice@pep.security', "6002754A3B0551D9729E28168AD5EEE0A979C126")
 
-# @pytest.hookimpl(trylast=True)  # run after configure for TempPathFactory
-# def pytest_configure(config):
-#     """
-#     Change HOME to point to the base directory for this test session.
-#     """
-#     # FIXME: Find a official way to get this here
-#     global TEST_HOME
-#     TEST_HOME = config._tmp_path_factory.getbasetemp()
-#     # TODO: Fix: Does not work for Windows
-#     os.environ["HOME"] = str(TEST_HOME)
-
-# def per_user_directory():
-#     # BUG: This assumes Engine internals
-#     # TODO: Fix: Does not work for Windows
-#     return Path(os.environ["HOME"]) / ".pEp"
 
 @pytest.fixture
 def test_dirs(tmp_path):
