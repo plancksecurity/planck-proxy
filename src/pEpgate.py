@@ -7,14 +7,14 @@ from pEphelpers import get_default, cleanup
 from pEpgatesettings import settings, init_settings
 from pEpgatemain import *
 
-def main(args):
+def main(cli_args):
 	atexit.register(cleanup)
 
 	msg = {}
 	us = {}
 	them = us.copy()
 
-	print_init_info(args)
+	print_init_info(cli_args)
 	init_lockfile()
 	msg = get_message(msg)
 	msg, us, them = set_addresses(msg, us, them)
@@ -58,8 +58,8 @@ if __name__ == '__main__':
 	parser.add_argument('--SMTP_PORT', type=int, default=get_default("SMTP_PORT"),
 		help=f'Port of the SMTP host used to send the messages. Default "{get_default("SMTP_PORT")}"')
 
-	args = parser.parse_args()
-	for key,val in vars(args).items():
+	cli_args = parser.parse_args()
+	for key,val in vars(cli_args).items():
 		settings[key] = val
 
-	main(args)
+	main(cli_args)
