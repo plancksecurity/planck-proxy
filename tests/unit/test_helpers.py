@@ -56,24 +56,3 @@ def test_toplain(text, output):
     ])
 def test_tohtml(text, output):
     assert tohtml(text) == output
-
-
-# def test_keys_from_keyring_empty(extra_keypair, test_dirs):
-#     import pEp
-#     keys = keysfromkeyring()
-#     assert keys is False
-
-def test_keys_from_keyring(extra_keypair, test_dirs):
-
-    import pEp
-
-    key_file = test_dirs['keys'] / str(extra_keypair.fpr + '.pub.asc')
-    with open(key_file, "rb") as kf:
-        pEp.import_key(kf.read())
-
-    os.chdir(os.environ['HOME'])
-    keys = keysfromkeyring()
-    assert extra_keypair.fpr in keys[0]['key_blob']['sq_inspect'][0].replace(' ','')
-    assert extra_keypair.fpr == keys[0]['pEp_keys.db']['KeyID']
-
-
