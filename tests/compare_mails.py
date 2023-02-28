@@ -3,23 +3,9 @@ from email import *
 from conftest import *
 
 
-def get_email_body(email_string, tmp_path):
-    path = tmp_path['tmp']
-    path = os.path.join(path, "temp_eml.txt")
-
-    def save_string_to_file(email_string):
-        path = tmp_path['tmp']
-        path = os.path.join(path, "temp_eml.txt")
-        save_file = open(path, "w")
-        save_file.write(email_string)
-        save_file.close()
-    
-    save_string_to_file(email_string)
-
-    email_file = open(path, "r")
+def get_email_body(email_string):
     email_parser = email.parser.Parser()
-    parsed_string = email_parser.parse(email_file)
-    
+    parsed_string = email_parser.parsestr(email_string)
 
     def _get_body(emailobj):
         

@@ -43,11 +43,8 @@ def test_decrypt_message_no_key(collect_email, test_dirs, extra_keypair, cmd_env
     decrypted = out_folder + '/in.decrypt.processed.eml'
     with open(decrypted) as decrypted_email:
         decrypted_data = decrypted_email.read()
-
-    e2 = get_email_body(collect_email.decode(), test_dirs)
-    e1 = get_email_body(decrypted_data, test_dirs)
     
-    assert e1 == e2
+    assert get_email_body(collect_email.decode()) == get_email_body(decrypted_data)
 
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
 def test_decrypt_message(test_dirs, collect_email, extra_keypair, cmd_env):
