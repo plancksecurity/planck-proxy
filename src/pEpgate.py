@@ -57,9 +57,17 @@ if __name__ == '__main__':
 		help=f'Address of the SMTP host used to send the messages. Default "{get_default("SMTP_HOST")}"')
 	parser.add_argument('--SMTP_PORT', type=int, default=get_default("SMTP_PORT"),
 		help=f'Port of the SMTP host used to send the messages. Default "{get_default("SMTP_PORT")}"')
+	parser.add_argument('--settings_file', help=('Provides a route to a different "settings.json" file.'), default=None)
 
 	cli_args = parser.parse_args()
 	for key,val in vars(cli_args).items():
 		settings[key] = val
+
+	if settings['settings_file'] is not None:
+		with open(settings['settings_file'], "rb") as f:
+			filesettings = json.load(f)
+
+		for setting, value in filesettings.items():
+			settings[setting] = value
 
 	main(cli_args)

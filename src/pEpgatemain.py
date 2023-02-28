@@ -127,7 +127,7 @@ def set_addresses(msg, us, them):
 	return msg, us, them
 
 
-def enable_dts(msg):
+def enable_dts( msg):
 	"""
 	If sender enabled "Return receipt" allow cleanup() to send back debugging info
 	"""
@@ -151,11 +151,12 @@ def check_key_reset(msg, us, them):
 
 	keywords = ("RESETKEY", "KEYRESET")
 
-	if any(kw in msg['inmail'] for kw in keywords) and settings['mode'] == "encrypt" and us['addr'] in settings['reset_senders'] and them['addr'] not in settings['reset_senders']:
+	if (kw in msg['inmail'] for kw in keywords) and settings['mode'] == "encrypt" and us['addr'] in settings['reset_senders'] and them['addr'] not in settings['reset_senders']:
 		dbg("Resetting key for " + them['addr'] + " in keyring " + us['addr'])
 
 		for kw in keywords:
 			msg['inmail'] = msg['inmail'].replace(kw, "")
+			
 
 		deletekeyfromkeyring.delete_key(us['addr'], them['addr'], settings['work_dir'])
 
