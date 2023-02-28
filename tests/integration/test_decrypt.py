@@ -33,6 +33,7 @@ def test_decrypt_message_no_key(collect_email, test_dirs, extra_keypair, cmd_env
 
     email = collect_email.decode()
     test_email_from, test_email_to = get_contact_info(email)
+    cmd_env['EXTRA_KEYS'] = extra_keypair.fpr
 
     res = subprocess.run(['./pEpgate decrypt'], shell=True,
             capture_output=True, input=collect_email, env=cmd_env)
@@ -49,10 +50,12 @@ def test_decrypt_message_no_key(collect_email, test_dirs, extra_keypair, cmd_env
     assert e1 == e2
 
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
-def test_decrypt_message(settings, test_dirs, collect_email, extra_keypair, cmd_env):
+def test_decrypt_message(test_dirs, collect_email, extra_keypair, cmd_env):
     cmd_env['DEBUG'] = 'True'
     email = collect_email.decode()
     test_email_from, test_email_to = get_contact_info(email)
+    cmd_env['EXTRA_KEYS'] = extra_keypair.fpr
+
     subprocess.run(['./pEpgate decrypt'], shell=True,
             capture_output=True, input=collect_email, env=cmd_env)
 
