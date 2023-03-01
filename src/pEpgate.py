@@ -41,7 +41,9 @@ def main(cli_args):
 	log_session()
 
 if __name__ == '__main__':
+
 	init_settings()
+	dbg(f"SETTINGS IMPORTED with 'HOME' as {settings['home']} and 'DTS' as {settings['dts']}")
 
 	parser = argparse.ArgumentParser(description='pEp Proxy CLI.')
 	parser.add_argument('mode', choices=["encrypt", "decrypt"], help='Mode')

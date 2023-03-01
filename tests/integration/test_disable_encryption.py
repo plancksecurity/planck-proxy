@@ -2,14 +2,22 @@ import subprocess
 import os
 import pytest
 from pEphelpers import get_contact_info
+from update_settings import override_settings
 
 
 @pytest.mark.parametrize('collect_email', ["basic_noencrypt.eml"], indirect=True)
-def test_encrypt_noencrypt_message(settings, test_dirs, collect_email, extra_keypair, bob_key, cmd_env):
-    cmd_env['EXTRA_KEYS'] = extra_keypair.fpr
+def test_encrypt_noencrypt_message(settings, settings_file, test_dirs, collect_email, extra_keypair, bob_key, cmd_env):
     email = collect_email.decode()
     test_email_from, test_email_to = get_contact_info(email)
-    subprocess.run(['./pEpgate encrypt --DEBUG'], shell=True,
+
+    test_settings = {
+        "EXTRA_KEYS": "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3",
+        "DEBUG": True
+    }
+    override_settings(test_dirs['tmp'], test_settings)
+
+    command = (f"./pEpgate encrypt --settings_file {settings_file}")
+    subprocess.run([command], shell=True,
             capture_output=True, input=collect_email, env=cmd_env)
 
     decrypt_out_path = test_dirs['work'] / test_email_from / test_email_to
@@ -21,12 +29,18 @@ def test_encrypt_noencrypt_message(settings, test_dirs, collect_email, extra_key
     assert "NOENCRYPT" not in encrypted_data
 
 @pytest.mark.parametrize('collect_email', ["basic_noencrypt.eml"], indirect=True)
-def test_encrypt_noencrypt_message_no_debug(settings, test_dirs, collect_email, extra_keypair, bob_key, cmd_env):
-    cmd_env['EXTRA_KEYS'] = extra_keypair.fpr
-    cmd_env['DEBUG'] = 'False'
+def test_encrypt_noencrypt_message_no_debug(settings, settings_file, test_dirs, collect_email, extra_keypair, bob_key, cmd_env):
     email = collect_email.decode()
     test_email_from, test_email_to = get_contact_info(email)
-    p = subprocess.run(['./pEpgate encrypt'], shell=True,
+
+    test_settings = {
+        "EXTRA_KEYS": "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3",
+        "DEBUG": False
+    }
+    override_settings(test_dirs['tmp'], test_settings)
+
+    command = (f"./pEpgate encrypt --settings_file {settings_file}")
+    p = subprocess.run([command], shell=True,
             capture_output=True, input=collect_email, env=cmd_env)
 
     decrypt_out_path = test_dirs['work'] / test_email_from / test_email_to

@@ -4,6 +4,7 @@ import random
 import string
 import pytest
 import shutil
+import json
 
 import pEphelpers
 import pEpgatemain
@@ -88,8 +89,28 @@ def collect_email(request):
         return f.read()
 
 @pytest.fixture
-def settings():
-    return init_settings()
+def settings_file(test_dirs):
+    
+    settings_file = os.path.join(test_dirs['tmp'], 'settings_tests.json')
+
+    test_settings = {
+        "scan_pipes": [
+        {"name": "SpamAssassin", "cmd": "ls"},
+        {"name": "ClamAV", "cmd": "ls"}
+        ]
+    }
+
+    json_object = json.dumps(test_settings, indent=4)
+
+    with open(settings_file, "w") as outfile:
+        outfile.write(json_object)
+
+    return settings_file
+
+@pytest.fixture
+def set_settings():
+    settings = init_settings()
+
 
 @pytest.fixture
 def cmd_env(test_dirs):
@@ -102,7 +123,7 @@ def cmd_env(test_dirs):
     return cmd_env
 
 @pytest.fixture(autouse=True)
-def run_before_and_after_tests(monkeypatch, settings, tmp_path):
+def run_before_and_after_tests(monkeypatch, set_settings, tmp_path):
     """Fixture to execute asserts before and after a test is run"""
     os.environ['HOME'] = str(tmp_path)
 
@@ -113,3 +134,4 @@ def run_before_and_after_tests(monkeypatch, settings, tmp_path):
     yield # this is where the testing happens
 
     pEphelpers.cleanup()
+

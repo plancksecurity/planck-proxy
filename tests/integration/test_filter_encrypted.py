@@ -1,6 +1,9 @@
 import pytest
 import subprocess
 
+
+##TO DO -- REVAMP INTO NEW SETTINGS METHODOLOGY
+
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
 def test_filter_enc_good(test_dirs, extra_keypair, collect_email):
 
