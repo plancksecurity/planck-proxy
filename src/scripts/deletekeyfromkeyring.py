@@ -2,45 +2,48 @@
 
 import sqlite3
 import sys
+import os
+from pathlib import Path
+from pEphelpers import *
 
 def delete_key(keyring, address, work_dir):
     """Takes keyring, address and workdir and deletes address from the keyring."""
 
-    print("Deleting key(s) of address " + address + " from keyring " + keyring)
+    dbg("Deleting key(s) of address " + address + " from keyring " + keyring)
 
     def collate_email(a, b):
         return 1 if a > b else -1 if a < b else 0
 
     ### keys.db
-    db = sqlite3.connect(work_dir + "/" + keyring + "/.pEp/keys.db")
+    db = sqlite3.connect(os.path.join(Path(work_dir),".pEp/keys.db"))
     db.create_collation("EMAIL", collate_email)
 
     q = db.execute("SELECT * FROM userids WHERE userid = ?;", (address,))
     for r in q:
-        print("== " + r[0] + " -> " + r[1])
+        dbg("== " + r[0] + " -> " + r[1])
 
         d = db.execute("DELETE FROM subkeys WHERE primary_key = ?;", (r[1],))
-        print("Removed subkeys: " + str(d.rowcount))
+        dbg("Removed subkeys: " + str(d.rowcount))
 
         d = db.execute("DELETE FROM keys WHERE primary_key = ?;", (r[1],))
-        print("   Removed keys: " + str(d.rowcount))
+        dbg("   Removed keys: " + str(d.rowcount))
 
         d = db.execute("DELETE FROM userids WHERE userid = ?;", (r[0],))
-        print("Removed userids: " + str(d.rowcount))
+        dbg("Removed userids: " + str(d.rowcount))
 
     db.commit()
 
     ### management.db
-    db = sqlite3.connect(work_dir + "/" + keyring + "/.pEp/management.db")
+    db = sqlite3.connect(os.path.join(Path(work_dir),".pEp/management.db"))
 
     d = db.execute("DELETE FROM trust WHERE user_id = ?;", ("TOFU_" + address,))
-    print("Removed trust tofu: " + str(d.rowcount))
+    dbg("Removed trust tofu: " + str(d.rowcount))
 
     d = db.execute("DELETE FROM person WHERE id = ?;", ("TOFU_" + address,))
-    print("Removed person tofu: " + str(d.rowcount))
+    dbg("Removed person tofu: " + str(d.rowcount))
 
     d = db.execute("DELETE FROM identity WHERE address = ?;", (address,))
-    print("Removed identity: " + str(d.rowcount))
+    dbg("Removed identity: " + str(d.rowcount))
 
     db.commit()
 

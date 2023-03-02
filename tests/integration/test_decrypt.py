@@ -4,9 +4,6 @@ import sqlite3
 import os
 import pytest
 import sys
-currentdir = os.path.dirname(os.path.realpath(__file__))
-parentdir = os.path.dirname(currentdir)
-sys.path.append(parentdir)
 import compare_mails
 from pEphelpers import get_contact_info
 from pathlib import Path

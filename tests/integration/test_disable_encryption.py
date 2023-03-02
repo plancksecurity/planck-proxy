@@ -6,7 +6,7 @@ from update_settings import override_settings
 
 
 @pytest.mark.parametrize('collect_email', ["basic_noencrypt.eml"], indirect=True)
-def test_encrypt_noencrypt_message(settings, settings_file, test_dirs, collect_email, extra_keypair, bob_key, cmd_env):
+def test_encrypt_noencrypt_message(set_settings, settings_file, test_dirs, collect_email, extra_keypair, bob_key, cmd_env):
     email = collect_email.decode()
     test_email_from, test_email_to = get_contact_info(email)
 

@@ -6,7 +6,7 @@ from update_settings import override_settings
 from pEphelpers import get_contact_info
 
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
-def test_import_extra_key(settings, settings_file, test_dirs, collect_email, extra_keypair, cmd_env):
+def test_import_extra_key(set_settings, settings_file, test_dirs, collect_email, extra_keypair, cmd_env):
     test_key_fpr = extra_keypair.fpr
     email = collect_email.decode()
     test_email_from, test_email_to = get_contact_info(email)
