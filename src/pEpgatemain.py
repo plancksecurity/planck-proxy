@@ -156,9 +156,9 @@ def check_key_reset(msg, us, them):
 
 		for kw in keywords:
 			msg['inmail'] = msg['inmail'].replace(kw, "")
-			
 
-		deletekeyfromkeyring.delete_key(us['addr'], them['addr'], settings['work_dir'])
+		keys_db_location = os.path.join(str(settings['workdir']), '.pEp')
+		deletekeyfromkeyring.delete_key(us['addr'], them['addr'], keys_db_location)
 
 	return msg
 

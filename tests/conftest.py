@@ -71,6 +71,31 @@ def bob_key(test_dirs):
     return BOB_KEY
 
 @pytest.fixture
+def alice_key(test_dirs):
+    pubkey = test_dirs['test_keys'] / str(ALICE_KEY.fpr + '.pub.asc')
+
+    if not os.path.exists(test_dirs['keys']):
+        os.makedirs(test_dirs['keys'])
+
+    shutil.copy(pubkey, test_dirs['keys'])
+    return ALICE_KEY
+
+@pytest.fixture
+def obtain_key_db(test_dirs):
+
+    db_location = os.path.join(test_dirs['root'], 'test_db')
+    src_folder = os.path.join(db_location, ".pEp")
+    dest_folder = str(test_dirs['tmp'])
+
+    if os.path.exists(dest_folder):
+        shutil.rmtree(dest_folder)
+    
+    shutil.copytree(src_folder, dest_folder)
+
+    return dest_folder
+
+
+@pytest.fixture
 def mailbot_address():
     """
     Get a random address for a pEp mailbot
