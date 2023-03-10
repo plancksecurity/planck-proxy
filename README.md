@@ -7,7 +7,7 @@ The core of the pEp Gate is the pEpgate.py script. It is intended to be invoked 
 You can see all the available arguments and their usage running the help command `./pEpgate.py -h`
 
 ```
-usage: pEpgate [-h] [--DEBUG] [--keys_dir KEYS_DIR] [--work_dir WORK_DIR] [--SMTP_HOST SMTP_HOST] [--SMTP_PORT SMTP_PORT] [--EXTRA_KEYS EXTRA_KEYS] {encrypt,decrypt}
+usage: pEpgate [-h] [--DEBUG] [--keys_dir KEYS_DIR] [--work_dir WORK_DIR] [--SMTP_HOST SMTP_HOST] [--SMTP_PORT SMTP_PORT] [--EXTRA_KEYS EXTRA_KEYS] [--settings_file SETTINGS_FILE] {encrypt,decrypt}
 
 pEp Proxy CLI.
 
@@ -25,6 +25,8 @@ optional arguments:
                         Address of the SMTP host used to send the messages. Default "80.90.47.12"
   --SMTP_PORT SMTP_PORT
                         Port of the SMTP host used to send the messages. Default "25"
+  --settings_file SETTINGS_FILE
+                        Route of the settings file to load, instead of the default settings route, which is <./settings.json>
 ```
 
 All the arguments can also be passed onto the script as environment variables with the same name as the command. For example `./pEpgate.py SMTP_HOST=192.168.0.1` is equivalent to `SMTP_HOST="192.168.0.1" ./pEpgate.py`
