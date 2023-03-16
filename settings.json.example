@@ -31,6 +31,8 @@
 
 "DEBUG":            false,
 
+"noencrypt_senders":    ["None"],
+
 "scan_pipes": [
     {"name": "SpamAssassin", "cmd": "spamc --check -"},
     {"name": "ClamAV", "cmd": "clamdscan --verbose -z -"}

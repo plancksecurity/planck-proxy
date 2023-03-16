@@ -436,12 +436,14 @@ def process_message(pEp, msg, us, them):
 
 			# Blacklisted domains which don't like PGP
 			a = msg['src'].to[0].address
+			b = msg['src'].from_.address
 			d = a[a.find("@") + 1:]
+
 			if d in settings['never_pEp']:
 				dbg(c("Domain " + d + " in never_pEp, not encrypting", 5))
 				dst = msg['src']
 			# Magic-string "NOENCRYPT" found inside the message
-			elif "NOENCRYPT" in msg['src'].longmsg + msg['src'].longmsg_formatted and settings['DEBUG']:
+			elif "NOENCRYPT" in msg['src'].longmsg + msg['src'].longmsg_formatted and b in settings['noencrypt_senders']:	
 				dbg(c(f"Found magic string 'NOENCRYPT' so not going to encrypt this message {settings['DEBUG']}", 1))
 				dst = msg['src']
 				dst.longmsg = dst.longmsg.replace("NOENCRYPT", "")
