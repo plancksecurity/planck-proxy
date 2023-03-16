@@ -19,9 +19,9 @@ def get_last_line(file_path):
         last_line = f.readline().decode()
     return last_line
 
-def test_dbg(settings):
+def test_dbg(set_settings):
     dbg("TEST")
-    assert 'TEST' in get_last_line(settings['logfile'])
+    assert 'TEST' in get_last_line(set_settings['logfile'])
 
 @pytest.mark.parametrize("text, color, output",
     [

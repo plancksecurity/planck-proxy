@@ -29,8 +29,9 @@ def test_dummy_filter_2(collect_email, expected, test_dirs):
     assert p1.returncode == expected
 
 @pytest.mark.parametrize('collect_email', ["basic.eml"], indirect=True)
-def test_filtering_good(settings, test_dirs, collect_email):
+def test_filtering_good(set_settings, test_dirs, collect_email):
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
+    settings = set_settings
     settings['mode']  = 'decrypt'
     settings['scan_pipes']  = [
         {"name": "dummy filter", "cmd": filter_command}
@@ -39,8 +40,9 @@ def test_filtering_good(settings, test_dirs, collect_email):
     filter_message(msg)
 
 @pytest.mark.parametrize('collect_email', ["basic_filter_evil.eml"], indirect=True)
-def test_filtering_evil(settings, test_dirs, collect_email):
+def test_filtering_evil(set_settings, test_dirs, collect_email):
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
+    settings = set_settings
     settings['mode']  = 'decrypt'
     settings['scan_pipes']  = [
         {"name": "dummy filter", "cmd": filter_command}
@@ -53,9 +55,10 @@ def test_filtering_evil(settings, test_dirs, collect_email):
 
 
 @pytest.mark.parametrize('collect_email', ["basic_filter_retry.eml"], indirect=True)
-def test_filtering_retry(settings, test_dirs, collect_email, monkeypatch):
+def test_filtering_retry(set_settings, test_dirs, collect_email, monkeypatch):
 
     filter_command = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
+    settings = set_settings
     settings['mode']  = 'decrypt'
     settings['scan_pipes']  = [
         {"name": "dummy filter", "cmd": filter_command}
@@ -67,9 +70,10 @@ def test_filtering_retry(settings, test_dirs, collect_email, monkeypatch):
     assert exec_info.value.code == 11
 
 @pytest.mark.parametrize('collect_email', ["basic.eml"], indirect=True)
-def test_filtering_combined_pass(settings, test_dirs, collect_email):
+def test_filtering_combined_pass(set_settings, test_dirs, collect_email):
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     filter_command_2 = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
+    settings = set_settings
     settings['mode']  = 'decrypt'
     settings['scan_pipes']  = [
         {"name": "dummy filter", "cmd": filter_command},
@@ -79,9 +83,10 @@ def test_filtering_combined_pass(settings, test_dirs, collect_email):
     filter_message(msg)
 
 @pytest.mark.parametrize('collect_email', ["basic_filter_evil.eml"], indirect=True)
-def test_filtering_combined_fail(settings, test_dirs, collect_email):
+def test_filtering_combined_fail(set_settings, test_dirs, collect_email):
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     filter_command_2 = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
+    settings = set_settings
     settings['mode']  = 'decrypt'
     settings['scan_pipes']  = [
         {"name": "dummy filter", "cmd": filter_command},

@@ -135,6 +135,7 @@ def settings_file(test_dirs):
 @pytest.fixture
 def set_settings():
     settings = init_settings()
+    return settings
 
 
 @pytest.fixture

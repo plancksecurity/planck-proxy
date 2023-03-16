@@ -13,7 +13,7 @@ def test_get_contact_pass(collect_email, expected):
     assert get_contact_info(email) == expected
 
 @pytest.mark.parametrize('collect_email', ["06*"], indirect=True)
-def test_get_contact_fail(settings, collect_email):
+def test_get_contact_fail(set_settings, collect_email):
     """
     When we cannot determine who contacted us, ensure that the method fails
     """
