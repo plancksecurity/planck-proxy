@@ -7,6 +7,7 @@ import smtplib
 import socket
 import base64
 import sqlite3
+import shutil
 import io
 import tempfile
 import email
@@ -67,6 +68,16 @@ def cleanup():
 			dbg("Lockfile " + c(lockfilepath, 6) + " removed", pub=False)
 		except:
 			dbg("Can't remove Lockfile " + c(lockfilepath, 6), pub=False)
+
+	logpath = settings['logpath']
+	if settings['DEBUG']:
+		dbg(f"Debug mode, will keep the logged output messages in the work_dir {c(logpath, 6)}", pub=False)
+	else:
+		try:
+			shutil.rmtree(logpath)
+			dbg("Log folder " + c(logpath, 6) + " removed", pub=False)
+		except Exception as e :
+			dbg("Can't log folder " + c(logpath, 6) + str(e), pub=False)
 
 ### Debug and logging
 
