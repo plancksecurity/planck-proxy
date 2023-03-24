@@ -77,7 +77,7 @@ def cleanup():
 			shutil.rmtree(logpath)
 			dbg("Log folder " + c(logpath, 6) + " removed", pub=False)
 		except Exception as e :
-			dbg("Can't log folder " + c(logpath, 6) + str(e), pub=False)
+			dbg("Can't remove log folder " + c(logpath, 6) + str(e), pub=False)
 
 ### Debug and logging
 
