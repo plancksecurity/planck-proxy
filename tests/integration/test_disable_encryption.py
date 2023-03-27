@@ -12,7 +12,7 @@ def test_encrypt_noencrypt_message_authorized(set_settings, settings_file, test_
     test_settings = {
         "EXTRA_KEYS": ["3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3"],
         "noencrypt_senders":    ["alice@pep.security"],
-        #"DEBUG": True
+        "DEBUG": True
     }
     override_settings(test_dirs['tmp'], test_settings)
 
