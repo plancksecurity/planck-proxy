@@ -76,7 +76,7 @@ def cleanup():
 		try:
 			shutil.rmtree(logpath)
 			dbg("Log folder " + c(logpath, 6) + " removed", pub=False)
-		except Exception as e :
+		except Exception as e:
 			dbg("Can't remove log folder " + c(logpath, 6) + str(e), pub=False)
 
 ### Debug and logging
@@ -112,7 +112,9 @@ def dbg(text, printtiming=False, pub=True):
 	return took
 
 def c(text, color=0):
-	return '\033[1;3' + str(color) + 'm' + text + '\033[1;m'
+	if text:
+		return '\033[1;3' + str(color) + 'm' + text + '\033[1;m'
+	return ''
 
 def toplain(text):
 	ret = text
