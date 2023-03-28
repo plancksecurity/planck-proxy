@@ -8,6 +8,14 @@ def messages_cleanup(work_dir, days, verbose):
     """
     Deletes all files in subfolders of work_dir that were created more than days days ago. If a subfolder in work_dir
     is empty after deleting .eml and .log files, it is also deleted.
+
+    Args:
+        work_dir (str): the path to the folder containing the subfolders with .eml files
+        days (int): the number of days before which to delete the .eml files
+        verbose (bool): If True, print output data
+
+    Returns:
+        None
     """
     if verbose:
         print(

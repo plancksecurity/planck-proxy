@@ -17,6 +17,15 @@ from scripts import deletekeyfromkeyring
 
 
 def print_init_info(args):
+    """
+    Print initialization information.
+
+    Args:
+        args (argparse.Namespace): Arguments.
+
+    Returns:
+        None
+    """
     dbg("===== " + c("p≡pGate started", 2) + " in mode " + c(settings['mode'], 3)
         + " | PID " + c(str(os.getpid()), 5) +
         " | UID " + c(str(os.getuid()), 6)
@@ -31,7 +40,13 @@ def print_init_info(args):
 
 def init_lockfile():
     """
-    Lockfile handling
+    Initialize lockfile.
+
+    Args:
+        None
+
+    Returns:
+        None
     """
 
     locktime = 0
@@ -80,7 +95,13 @@ def init_lockfile():
 
 def get_message(message):
     """
-    Read original message from stdin or use a testmail
+    Reads a message from the standard input stream.
+
+    Args:
+        message (Message): The message object to store the read message.
+
+    Returns:
+        None.
     """
 
     dbg("Reading message (to confirm press CTRL+D on an empty line)...", pub=False)
@@ -116,8 +137,16 @@ def get_message(message):
 
 def set_addresses(message):
     """
-    Figure out how we have been contacted, what to do next
+    Determines the sender and recipient of the message.
+
+    Args:
+        message (Message): The message object to store the sender and recipient addresses, containing the
+                            'msg', 'us' and 'them' dictionaries.
+
+    Returns:
+        None.
     """
+
     msgfrom, msgto = get_contact_info(message.msg['inmail'])
 
     ouraddr = (msgfrom if settings['mode'] == "encrypt" else msgto)
@@ -132,6 +161,14 @@ def set_addresses(message):
 def enable_dts(message):
     """
     If sender enabled "Return receipt" allow cleanup() to send back debugging info
+
+    Args:
+        message (Message): an instance of the Message class containing the parsed message
+                            in the 'msg' dictionary.
+
+    Returns:
+        None
+
     """
     global settings
     dts = getmailheaders(
@@ -152,6 +189,13 @@ def enable_dts(message):
 def check_key_reset(message):
     """
     If 'RESETKEY' or 'KEYRESET' are found in a mail in mode encrypt, delete theiraddr from ouraddr keyring.
+
+    Args:
+        message (Message): an instance of the Message class containing the parsed message in the 'msg' dictionary
+                            and the sender and recipient addresses in the 'us' and 'them' dictionaries.
+
+    Returns:
+        None
     """
 
     keywords = ("RESETKEY", "KEYRESET")
@@ -173,6 +217,12 @@ def check_key_reset(message):
 def addr_domain_rewrite(message):
     """
     Address- & domain-rewriting (for asymmetric inbound/outbound domains)
+
+    Args:
+        message (Message): an instance of the Message class containing 'us' and 'them' dictionaries.
+
+    Returns:
+        None
     """
 
     forwarding_map_path = os.path.join(
@@ -196,7 +246,14 @@ def addr_domain_rewrite(message):
 def init_workdir(message):
     """
     Create workdir for ouraddr, and set it to the current $HOME
+
+    Args:
+        message (Message): an instance of the Message class containing 'us' dictionary.
+
+    Returns:
+        None
     """
+
     global settings
     workdirpath = os.path.join(
         settings['home'], settings['work_dir'], message.us['addr'])
@@ -214,6 +271,9 @@ def init_workdir(message):
 
 
 def check_initial_import():
+    """
+    Check if keys.db already exists, if not import keys later using p≡p
+    """
     keys_db_path = os.path.join(os.environ["HOME"], '.pEp', 'keys.db')
     return not os.path.exists(keys_db_path)
 
@@ -221,6 +281,16 @@ def check_initial_import():
 
 
 def print_summary_info(message):
+    """
+    Print summary information about the message and whether initial import is required
+
+    Args:
+        message (Message):  an instance of the Message class containing the 'msg' dictionary.
+
+    Returns:
+        None
+    """
+
     dbg("       Message from: " + c(str(message.msg['msgfrom']), 5))
     dbg("         Message to: " + c(str(message.msg['msgto']), 5))
     dbg("        Our address: " + c(message.us['addr'], 3))
@@ -233,7 +303,14 @@ def print_summary_info(message):
 def init_logging(message):
     """
     Log original message into the workdir
+
+    Args:
+        message (Message):  an instance of the Message class containing the 'msg' and 'them' dictionaries.
+
+    Returns:
+        None
     """
+
     global settings
     logpath = os.path.join(settings['work_dir'], message.them['addr'], datetime.now(
     ).strftime('%Y.%m.%d-%H.%M.%S.%f'))
@@ -258,7 +335,11 @@ def load_pep():
     """
     Import the p≡p engine. This will create the .pEp folder in the current $HOME
     This method should never be called before init_workdir
+
+    Returns:
+        pEp (module): The p≡p engine module.
     """
+
     pEp = importlib.import_module('pEp')
     pEp.set_debug_log_enabled(True)  # TODO
     pEp.message_to_send = messageToSend
@@ -273,7 +354,13 @@ def load_pep():
 
 def import_keys(pEp):
     """
-    Import keys from the keys_dir
+    Imports keys from the keys_dir.
+
+    Args:
+        pEp (module): The p≡p engine module object.
+
+    Returns:
+        None.
     """
     dbg(c("Initializing keys.db...", 2))
     keys_path = os.path.join(settings['home'], settings['keys_dir'])
@@ -288,6 +375,15 @@ def import_keys(pEp):
 
 
 def print_keys_and_keaders(message):
+    """
+    Print environment variables, keys in the keyring and headers in original message.
+
+    Args:
+        message (Message):  an instance of the Message class containing the 'msg' dictionary.
+
+    Returns:
+        None.
+    """
     dbg(c("┌ Environment variables", 5) + "\n" +
         prettytable(os.environ), pub=False)
     dbg(c("┌ Keys in this keyring (as stored in keys.db)", 5) +
@@ -301,6 +397,13 @@ def print_keys_and_keaders(message):
 def check_recipient_pubkey(pEp, message):
     """
     Check if we have a key to encrypt for the recipient and get their p≡p identity
+
+    Args:
+        pEp (module): The p≡p engine module object.
+        message (Message):  an instance of the Message class containing the 'them' dictionary.
+
+    Returns:
+        None
     """
     theirkey = keysfromkeyring(message.them['addr'])
     message.them['key'] = theirkey
@@ -332,6 +435,12 @@ def check_recipient_pubkey(pEp, message):
 def check_sender_privkey(message):
     """
     Check if we have a public key for the sender
+
+    Args:
+        message (Message):  an instance of the Message class containing the 'us' dictionary.
+
+    Returns:
+        None
     """
     ourkey = keysfromkeyring(message.us['addr'])
     if ourkey == False:
@@ -358,6 +467,13 @@ def check_sender_privkey(message):
 def set_own_identity(pEp, message):
     """
     Create or set our own p≡p identity
+
+    Args:
+        pEp (module): The p≡p engine module object.
+        message (Message):  an instance of the Message class containing the 'us' and 'them' dictionaries.
+
+    Returns:
+        None
     """
     username_map_path = os.path.join(
         settings['home'], settings['username_map'])
@@ -403,7 +519,14 @@ def set_own_identity(pEp, message):
 
 def create_pEp_message(pEp, message):
     """
-    Create a p≡p message object
+    Create a p≡p message object and store it in the message.msg['src'] key.
+
+    Args:
+        pEp (module): The p≡p engine module object.
+        message (Message):  an instance of the Message class containing the 'msg', 'us' and 'them' dictionaries.
+
+    Returns:
+        None
     """
     try:
         src = pEp.Message(message.msg['inmail'])
@@ -461,6 +584,16 @@ def create_pEp_message(pEp, message):
 
 # ### Let p≡p do it's magic #########################################################################
 def process_message(pEp, message):
+    """
+    Encrypt or decrypt the message depending on settings['mode']
+
+    Args:
+        pEp (module): The p≡p engine module object.
+        message (Message):  an instance of the Message class containing the 'msg', 'us' and 'them' dictionaries.
+
+    Returns:
+        None
+    """
     try:
         if settings['mode'] == "encrypt":
             # Silly workaround for senders that don't bother to include a username
@@ -572,7 +705,13 @@ def process_message(pEp, message):
 
 def filter_message(message):
     """
-    Run all the commands on the scan_pipeline for the message
+    Run all the commands on the settings['scan_pipes'] for the message
+
+    Args:
+        message (Message):  an instance of the Message class containing the 'msg' dictionary.
+
+    Returns:
+        None
     """
     scanresults = {}
     desc = {0: "PASS", 1: "FAIL", 2: "RETRY"}
@@ -630,6 +769,14 @@ def filter_message(message):
 def add_routing_and_headers(pEp, message):
     """
     Complete mail headers with MX routing snd version information
+
+    Args:
+        pEp (module): The p≡p engine module object.
+        message (Message):  an instance of the Message class containing the 'msg', 'us' and 'them' dictionaries.
+
+    Returns:
+        None
+
     """
     global settings
     settings['nextmx'] = None
@@ -677,6 +824,13 @@ def add_routing_and_headers(pEp, message):
 def deliver_mail(message):
     """
     Send outgoing mail
+
+    Args:
+        message (Message):  an instance of the Message class containing the 'msg' dictionary.
+
+    Returns:
+        None
+
     """
     dbg("Sending mail via MX: " + (c("auto", 3)
         if settings['nextmx'] is None else c(str(settings['nextmx']), 1)))
@@ -696,6 +850,12 @@ def deliver_mail(message):
 def log_session():
     """
     Save per-session logfiles
+
+    Args:
+        None
+
+    Returns:
+        None
     """
 
     logfilename = os.path.join(settings['logpath'], "debug.log")

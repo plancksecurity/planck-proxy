@@ -10,6 +10,9 @@ settings = {}
 def init_settings():
     """
     Init settings dict with data from the settings.json file
+
+    Returns:
+        None
     """
     global settings
     # Postfix sets this to "C" by default, we want full Unicode support though

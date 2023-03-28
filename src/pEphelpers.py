@@ -30,6 +30,13 @@ def get_default(setting, type=str):
     Get the default value for the given setting with the following priority:
     1. Env variable
     2. String on settings.py file (aka vars loaded into the memory space)
+
+    Args:
+        setting (str): The name of the setting to retrieve
+        type (type, optional): The type to cast the value to. Defaults to str.
+
+    Returns:
+        Any: The value of the setting
     """
     env_val = os.getenv(setting)
     if env_val:
@@ -46,6 +53,17 @@ def get_default(setting, type=str):
 
 
 def except_hook(type, value, tback):
+    """
+    Custom exception hook to handle unhandled exceptions and log them via email
+
+    Args:
+        type (type): The type of the exception.
+        value (Exception): The exception instance.
+        tback (traceback): The traceback object associated with the exception.
+
+    Returns:
+        None
+    """
     dbg(c("!!! pEp Gate - Unhandled exception !!!", 1))
     mailcontent = ""
     for line in traceback.format_exception(type, value, tback):
@@ -56,6 +74,17 @@ def except_hook(type, value, tback):
 
 
 def cleanup():
+    """
+    Cleans up the system by removing the lockfile if it exists and removing log files
+    if debug mode is not activated. If dts is not None, sends a debug email with the log
+    files as attachments.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     if settings['dts'] is not None:
         attachments = []
         logpath = settings['logpath']
@@ -88,6 +117,17 @@ def cleanup():
 
 
 def dbg(text, printtiming=False, pub=True):
+    """
+    Logs the given text with a timestamp and writes it to a log file.
+
+    Args:
+        text (str): The text to be logged.
+        printtiming (bool, optional): If True, the time taken since the last log message is printed along with the message. Defaults to False.
+        pub (bool, optional): If True, the message is added to the HTML log file. Defaults to True.
+
+    Returns:
+        float: The time taken since the last log message was printed.
+    """
     global settings
     thisactiontime = datetime.now()
     settings['thisactiontime'] = thisactiontime
@@ -119,12 +159,31 @@ def dbg(text, printtiming=False, pub=True):
 
 
 def c(text, color=0):
+    """
+    Formats the text with the given color.
+
+    Args:
+        text (str): The text to be formatted.
+        color (int): The color code to be applied to the text. Default is 0.
+
+    Returns:
+        str: The formatted text with the given color.
+    """
     if text:
         return '\033[1;3' + str(color) + 'm' + text + '\033[1;m'
     return ''
 
 
 def toplain(text):
+    """
+    Converts the given text with ANSI escape codes to plain text.
+
+    Args:
+        text (str): A string containing ANSI escape codes.
+
+    Returns:
+        A plain text string with the ANSI escape codes removed.
+    """
     ret = text
     ret = ret.replace('\033[1;30m', '')
     ret = ret.replace('\033[1;31m', '')
@@ -139,6 +198,16 @@ def toplain(text):
 
 
 def tohtml(text):
+    """
+    Convert text to HTML format with color-coded text.
+
+    Args:
+        text (str): The input text to be converted.
+
+    Returns:
+        str: The converted HTML text.
+    """
+
     ret = text
     ret = html.escape(ret, True)
     ret = ret.replace('\n', '<br>\n')
@@ -156,10 +225,25 @@ def tohtml(text):
 
 
 def getlog(type):
+    """
+    Get the log content by type.
+
+    Args:
+        type (str): The type of the log content to retrieve.
+
+    Returns:
+        str: The log content.
+    """
     return settings[type] if type in ["textlog", "htmllog"] else ""
 
 
 def sendmail(msg):
+    """
+    Send an email message.
+
+    Args:
+        msg (str): The message to be sent.
+    """
     if settings.get('test-nomails'):
         dbg("Test mode, mail sending skip")
         return
@@ -177,6 +261,18 @@ def sendmail(msg):
 
 
 def dbgmail(msg, rcpt=None, subject="[FATAL] pEp Gate @ " + socket.getfqdn() + " crashed!", attachments=[]):
+    """
+    Sends a debug mail with given parameters.
+
+    Args:
+        msg (str): The body of the mail
+        rcpt (str): The recipient of the mail. If None, uses the email address in the settings.
+        subject (str): The subject of the mail. Defaults to '[FATAL] pEp Gate @ ' + socket.getfqdn() + ' crashed!'
+        attachments (list): A list of strings, paths to files that should be attached to the mail
+
+    Returns:
+        None
+    """
     if rcpt is None:
         # cant use a global in method default arg
         rcpt = settings['admin_addr']
@@ -229,6 +325,16 @@ def dbgmail(msg, rcpt=None, subject="[FATAL] pEp Gate @ " + socket.getfqdn() + "
 
 
 def setoutervar(var, val):
+    """
+    Set a variable in the global scope.
+
+    Args:
+        var (str): The name of the variable to set.
+        val (Any): The value to assign to the variable.
+
+    Returns:
+        None
+    """
     globals()[var] = val
 
 ### pEp Sync & echo protocol handling (unused for now) ########################
@@ -248,6 +354,18 @@ def notifyHandshake(me, partner, signal):
 
 
 def prettytable(thing, colwidth=26):
+    """
+    Returns a pretty-printed table of the given data.
+
+    Args:
+        thing (Union[str, bool, Dict, List[Dict]]): The data to display in the table.
+
+    Optional Args:
+        colwidth (int): The width of each column. Default is 26.
+
+    Returns:
+        str: The pretty-printed table.
+    """
     ret = ""
     if not isinstance(thing, list):
         thing = [thing]
@@ -300,6 +418,16 @@ def prettytable(thing, colwidth=26):
 
 
 def keysfromkeyring(userid=None):
+    """
+    Args:
+        userid (str): (Optional) The user ID to look up key for. Default is None.
+
+    Returns:
+        List of dictionaries representing all the keys in the keyring if there are any, otherwise False.
+        Each dictionary contains two key-value pairs:
+        - 'pEp_keys.db': a dictionary with three keys ('UserID', 'KeyID', 'Subkeys'), each containing a string value.
+        - 'key_blob': a dictionary with two keys ('is_private', 'sq_inspect'), 'is_private' being a boolean value and 'sq_inspect' being a list of strings.
+    """
     sq_bin = settings['sq_bin']
     db = sqlite3.connect(os.path.join(os.environ['HOME'], ".pEp", "keys.db"))
 
@@ -386,6 +514,15 @@ def keysfromkeyring(userid=None):
 
 
 def inspectusingsq(PGP):
+    """
+    Inspects the given PGP blob using Sequoia.
+
+    Args:
+        PGP (str): The PGP blob to be inspected.
+
+    Returns:
+        None
+    """
     sq_bin = settings['sq_bin']
     tf = tempfile.NamedTemporaryFile()
     tf.write(PGP.encode("utf8"))
@@ -399,6 +536,18 @@ def inspectusingsq(PGP):
 
 
 def decryptusingsq(inmail, secretkeyglob):
+    """
+    Decrypts a PGP message using the sq CLI tool.
+
+    Args:
+        inmail (str): The PGP message to decrypt.
+        secretkeyglob (str): A file glob pattern matching the secret key(s) to use for decryption.
+
+    Returns:
+        List[Union[str, List[str]]]: A list containing two elements:
+            - A string representing the decrypted message(s) without the 'X-pEp-Wrapped-Message-Info: INNER' tag.
+            - A list containing the key ID(s) used for decryption.
+    """
     sq_bin = settings['sq_bin']
     ret = ""
     patt = re.compile(
@@ -447,6 +596,16 @@ def decryptusingsq(inmail, secretkeyglob):
 
 
 def getmailheaders(inmsg, headername=None):
+    """
+    Extracts email headers from an email message.
+
+    Args:
+        inmsg (str): The email message as a string.
+        headername (str or None): The name of the header to extract. If None, all headers are extracted.
+
+    Returns:
+        headers (list of str or dict): The extracted headers. If headername is None, a list of dictionaries with the header name as the key and the header value as the value is returned. If headername is not None, a list of strings with the header values is returned.
+    """
     try:
         msg = email.message_from_string(inmsg)
         headers = []
@@ -474,6 +633,14 @@ def getmailheaders(inmsg, headername=None):
 def get_contact_info(inmail, reinjection=False):
     """
     Figure from and to address based on the email headers
+
+    Args:
+        inmail (str): The email message to extract information from
+        reinjection (bool, optional): Flag to indicate whether to use Delivered-To header to find recipient.
+            Defaults to False.
+
+    Returns:
+        Tuple[str, str]: A tuple containing the sender and recipient email addresses
     """
 
     mailparseregexes = [
@@ -550,6 +717,17 @@ def get_contact_info(inmail, reinjection=False):
 
 
 def jsonlookup(jsonmapfile, key, bidilookup=False):
+    """
+    Searches for a key in a JSON map file and returns its value.
+
+    Args:
+        jsonmapfile (str): The file path of the JSON map file.
+        key (str): The key to look for in the JSON map.
+        bidilookup (bool, optional): If True, performs a bidirectional lookup. Defaults to False.
+
+    Returns:
+        The value corresponding to the given key in the JSON map, or None if the key is not found.
+    """
     dbg("JSON lookup in file " + jsonmapfile + " for key " + key)
     result = None
 

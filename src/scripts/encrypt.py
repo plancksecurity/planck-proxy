@@ -4,7 +4,20 @@ import os
 
 
 def encrypt_msg(msg, dest_key, extra_key, extra_key_fpr, home_dir, debug):
+    """
+    Encrypts an email message using p≡p.
 
+    Args:
+        msg (str): Path to the email to encrypt.
+        dest_key (str): Public key of the message recipient.
+        extra_key (str): Public extra key.
+        extra_key_fpr (str): Fingerprint of the extra key.
+        home_dir (str): Location of the home folder.
+        debug (bool): Keep the home folder and output debug info.
+
+    Returns:
+        None
+    """
     # Change to pEp home
     home = os.environ.get('HOME')
     if not os.path.isdir(home_dir):

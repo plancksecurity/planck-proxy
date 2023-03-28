@@ -7,8 +7,17 @@ from pathlib import Path
 
 
 def delete_key(keyring, address, database_location):
-    """Takes keyring, address and workdir and deletes address from the keyring."""
+    """
+    Takes keyring, address and workdir and deletes address from the keyring.
 
+    Args:
+        keyring (str): Email of user whose DB to delete from
+        address (str): Email of user whose key to delete
+        database_location (str): Location of the work folder
+
+    Returns:
+        None
+    """
     print("Deleting key(s) of address " + address + " from keyring " + keyring)
 
     def collate_email(a, b):

@@ -4,7 +4,17 @@ import os
 
 
 def decrypt_msg(msg, key, home_dir):
+    """
+    Decrypt a message using p≡p.
 
+    Args:
+        msg: Path to the email to decrypt.
+        key: Key to decrypt.
+        home_dir: Location of the home folder.
+
+    Returns:
+        None
+    """
     # Change to pEp home
     home = os.environ.get('HOME')
     if not os.path.isdir(home_dir):
