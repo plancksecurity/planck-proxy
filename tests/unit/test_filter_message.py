@@ -29,33 +29,34 @@ def test_dummy_filter_2(collect_email, expected, test_dirs):
     assert p1.returncode == expected
 
 @pytest.mark.parametrize('collect_email', ["basic.eml"], indirect=True)
-def test_filtering_good(set_settings, test_dirs, collect_email):
+def test_filtering_good(set_settings, test_dirs, collect_email, message):
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     settings = set_settings
     settings['mode']  = 'decrypt'
     settings['scan_pipes']  = [
         {"name": "dummy filter", "cmd": filter_command}
     ]
-    msg = {'dst': collect_email}
-    filter_message(msg)
+    message.msg['dst'] = collect_email
+    filter_message(message)
 
 @pytest.mark.parametrize('collect_email', ["basic_filter_evil.eml"], indirect=True)
-def test_filtering_evil(set_settings, test_dirs, collect_email):
+def test_filtering_evil(set_settings, test_dirs, collect_email, message):
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     settings = set_settings
     settings['mode']  = 'decrypt'
     settings['scan_pipes']  = [
         {"name": "dummy filter", "cmd": filter_command}
     ]
-    msg = {'dst': collect_email}
+    message.msg['dst'] = collect_email
+
     with pytest.raises(SystemExit) as exec_info:
-        filter_message(msg)
+        filter_message(message)
     assert exec_info.type == SystemExit
     assert exec_info.value.code == 1
 
 
 @pytest.mark.parametrize('collect_email', ["basic_filter_retry.eml"], indirect=True)
-def test_filtering_retry(set_settings, test_dirs, collect_email, monkeypatch):
+def test_filtering_retry(set_settings, test_dirs, collect_email, monkeypatch, message):
 
     filter_command = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
     settings = set_settings
@@ -63,14 +64,15 @@ def test_filtering_retry(set_settings, test_dirs, collect_email, monkeypatch):
     settings['scan_pipes']  = [
         {"name": "dummy filter", "cmd": filter_command}
     ]
-    msg = {'dst': collect_email}
+    message.msg['dst'] = collect_email
+
     with pytest.raises(SystemExit) as exec_info:
-        filter_message(msg)
+        filter_message(message)
     assert exec_info.type == SystemExit
     assert exec_info.value.code == 11
 
 @pytest.mark.parametrize('collect_email', ["basic.eml"], indirect=True)
-def test_filtering_combined_pass(set_settings, test_dirs, collect_email):
+def test_filtering_combined_pass(set_settings, test_dirs, collect_email, message):
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     filter_command_2 = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
     settings = set_settings
@@ -79,11 +81,11 @@ def test_filtering_combined_pass(set_settings, test_dirs, collect_email):
         {"name": "dummy filter", "cmd": filter_command},
         {"name": "dummy filter 2", "cmd": filter_command_2}
     ]
-    msg = {'dst': collect_email}
-    filter_message(msg)
+    message.msg['dst'] = collect_email
+    filter_message(message)
 
 @pytest.mark.parametrize('collect_email', ["basic_filter_evil.eml"], indirect=True)
-def test_filtering_combined_fail(set_settings, test_dirs, collect_email):
+def test_filtering_combined_fail(set_settings, test_dirs, collect_email, message):
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     filter_command_2 = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
     settings = set_settings
@@ -92,8 +94,8 @@ def test_filtering_combined_fail(set_settings, test_dirs, collect_email):
         {"name": "dummy filter", "cmd": filter_command},
         {"name": "dummy filter 2", "cmd": filter_command_2}
     ]
-    msg = {'dst': collect_email}
+    message.msg['dst'] = collect_email
     with pytest.raises(SystemExit) as exec_info:
-        filter_message(msg)
+        filter_message(message)
     assert exec_info.type == SystemExit
     assert exec_info.value.code == 1

@@ -12,6 +12,7 @@ import pEpgatemain
 from dataclasses import dataclass
 from pathlib import Path
 from pEpgatesettings import settings, init_settings
+from pEpgate import Message
 
 @dataclass
 class Key:
@@ -37,16 +38,6 @@ def test_dirs(tmp_path):
         'work': tmp_path / "work",
         'emails': Path(os.environ['TEST_ROOT']) / "emails",
     }
-
-# @pytest.fixture
-# def reset_pep_folder(tmp_path):
-#     # TODO: Fix: Does not work for Windows
-#     os.environ["HOME"] = str(tmp_path)
-#     os.environ["PEP_HOME"] = str(tmp_path)
-#     pep_folder = per_user_directory()
-#     assert not pep_folder.exists()
-#     pep_folder.mkdir(parents=True)
-#     return pep_folder
 
 @pytest.fixture
 def extra_keypair(test_dirs):
@@ -81,6 +72,11 @@ def alice_key(test_dirs):
     return ALICE_KEY
 
 @pytest.fixture
+def message():
+    return Message()
+
+
+@pytest.fixture
 def obtain_key_db(test_dirs):
 
     db_location = os.path.join(test_dirs['root'], 'test_db')
@@ -89,7 +85,7 @@ def obtain_key_db(test_dirs):
 
     if os.path.exists(dest_folder):
         shutil.rmtree(dest_folder)
-    
+
     shutil.copytree(src_folder, dest_folder)
 
     return dest_folder
@@ -115,7 +111,7 @@ def collect_email(request):
 
 @pytest.fixture
 def settings_file(test_dirs):
-    
+
     settings_file = os.path.join(test_dirs['tmp'], 'settings_tests.json')
 
     test_settings = {
