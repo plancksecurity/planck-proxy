@@ -2,6 +2,7 @@ import shutil
 import argparse
 import os
 
+
 def encrypt_msg(msg, dest_key, extra_key, extra_key_fpr, home_dir, debug):
 
     # Change to pEp home
@@ -52,7 +53,6 @@ def encrypt_msg(msg, dest_key, extra_key, extra_key_fpr, home_dir, debug):
     if not debug:
         shutil.rmtree(home_dir)
 
-
     # Restore home
     os.environ['HOME'] = home
 
@@ -60,12 +60,16 @@ def encrypt_msg(msg, dest_key, extra_key, extra_key_fpr, home_dir, debug):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('msg', help='Path to the email to encrypt')
-    parser.add_argument('--d','--dest_key', default=None, help='pub key of the message recipient')
-    parser.add_argument('--e','--extra_key', default='../../tests/test_keys/3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3.pub.asc', help='pub extra key')
-    parser.add_argument('--f','--fpr', default='3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3', help='fpr of the extra key')
-    parser.add_argument('--m','--home_dir', default='tmp_home', help='Location of the home folder')
-    parser.add_argument('--debug', action='store_true', help='Keep the home folder and output debug info')
+    parser.add_argument('--d', '--dest_key', default=None,
+                        help='pub key of the message recipient')
+    parser.add_argument(
+        '--e', '--extra_key', default='../../tests/test_keys/3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3.pub.asc', help='pub extra key')
+    parser.add_argument(
+        '--f', '--fpr', default='3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3', help='fpr of the extra key')
+    parser.add_argument('--m', '--home_dir', default='tmp_home',
+                        help='Location of the home folder')
+    parser.add_argument('--debug', action='store_true',
+                        help='Keep the home folder and output debug info')
 
     args = parser.parse_args()
     encrypt_msg(args.msg, args.d, args.e, args.f, args.m, args.debug)
-

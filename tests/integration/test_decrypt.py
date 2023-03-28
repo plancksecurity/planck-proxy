@@ -10,6 +10,7 @@ from pathlib import Path
 from compare_mails import get_email_body
 from update_settings import override_settings
 
+
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
 def test_import_extra_key(set_settings, settings_file, test_dirs, collect_email, extra_keypair, cmd_env):
     email = collect_email.decode()
@@ -32,6 +33,7 @@ def test_import_extra_key(set_settings, settings_file, test_dirs, collect_email,
     keys = db.execute("SELECT primary_key FROM keys")
     assert test_key_fpr in [key[0] for key in keys]
 
+
 @pytest.mark.parametrize('collect_email', ["basic.noextra.enc.eml"], indirect=True)
 def test_decrypt_message_no_key(set_settings, settings_file, collect_email, test_dirs, extra_keypair, cmd_env):
     email = collect_email.decode()
@@ -45,7 +47,7 @@ def test_decrypt_message_no_key(set_settings, settings_file, collect_email, test
 
     command = (f"./pEpgate decrypt --settings_file {settings_file}")
     subprocess.run([command], shell=True,
-        capture_output=True, input=collect_email, env=cmd_env)
+                   capture_output=True, input=collect_email, env=cmd_env)
 
     decrypt_out_path = test_dirs['work'] / test_email_to / test_email_from
     out_folder = [f.path for f in os.scandir(decrypt_out_path)][0]
@@ -53,7 +55,9 @@ def test_decrypt_message_no_key(set_settings, settings_file, collect_email, test
     with open(decrypted) as decrypted_email:
         decrypted_data = decrypted_email.read()
 
-    assert get_email_body(collect_email.decode()) == get_email_body(decrypted_data)
+    assert get_email_body(collect_email.decode()
+                          ) == get_email_body(decrypted_data)
+
 
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
 def test_decrypt_message(set_settings, settings_file, test_dirs, collect_email, extra_keypair, cmd_env):
@@ -68,7 +72,7 @@ def test_decrypt_message(set_settings, settings_file, test_dirs, collect_email, 
 
     command = (f"./pEpgate decrypt --settings_file {settings_file}")
     subprocess.run([command], shell=True,
-            capture_output=True, input=collect_email, env=cmd_env)
+                   capture_output=True, input=collect_email, env=cmd_env)
 
     decrypt_out_path = test_dirs['work'] / test_email_to / test_email_from
     out_folder = [f.path for f in os.scandir(decrypt_out_path)][0]

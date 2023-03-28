@@ -23,7 +23,7 @@ def test_filter_enc_good(test_dirs, extra_keypair, collect_email, cmd_env, setti
     # Run the command
     command = (f"./pEpgate decrypt --settings_file {settings_file}")
     p = subprocess.run([command], shell=True, capture_output=True,
-                   input=collect_email, env=cmd_env)
+                       input=collect_email, env=cmd_env)
 
     assert p.returncode is 0
 
@@ -46,7 +46,7 @@ def test_filter_enc_evil(test_dirs, extra_keypair, collect_email, cmd_env, setti
     override_settings(test_dirs['tmp'], test_settings)
     command = (f"./pEpgate decrypt --settings_file {settings_file}")
     p = subprocess.run([command], shell=True, capture_output=True,
-                   input=collect_email, env=cmd_env)
+                       input=collect_email, env=cmd_env)
 
     assert p.returncode is 1
     assert p.stderr is b''
@@ -69,7 +69,7 @@ def test_filter_av_fails(test_dirs, extra_keypair, collect_email, cmd_env, setti
     override_settings(test_dirs['tmp'], test_settings)
     command = (f"./pEpgate decrypt --settings_file {settings_file}")
     p = subprocess.run([command], shell=True, capture_output=True,
-                   input=collect_email, env=cmd_env)
+                       input=collect_email, env=cmd_env)
 
     assert p.returncode is 1
     assert p.stderr is b''

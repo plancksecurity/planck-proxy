@@ -8,10 +8,10 @@ def get_email_body(email_string):
     parsed_string = email_parser.parsestr(email_string)
 
     def _get_body(emailobj):
-        
+
         if emailobj.is_multipart():
             for payload in emailobj.get_payload():
-                
+
                 if payload.is_multipart():
                     return _get_body(payload)
 

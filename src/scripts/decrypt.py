@@ -2,6 +2,7 @@
 import argparse
 import os
 
+
 def decrypt_msg(msg, key, home_dir):
 
     # Change to pEp home
@@ -44,8 +45,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('msg', help='Path to the email to decrypt')
     parser.add_argument('--key', default=None, help='key to decrypt')
-    parser.add_argument('--m','--home_dir', default='tmp_home', help='Location of the home folder')
+    parser.add_argument('--m', '--home_dir', default='tmp_home',
+                        help='Location of the home folder')
 
     args = parser.parse_args()
     decrypt_msg(args.msg, args.key, args.m)
-

@@ -5,6 +5,7 @@ import sys
 import os
 from pathlib import Path
 
+
 def delete_key(keyring, address, database_location):
     """Takes keyring, address and workdir and deletes address from the keyring."""
 
@@ -13,7 +14,7 @@ def delete_key(keyring, address, database_location):
     def collate_email(a, b):
         return 1 if a > b else -1 if a < b else 0
 
-    ### keys.db
+    # keys.db
     db = sqlite3.connect(os.path.join(Path(database_location), 'keys.db'))
     db.create_collation("EMAIL", collate_email)
 
@@ -32,10 +33,12 @@ def delete_key(keyring, address, database_location):
 
     db.commit()
 
-    ### management.db
-    db = sqlite3.connect(os.path.join(Path(database_location), 'management.db'))
+    # management.db
+    db = sqlite3.connect(os.path.join(
+        Path(database_location), 'management.db'))
 
-    d = db.execute("DELETE FROM trust WHERE user_id = ?;", ("TOFU_" + address,))
+    d = db.execute("DELETE FROM trust WHERE user_id = ?;",
+                   ("TOFU_" + address,))
     print("Removed trust tofu: " + str(d.rowcount))
 
     d = db.execute("DELETE FROM person WHERE id = ?;", ("TOFU_" + address,))
@@ -50,20 +53,23 @@ def delete_key(keyring, address, database_location):
 if __name__ == '__main__':
     import argparse
 
-    #Parse args
-    parser = argparse.ArgumentParser(usage='delete.key.from.keyring.py alice@pep.security bob@pep.security --WORK_DIR ~/work_dir', description='Delete a user key from another user\'s DataBase')
-    parser.add_argument('keyring', help='Email of user whose DB to delete from')
+    # Parse args
+    parser = argparse.ArgumentParser(usage='delete.key.from.keyring.py alice@pep.security bob@pep.security --WORK_DIR ~/work_dir',
+                                     description='Delete a user key from another user\'s DataBase')
+    parser.add_argument(
+        'keyring', help='Email of user whose DB to delete from')
     parser.add_argument('address', help='Email of user whose key to delete')
-    parser.add_argument('--WORK_DIR', default='work', help='Location of the work folder')
+    parser.add_argument('--WORK_DIR', default='work',
+                        help='Location of the work folder')
 
     args = parser.parse_args()
 
-    #Extract params and add into input vars for the fuction
+    # Extract params and add into input vars for the fuction
     keyring = args.keyring
     address = args.address
     work_dir = args.WORK_DIR
 
     if work_dir.endswith("/"):
         work_dir = work_dir[:-1]
-    
+
     delete_key(keyring, address, work_dir)

@@ -4,8 +4,11 @@ import pytest
 from src.scripts.messages_cleanup import messages_cleanup
 import os
 
+
 def mod_timestamp(file, days):
-    os.utime(file, (time.time() - days * 24 * 60 * 60, time.time() - days * 24 * 60 * 60))
+    os.utime(file, (time.time() - days * 24 * 60 *
+             60, time.time() - days * 24 * 60 * 60))
+
 
 def test_messages_cleanup(test_dirs):
     work_dir = test_dirs['tmp']

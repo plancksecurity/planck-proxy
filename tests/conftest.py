@@ -14,6 +14,7 @@ from pathlib import Path
 from pEpgatesettings import settings, init_settings
 from pEpgate import Message
 
+
 @dataclass
 class Key:
     name: str
@@ -21,10 +22,12 @@ class Key:
     fpr: str
 
 
-
-EXTRA_KEY = Key('extra', 'proxy@test.com', "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3")
-BOB_KEY = Key('bob', 'bob@pep.security', "CC47DB45FDAF07712F1D9F5BFE0D6DE1B8C05AE8")
-ALICE_KEY = Key('alice', 'alice@pep.security', "6002754A3B0551D9729E28168AD5EEE0A979C126")
+EXTRA_KEY = Key('extra', 'proxy@test.com',
+                "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3")
+BOB_KEY = Key('bob', 'bob@pep.security',
+              "CC47DB45FDAF07712F1D9F5BFE0D6DE1B8C05AE8")
+ALICE_KEY = Key('alice', 'alice@pep.security',
+                "6002754A3B0551D9729E28168AD5EEE0A979C126")
 
 
 @pytest.fixture
@@ -39,6 +42,7 @@ def test_dirs(tmp_path):
         'emails': Path(os.environ['TEST_ROOT']) / "emails",
     }
 
+
 @pytest.fixture
 def extra_keypair(test_dirs):
     pubkey = test_dirs['test_keys'] / str(EXTRA_KEY.fpr + '.pub.asc')
@@ -51,6 +55,7 @@ def extra_keypair(test_dirs):
     shutil.copy(privkey, test_dirs['keys'])
     return EXTRA_KEY
 
+
 @pytest.fixture
 def bob_key(test_dirs):
     pubkey = test_dirs['test_keys'] / str(BOB_KEY.fpr + '.pub.asc')
@@ -61,6 +66,7 @@ def bob_key(test_dirs):
     shutil.copy(pubkey, test_dirs['keys'])
     return BOB_KEY
 
+
 @pytest.fixture
 def alice_key(test_dirs):
     pubkey = test_dirs['test_keys'] / str(ALICE_KEY.fpr + '.pub.asc')
@@ -70,6 +76,7 @@ def alice_key(test_dirs):
 
     shutil.copy(pubkey, test_dirs['keys'])
     return ALICE_KEY
+
 
 @pytest.fixture
 def message():
@@ -97,8 +104,10 @@ def mailbot_address():
     Get a random address for a pEp mailbot
     """
     return ''.join(
-        random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=16)
-        ) + '@test.pep.security'
+        random.choices(string.ascii_uppercase +
+                       string.ascii_lowercase + string.digits, k=16)
+    ) + '@test.pep.security'
+
 
 @pytest.fixture
 def collect_email(request):
@@ -109,6 +118,7 @@ def collect_email(request):
     with open(email, 'rb') as f:
         return f.read()
 
+
 @pytest.fixture
 def settings_file(test_dirs):
 
@@ -116,8 +126,8 @@ def settings_file(test_dirs):
 
     test_settings = {
         "scan_pipes": [
-        {"name": "SpamAssassin", "cmd": "ls"},
-        {"name": "ClamAV", "cmd": "ls"}
+            {"name": "SpamAssassin", "cmd": "ls"},
+            {"name": "ClamAV", "cmd": "ls"}
         ]
     }
 
@@ -127,6 +137,7 @@ def settings_file(test_dirs):
         outfile.write(json_object)
 
     return settings_file
+
 
 @pytest.fixture
 def set_settings():
@@ -144,6 +155,7 @@ def cmd_env(test_dirs):
     cmd_env['keys_dir'] = test_dirs['keys']
     return cmd_env
 
+
 @pytest.fixture(autouse=True)
 def run_before_and_after_tests(monkeypatch, set_settings, tmp_path):
     """Fixture to execute asserts before and after a test is run"""
@@ -153,7 +165,6 @@ def run_before_and_after_tests(monkeypatch, set_settings, tmp_path):
     monkeypatch.setattr(pEpgatemain, "sendmail", lambda msg: True)
     monkeypatch.setattr(pEphelpers, "sendmail", lambda msg: True)
 
-    yield # this is where the testing happens
+    yield  # this is where the testing happens
 
     pEphelpers.cleanup()
-
