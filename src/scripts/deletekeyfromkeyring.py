@@ -63,8 +63,7 @@ if __name__ == '__main__':
     import argparse
 
     # Parse args
-    parser = argparse.ArgumentParser(usage='delete.key.from.keyring.py alice@pep.security bob@pep.security --WORK_DIR ~/work_dir',
-                                     description='Delete a user key from another user\'s DataBase')
+    parser = argparse.ArgumentParser(description='Delete a user key from another user\'s Database')
     parser.add_argument(
         'keyring', help='Email of user whose DB to delete from')
     parser.add_argument('address', help='Email of user whose key to delete')

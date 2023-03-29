@@ -34,8 +34,7 @@ All the arguments can also be passed onto the script as environment variables wi
 Arguments take priority over environment variables, and environment variables take priority over definitions on the settings.py file.
 
 ### Debug
-Enables sone debug testing features. The default value is False and it's not intended to be True on production usage.
-
+Enables sone debug testing features. If DEBUG is True, then the logs and the emails are kept in the `work_dir` folder after the script finishes running. The default value is False and it's not intended to be True on production usage.
 
 ### Extra key and keys dir
 To import the extra key into the p≡p Gate, the keypair must be placed into the `keys_dir` defined in the `settings.py` file.
@@ -225,3 +224,72 @@ pepGateOUT  unix    -       n       n       -       1       pipe
 #### pEpGate
 
 Configure ```settings.py``` and ```*.map``` as needed
+
+## Helper scripts
+There are some utility scrips in the `scripts` folder that can be used externally for debugging
+
+### Decrypt
+
+Decrypts a message using p≡p
+
+```
+usage: decrypt.py [-h] [--key KEY] [--m M] msg
+
+positional arguments:
+  msg                  Path to the email to decrypt
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --key KEY            key to decrypt
+  --m M, --home_dir M  Location of the home folder
+```
+
+### Encrypt
+
+Encrypts a message using p≡p
+
+```
+usage: encrypt.py [-h] [--d D] [--e E] [--f F] [--m M] [--debug] msg
+
+positional arguments:
+  msg                   Path to the email to encrypt
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --d D, --dest_key D   pub key of the message recipient
+  --e E, --extra_key E  pub extra key
+  --f F, --fpr F        fpr of the extra key
+  --m M, --home_dir M   Location of the home folder
+  --debug               Keep the home folder and output debug info
+```
+
+### Delete keys from keyring
+
+Delete a user key from another user's Database
+
+```
+usage: deletekeyfromkeyring.py [-h] [--WORK_DIR WORK_DIR] keyring address
+
+positional arguments:
+  keyring              Email of user whose DB to delete from
+  address              Email of user whose key to delete
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --WORK_DIR WORK_DIR  Location of the work folder
+```
+
+### Messages cleanup
+
+Deletes all files in subfolders of a specified directory that were created more than a specified number of days ago. If a subfolder in the directory is empty after deleting .eml and .log files, it is also deleted.
+
+```
+usage: messages_cleanup.py [-h] [--work_dir WORK_DIR] [--days DAYS] [--verbose]
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --work_dir WORK_DIR  the path to the folder containing the subfolders with .eml files
+  --days DAYS          the number of days before which to delete the .eml files
+  --verbose, -v        Print output data
+```
+
