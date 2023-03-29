@@ -3,11 +3,18 @@ import os
 import json
 
 
-def override_settings(tmp_dir, new_params):
+def override_settings(settings_file, new_params):
+    """
+    This method updates the settings of a JSON file with new parameters.
 
-    settings_file = os.path.join(tmp_dir, 'settings_tests.json')
+    Args:
+        settings_file (str): The path to the JSON file containing the current settings.
+        new_params (dict): The new parameters to be added or updated in the settings.
+
+    Returns:
+        None
+    """
     json_settings = {}
-
     with open(settings_file, "r") as file:
         filesettings = json.load(file)
 

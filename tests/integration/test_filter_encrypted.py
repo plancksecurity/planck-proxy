@@ -1,6 +1,6 @@
 import pytest
 import subprocess
-from update_settings import override_settings
+from override_settings import override_settings
 
 
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
@@ -16,9 +16,9 @@ def test_filter_enc_good(test_dirs, extra_keypair, collect_email, cmd_env, setti
         'scan_pipes': [
             {"name": "dummy filter", "cmd": filter_command}
         ],
-        "EXTRA_KEYS": "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3",
+        "EXTRA_KEYS": [extra_keypair.fpr],
     }
-    override_settings(test_dirs['tmp'], test_settings)
+    override_settings(settings_file, test_settings)
 
     # Run the command
     command = (f"./pEpgate decrypt --settings_file {settings_file}")
@@ -41,9 +41,9 @@ def test_filter_enc_evil(test_dirs, extra_keypair, collect_email, cmd_env, setti
         'scan_pipes': [
             {"name": "dummy filter", "cmd": filter_command}
         ],
-        "EXTRA_KEYS": "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3",
+        "EXTRA_KEYS": [extra_keypair.fpr],
     }
-    override_settings(test_dirs['tmp'], test_settings)
+    override_settings(settings_file, test_settings)
     command = (f"./pEpgate decrypt --settings_file {settings_file}")
     p = subprocess.run([command], shell=True, capture_output=True,
                        input=collect_email, env=cmd_env)
@@ -66,7 +66,7 @@ def test_filter_av_fails(test_dirs, extra_keypair, collect_email, cmd_env, setti
         "EXTRA_KEYS": "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3",
     }
 
-    override_settings(test_dirs['tmp'], test_settings)
+    override_settings(settings_file, test_settings)
     command = (f"./pEpgate decrypt --settings_file {settings_file}")
     p = subprocess.run([command], shell=True, capture_output=True,
                        input=collect_email, env=cmd_env)

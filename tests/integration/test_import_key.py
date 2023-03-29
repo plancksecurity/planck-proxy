@@ -2,7 +2,7 @@ import subprocess
 import sqlite3
 import os
 import pytest
-from update_settings import override_settings
+from override_settings import override_settings
 from pEphelpers import get_contact_info
 
 
@@ -13,9 +13,9 @@ def test_import_extra_key(set_settings, settings_file, test_dirs, collect_email,
     test_email_from, test_email_to = get_contact_info(email)
 
     test_settings = {
-        "EXTRA_KEYS": "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3",
+        "EXTRA_KEYS": [extra_keypair.fpr],
     }
-    override_settings(test_dirs['tmp'], test_settings)
+    override_settings(settings_file, test_settings)
 
     # Run the command
     command = (f"./pEpgate decrypt --settings_file {settings_file}")

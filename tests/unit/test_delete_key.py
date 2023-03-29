@@ -5,7 +5,7 @@ import shutil
 import pytest
 from src.scripts.deletekeyfromkeyring import delete_key
 from pEphelpers import get_contact_info, dbg
-from update_settings import override_settings
+from override_settings import override_settings
 from pathlib import Path
 
 

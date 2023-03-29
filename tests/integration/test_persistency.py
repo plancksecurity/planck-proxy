@@ -2,7 +2,7 @@ import subprocess
 import os
 import pytest
 from pEphelpers import get_contact_info
-from update_settings import override_settings
+from override_settings import override_settings
 
 
 @pytest.mark.parametrize('collect_email', ["basic.enc.eml"], indirect=True)
@@ -11,10 +11,10 @@ def test_decrypt_message_keep(set_settings, settings_file, test_dirs, collect_em
     test_email_from, test_email_to = get_contact_info(email)
 
     test_settings = {
-        "EXTRA_KEYS": "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3",
+        "EXTRA_KEYS": [extra_keypair.fpr],
         "DEBUG": True
     }
-    override_settings(test_dirs['tmp'], test_settings)
+    override_settings(settings_file, test_settings)
 
     command = (f"./pEpgate decrypt --settings_file {settings_file}")
     subprocess.run([command], shell=True,
@@ -30,10 +30,10 @@ def test_decrypt_message_deletion(set_settings, settings_file, test_dirs, collec
     test_email_from, test_email_to = get_contact_info(email)
 
     test_settings = {
-        "EXTRA_KEYS": "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3",
+        "EXTRA_KEYS": [extra_keypair.fpr],
         "DEBUG": False
     }
-    override_settings(test_dirs['tmp'], test_settings)
+    override_settings(settings_file, test_settings)
 
     command = (f"./pEpgate decrypt --settings_file {settings_file}")
     subprocess.run([command], shell=True,
