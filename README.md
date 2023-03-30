@@ -1,6 +1,15 @@
 # p≡p Gate
 This project provides a tool able to decrypt with p≡p incoming messages which are encrypted with an **extra key**, and pass them along unencrypted to a filtering system. Then the original message is sent encrypted to the next hop or discarded, based on the feedback of the filtering system.
 
+## Requirements
+### Python dependencies
+You can automatically insall all the python dependencies with the following command:
+
+`pip install -r requirements.txt`
+
+### p≡p python adapter
+In order to run the p≡p Gate you need the p≡p Engine, the p≡p Python adapter and their dependencies installed. It can be done following [this guide](https://dev.pep.foundation/Adapter/Adapter%20Build%20Instructions_Version_3.x_DRAFT)
+
 ## Usage and settings
 The core of the pEp Gate is the pEpgate.py script. It is intended to be invoked by a postfix setup in order to handle the decryption of messages. See the [Postfix configuration](https://git.pep.security/pep/pEpGate/#postfix-configuration).
 
