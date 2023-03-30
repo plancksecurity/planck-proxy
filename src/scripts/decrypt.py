@@ -3,14 +3,15 @@ import argparse
 import os
 
 
-def decrypt_msg(msg, key, home_dir):
+def decrypt_msg(msg, key, home_dir, debug):
     """
     Decrypt a message using p≡p.
 
     Args:
-        msg: Path to the email to decrypt.
-        key: Key to decrypt.
-        home_dir: Location of the home folder.
+        msg (str): Path to the email to decrypt.
+        key (str): Path to the key to decrypt.
+        home_dir (str): Location of the home folder.
+        debug (bool): Output debug info.
 
     Returns:
         None
@@ -34,17 +35,19 @@ def decrypt_msg(msg, key, home_dir):
     # Decrypt message
     with open(msg, 'r') as f:
         msg = f.read()
-    print('=================')
-    print('message encrypted')
-    print('=================')
-    print(msg)
+    if debug:
+        print('=================')
+        print('message encrypted')
+        print('=================')
+        print(msg)
 
     msg = pEp.Message(msg)
     msg, keys, rating, flags = msg.decrypt()
 
-    print('=================')
-    print('message Decrypted')
-    print('=================')
+    if debug:
+        print('=================')
+        print('message Decrypted')
+        print('=================')
     print(msg)
 
     # Restore home
@@ -57,6 +60,8 @@ if __name__ == '__main__':
     parser.add_argument('--key', default=None, help='key to decrypt')
     parser.add_argument('--m', '--home_dir', default='tmp_home',
                         help='Location of the home folder')
+    parser.add_argument('--debug', action='store_true',
+                        help='Keep the home folder and output debug info')
 
     args = parser.parse_args()
-    decrypt_msg(args.msg, args.key, args.m)
+    decrypt_msg(args.msg, args.key, args.m, args.debug)
