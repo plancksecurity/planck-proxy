@@ -112,13 +112,13 @@ def cleanup():
             dbg("Log folder " + c(logpath, 6) + " removed", pub=False)
         except Exception as e:
             dbg("Can't remove log folder " + c(logpath, 6) + str(e), pub=False)
-    try:
-        main_log = os.path.join(settings['home'], "debug.log")
-        os.remove(main_log)
-        # We use a print so we don't create a new log :)
-        print("Main log " + c(main_log, 6) + " removed")
-    except Exception as e:
-        dbg("Can't remove main log " + c(main_log, 6) + str(e), pub=False)
+        try:
+            main_log = os.path.join(settings['home'], "debug.log")
+            os.remove(main_log)
+            # We use a print so we don't create a new log :)
+            print("Main log " + c(main_log, 6) + " removed")
+        except Exception as e:
+            dbg("Can't remove main log " + c(main_log, 6) + str(e), pub=False)
 
 
 # Debug and logging
