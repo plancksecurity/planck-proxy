@@ -761,9 +761,11 @@ def filter_message(message):
     else:
         dbg("Some scans " + c("FAILED", 1) +
             ", not relaying message (keeping it in the Postfix queue for now)")
+        admin_msg = f"A message from {message.msg['msgfrom']} and to {message.msg['msgfrom']} failed some of the scans."
+        dbgmail(msg=admin_msg, subject="pEp Gate Scan failure")
+        sender_msg = f"Your message could not be delivered to {message.msg['msgto']} because it failed some of our scans."
+        failurescanmail(sender_msg, message.msg['msgfrom'])
         exit(1)  # keep message on hold
-        # exit(0) # silently drop the message
-        # TODO: inform the admin and/or the (likely spoofed) sender
 
 
 def add_routing_and_headers(pEp, message):

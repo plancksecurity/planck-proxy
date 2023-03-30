@@ -73,11 +73,16 @@ You must use this settings to specify the HOST and PORT of the SMTP server the p
 ## Features
 ### Decryption
 When the p≡p Gate is provided an encrypted message and set to the mode `decrypt`, it will decrypt the message given the following conditions.
+
 * The extra key has been properly imported and configured (see "usage and settings")
 * The message has been encrypted with the extra key
 * The key for the message's recipient has been imported to the p≡p Gate
 
-If the message meets those requirements it will be processed into the `work_dir/<recipient>/<sender>/`folder
+If the message meets those requirements or if the original message is unencrypted it will be processed into the `work_dir/<recipient>/<sender>/`folder
+
+Once the message is processed it will be ran through the `scan_pipes`commands. If all the commands finish successfully with a 0 exit code, then the message will be sent out using the provided SMTP configuration.
+
+If any of the `scan_pipes` fail, the message will be re-queued on postfix, a warining email will be sent to the address in `admin_addr`setting and another one will be sent back to the email sender.
 
 ### NOENCRYPT
 On `DEBUG` mode, messages containing the string 'NOENCRYPT' somewhere in the body and with positive feedback from the filtering system, will be sent unencrypted to the next MTA. The string 'NOENCRYPT' will be removed from the message itself.

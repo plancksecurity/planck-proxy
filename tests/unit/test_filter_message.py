@@ -2,6 +2,7 @@ import pytest
 import subprocess
 
 from pEpgatemain import filter_message
+from pEphelpers import get_contact_info
 
 
 @pytest.mark.parametrize('collect_email, expected',
@@ -33,6 +34,8 @@ def test_dummy_filter_2(collect_email, expected, test_dirs):
 
 @pytest.mark.parametrize('collect_email', ["basic.eml"], indirect=True)
 def test_filtering_good(set_settings, test_dirs, collect_email, message):
+    email = collect_email.decode()
+    test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     settings = set_settings
     settings['mode'] = 'decrypt'
@@ -40,11 +43,15 @@ def test_filtering_good(set_settings, test_dirs, collect_email, message):
         {"name": "dummy filter", "cmd": filter_command}
     ]
     message.msg['dst'] = collect_email
+    message.msg['msgfrom'] = test_email_from
+
     filter_message(message)
 
 
 @pytest.mark.parametrize('collect_email', ["basic_filter_evil.eml"], indirect=True)
 def test_filtering_evil(set_settings, test_dirs, collect_email, message):
+    email = collect_email.decode()
+    test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     settings = set_settings
     settings['mode'] = 'decrypt'
@@ -52,6 +59,7 @@ def test_filtering_evil(set_settings, test_dirs, collect_email, message):
         {"name": "dummy filter", "cmd": filter_command}
     ]
     message.msg['dst'] = collect_email
+    message.msg['msgfrom'] = test_email_from
 
     with pytest.raises(SystemExit) as exec_info:
         filter_message(message)
@@ -61,7 +69,8 @@ def test_filtering_evil(set_settings, test_dirs, collect_email, message):
 
 @pytest.mark.parametrize('collect_email', ["basic_filter_retry.eml"], indirect=True)
 def test_filtering_retry(set_settings, test_dirs, collect_email, monkeypatch, message):
-
+    email = collect_email.decode()
+    test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
     settings = set_settings
     settings['mode'] = 'decrypt'
@@ -69,6 +78,7 @@ def test_filtering_retry(set_settings, test_dirs, collect_email, monkeypatch, me
         {"name": "dummy filter", "cmd": filter_command}
     ]
     message.msg['dst'] = collect_email
+    message.msg['msgfrom'] = test_email_from
 
     with pytest.raises(SystemExit) as exec_info:
         filter_message(message)
@@ -78,6 +88,8 @@ def test_filtering_retry(set_settings, test_dirs, collect_email, monkeypatch, me
 
 @pytest.mark.parametrize('collect_email', ["basic.eml"], indirect=True)
 def test_filtering_combined_pass(set_settings, test_dirs, collect_email, message):
+    email = collect_email.decode()
+    test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     filter_command_2 = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
     settings = set_settings
@@ -87,11 +99,14 @@ def test_filtering_combined_pass(set_settings, test_dirs, collect_email, message
         {"name": "dummy filter 2", "cmd": filter_command_2}
     ]
     message.msg['dst'] = collect_email
+    message.msg['msgfrom'] = test_email_from
     filter_message(message)
 
 
 @pytest.mark.parametrize('collect_email', ["basic_filter_evil.eml"], indirect=True)
 def test_filtering_combined_fail(set_settings, test_dirs, collect_email, message):
+    email = collect_email.decode()
+    test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     filter_command_2 = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
     settings = set_settings
@@ -101,6 +116,7 @@ def test_filtering_combined_fail(set_settings, test_dirs, collect_email, message
         {"name": "dummy filter 2", "cmd": filter_command_2}
     ]
     message.msg['dst'] = collect_email
+    message.msg['msgfrom'] = test_email_from
     with pytest.raises(SystemExit) as exec_info:
         filter_message(message)
     assert exec_info.type == SystemExit

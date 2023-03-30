@@ -251,6 +251,12 @@ def sendmail(msg):
 
     Args:
         msg (str): The message to be sent.
+
+    Raises:
+        ValueError: If the message argument is not a string.
+
+    Returns:
+        None
     """
     if settings.get('test-nomails'):
         dbg("Test mode, mail sending skip")
@@ -258,7 +264,8 @@ def sendmail(msg):
     # Replace dots at the beginning of a line with the MIME-encoded, quoted-printable counterpart. Fuck you very much, Outlook!
     msg = re.sub('^\.', '=2E', msg, flags=re.M)
     try:
-        msgfrom, msgto = get_contact_info(msg, True)
+        if not msgfrom or not msgto:
+            msgfrom, msgto = get_contact_info(msg, True)
         with smtplib.SMTP(settings['SMTP_HOST'], settings['SMTP_PORT']) as server:
             server.sendmail(msgfrom, msgto, msg.encode("utf8"))
     except Exception as e:
@@ -266,6 +273,26 @@ def sendmail(msg):
         exit(6)
     else:
         dbg("Mail successfully sent")
+
+def failurescanmail(msg, rcpt, subject="pEp Gate Scan failure"):
+    """
+    Sends a notification email in case of a scanning failure.
+
+    Args:
+        msg (str): The message body of the email.
+        rcpt (str): The email address of the recipient.
+        subject (str): The subject of the email. Default is "pEp Gate Scan failure".
+
+    Returns:
+        None
+    """
+    dbg("Sending scanning notification failure to to " + c(rcpt, 2))
+    mailcontent = "Content-type: text/plain; charset=UTF-8\n"
+    mailcontent += "From: pepgate@" + socket.getfqdn() + "\n"
+    mailcontent += "To: " + rcpt + "\n"
+    mailcontent += "Subject: " + subject + "\n\n"
+    mailcontent += msg + "\n"
+    sendmail(mailcontent)
 
 
 def dbgmail(msg, rcpt=None, subject="[FATAL] pEp Gate @ " + socket.getfqdn() + " crashed!", attachments=[]):
