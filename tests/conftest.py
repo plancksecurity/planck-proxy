@@ -121,39 +121,40 @@ def collect_email(request):
 
 @pytest.fixture
 def settings_file(test_dirs):
+    """
+    Get the settings file path for tests.
 
-    settings_file = os.path.join(test_dirs['tmp'], 'settings_tests.json')
-
-    test_settings = {
-        "scan_pipes": [
-            {"name": "SpamAssassin", "cmd": "ls"},
-            {"name": "ClamAV", "cmd": "ls"}
-        ]
-    }
-
-    json_object = json.dumps(test_settings, indent=4)
-
-    with open(settings_file, "w") as outfile:
-        outfile.write(json_object)
-
+    This is intended to be used with the  --settings_file parameter in the integration tests
+    """
+    settings_file = test_dirs['root'] / 'tests_settings' / 'settings_tests.json'
     return settings_file
 
 
 @pytest.fixture
-def set_settings():
-    settings = init_settings()
+def set_settings(settings_file):
+    """
+    Init the settings with the settings file for tests.
+
+    This is intended to set the correct globals befor running any pEpGate code.
+    """
+
+    settings = init_settings(settings_file)
     return settings
 
 
 @pytest.fixture
-def cmd_env(test_dirs):
+def test_settings_dict(test_dirs, extra_keypair):
     """
-    Set the basic environment values to run a subprocess command
+    Set the basic test_settings that will be used to overwrite the defaults on 'settings_tests.json'
     """
-    cmd_env = os.environ.copy()
-    cmd_env['work_dir'] = test_dirs['work']
-    cmd_env['keys_dir'] = test_dirs['keys']
-    return cmd_env
+    test_settings = {
+        'work_dir': str(test_dirs['work']),
+        'keys_dir': str(test_dirs['keys']),
+        'test-nomails': True,
+        "EXTRA_KEYS": [extra_keypair.fpr],
+        "DEBUG": True
+    }
+    return test_settings
 
 
 @pytest.fixture(autouse=True)

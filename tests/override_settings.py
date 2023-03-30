@@ -3,7 +3,7 @@ import os
 import json
 
 
-def override_settings(settings_file, new_params):
+def override_settings(test_dirs, settings_file, new_params):
     """
     This method updates the settings of a JSON file with new parameters.
 
@@ -21,11 +21,13 @@ def override_settings(settings_file, new_params):
     for setting, value in filesettings.items():
         json_settings[setting] = value
 
-    os.remove(settings_file)
-
     json_settings.update(new_params)
 
     json_object = json.dumps(json_settings, indent=4)
 
-    with open(settings_file, "w") as outfile:
+    overwritten_settings_file = test_dirs['tmp'] / "overwritten_settings.json"
+
+    with open(overwritten_settings_file, "w") as outfile:
         outfile.write(json_object)
+
+    return overwritten_settings_file
