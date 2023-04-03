@@ -264,8 +264,7 @@ def sendmail(msg):
     # Replace dots at the beginning of a line with the MIME-encoded, quoted-printable counterpart. Fuck you very much, Outlook!
     msg = re.sub('^\.', '=2E', msg, flags=re.M)
     try:
-        if not msgfrom or not msgto:
-            msgfrom, msgto = get_contact_info(msg, True)
+        msgfrom, msgto = get_contact_info(msg, True)
         with smtplib.SMTP(settings['SMTP_HOST'], settings['SMTP_PORT']) as server:
             server.sendmail(msgfrom, msgto, msg.encode("utf8"))
     except Exception as e:
