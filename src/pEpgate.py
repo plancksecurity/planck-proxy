@@ -140,4 +140,7 @@ if __name__ == '__main__':
         for setting, value in filesettings.items():
             settings[setting] = value
 
+    if cli_args.DEBUG:
+        settings['DEBUG'] = True
+
     main(cli_args)
