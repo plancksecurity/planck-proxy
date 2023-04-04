@@ -716,6 +716,8 @@ def filter_message(message):
     scanresults = {}
     desc = {0: "PASS", 1: "FAIL", 2: "RETRY"}
     cols = {0: 2, 1: 1, 2: 3}
+    stdout = None
+    stderr = None
     for filter in settings['scan_pipes']:
         name = filter['name']
         cmd = filter['cmd']
@@ -746,10 +748,10 @@ def filter_message(message):
             exit(11)
 
         if settings['DEBUG']:
-            if len(stdout) > 0:
+            if stdout and len(stdout) > 0:
                 dbg(c("STDOUT:\n", 2) +
                     prettytable(stdout.decode("utf8").strip().split("\n")))
-            if len(stderr) > 0:
+            if stderr and len(stderr) > 0:
                 dbg(c("STDERR:\n", 1) +
                     prettytable(stderr.decode("utf8").strip().split("\n")))
             # dbg("Return code: " + c(str(rc), 3));
