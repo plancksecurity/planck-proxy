@@ -263,17 +263,19 @@ optional arguments:
 Encrypts a message using p≡p
 
 ```
-usage: encrypt.py [-h] [--d D] [--e E] [--f F] [--m M] [--debug] msg
+usage: encrypt.py [-h] [--e E] [--m M] [--debug] msg our_key dest_key
+
+Encrypts an email message using p≡p
 
 positional arguments:
   msg                   Path to the email to encrypt
+  our_key               path to the private key of the message sender
+  dest_key              path to the pub key of the message recipient
 
 optional arguments:
   -h, --help            show this help message and exit
-  --d D, --dest_key D   pub key of the message recipient
-  --e E, --extra_key E  pub extra key
-  --f F, --fpr F        fpr of the extra key
-  --m M, --home_dir M   Location of the home folder
+  --e E, --extra_key E  path to the public extra key
+  --m M, --home_dir M   Location of the temporary home folder
   --debug               Keep the home folder and output debug info
 ```
 
