@@ -3,10 +3,8 @@ import sys
 import re
 import codecs
 import importlib
-import socket
 import traceback
 
-from uuid import uuid4
 from time import sleep
 from datetime import datetime
 from glob import glob
@@ -25,12 +23,10 @@ from pEphelpers import (
     notifyHandshake,
     keysfromkeyring,
     dbgmail,
-    inspectusingsq,
     decryptusingsq,
     sendmail,
     getlog,
 )
-from scripts import deletekeyfromkeyring
 
 
 def print_init_info(args):
@@ -193,8 +189,12 @@ def set_addresses(message):
 
     msgfrom, msgto = get_contact_info(message.msg["inmail"])
 
-    ouraddr = msgfrom if settings["mode"] == "encrypt" else msgto
-    theiraddr = msgto if settings["mode"] == "encrypt" else msgfrom
+    # ouraddr = msgfrom if settings["mode"] == "encrypt" else msgto
+    # theiraddr = msgto if settings["mode"] == "encrypt" else msgfrom
+
+    ouraddr = msgto
+    theiraddr = msgfrom
+
     message.msg["msgfrom"] = msgfrom
     message.msg["msgto"] = msgto
 
@@ -233,33 +233,33 @@ def enable_dts(message):
             dbg(c("Domain is not allowed to request a debug log", 1))
 
 
-def check_key_reset(message):
-    """
-    If 'RESETKEY' or 'KEYRESET' are found in a mail in mode encrypt, delete theiraddr from ouraddr keyring.
+# def check_key_reset(message):
+#     """
+#     If 'RESETKEY' or 'KEYRESET' are found in a mail in mode encrypt, delete theiraddr from ouraddr keyring.
 
-    Args:
-        message (Message): an instance of the Message class containing the parsed message in the 'msg' dictionary
-                            and the sender and recipient addresses in the 'us' and 'them' dictionaries.
+#     Args:
+#         message (Message): an instance of the Message class containing the parsed message in the 'msg' dictionary
+#                             and the sender and recipient addresses in the 'us' and 'them' dictionaries.
 
-    Returns:
-        None
-    """
+#     Returns:
+#         None
+#     """
 
-    keywords = ("RESETKEY", "KEYRESET")
+#     keywords = ("RESETKEY", "KEYRESET")
 
-    if (
-        (kw in message.msg["inmail"] for kw in keywords)
-        and settings["mode"] == "encrypt"
-        and message.us["addr"] in settings["reset_senders"]
-        and message.them["addr"] not in settings["reset_senders"]
-    ):
-        dbg("Resetting key for " + message.them["addr"] + " in keyring " + message.us["addr"])
+#     if (
+#         (kw in message.msg["inmail"] for kw in keywords)
+#         and settings["mode"] == "encrypt"
+#         and message.us["addr"] in settings["reset_senders"]
+#         and message.them["addr"] not in settings["reset_senders"]
+#     ):
+#         dbg("Resetting key for " + message.them["addr"] + " in keyring " + message.us["addr"])
 
-        for kw in keywords:
-            message.msg["inmail"] = message.msg["inmail"].replace(kw, "")
+#         for kw in keywords:
+#             message.msg["inmail"] = message.msg["inmail"].replace(kw, "")
 
-        keys_db_location = os.path.join(str(settings["workdir"]), ".pEp")
-        deletekeyfromkeyring.delete_key(message.us["addr"], message.them["addr"], keys_db_location)
+#         keys_db_location = os.path.join(str(settings["workdir"]), ".pEp")
+#         deletekeyfromkeyring.delete_key(message.us["addr"], message.them["addr"], keys_db_location)
 
 
 # ### Address- & domain-rewriting (for asymmetric inbound/outbound domains) #########################
@@ -614,11 +614,11 @@ def create_pEp_message(pEp, message):
     try:
         src = pEp.Message(message.msg["inmail"])
 
-        if settings["mode"] == "encrypt":
-            src.sent = int(str(datetime.now().timestamp()).split(".")[0])
-            src.id = "pEp-" + uuid4().hex + "@" + socket.getfqdn()
-            src.from_ = message.us["pepid"]
-            src.to = [message.them["pepid"]]
+        # if settings["mode"] == "encrypt":
+        #     src.sent = int(str(datetime.now().timestamp()).split(".")[0])
+        #     src.id = "pEp-" + uuid4().hex + "@" + socket.getfqdn()
+        #     src.from_ = message.us["pepid"]
+        #     src.to = [message.them["pepid"]]
 
         if settings["mode"] == "decrypt":
             src.to = [message.us["pepid"]]
@@ -683,65 +683,65 @@ def process_message(pEp, message):
         None
     """
     try:
-        if settings["mode"] == "encrypt":
-            # Silly workaround for senders that don't bother to include a username
-            if len(message.msg["src"].from_.username) == 0:
-                tmp = pEp.Identity(
-                    message.msg["src"].from_.address,
-                    message.msg["src"].from_.address,
-                )
-                message.msg["src"].from_ = tmp
-                dbg("Added missing username to src._from: " + repr(message.msg["src"].from_))
+        # if settings["mode"] == "encrypt":
+        #     # Silly workaround for senders that don't bother to include a username
+        #     if len(message.msg["src"].from_.username) == 0:
+        #         tmp = pEp.Identity(
+        #             message.msg["src"].from_.address,
+        #             message.msg["src"].from_.address,
+        #         )
+        #         message.msg["src"].from_ = tmp
+        #         dbg("Added missing username to src._from: " + repr(message.msg["src"].from_))
 
-            # Blacklisted domains which don't like PGP
-            a = message.msg["src"].to[0].address
-            b = message.msg["src"].from_.address
-            d = a[a.find("@") + 1 :]
+        #     # Blacklisted domains which don't like PGP
+        #     a = message.msg["src"].to[0].address
+        #     b = message.msg["src"].from_.address
+        #     d = a[a.find("@") + 1 :]
 
-            if d in settings["never_pEp"]:
-                dbg(c("Domain " + d + " in never_pEp, not encrypting", 5))
-                dst = message.msg["src"]
-            # Magic-string "NOENCRYPT" found inside the message
-            elif (
-                "NOENCRYPT" in message.msg["src"].longmsg + message.msg["src"].longmsg_formatted
-                and b in settings["noencrypt_senders"]
-            ):
-                dbg(
-                    c(
-                        f"Found magic string 'NOENCRYPT' so not going to encrypt this message {settings['DEBUG']}",
-                        1,
-                    )
-                )
-                dst = message.msg["src"]
-                dst.longmsg = dst.longmsg.replace("NOENCRYPT", "")
-                dst.longmsg_formatted = dst.longmsg_formatted.replace("NOENCRYPT", "")
-            elif message.msg["src"].from_.address == message.msg["src"].to[0].address:
-                dbg(
-                    c(
-                        "Sender == recipient so probably a loopback/test-message, skipping encryption...",
-                        1,
-                    )
-                )
-                dst = message.msg["src"]
-            else:
-                if message.them["key"] is False:
-                    dbg("We DO NOT have a key for this recipient")
-                    # TODO: add policy setting to enforce outbound encryption (allow/deny-list?)
-                else:
-                    dbg("We have a key for this recipient:\n" + prettytable(message.them["key"]))
+        #     if d in settings["never_pEp"]:
+        #         dbg(c("Domain " + d + " in never_pEp, not encrypting", 5))
+        #         dst = message.msg["src"]
+        #     # Magic-string "NOENCRYPT" found inside the message
+        #     elif (
+        #         "NOENCRYPT" in message.msg["src"].longmsg + message.msg["src"].longmsg_formatted
+        #         and b in settings["noencrypt_senders"]
+        #     ):
+        #         dbg(
+        #             c(
+        #                 f"Found magic string 'NOENCRYPT' so not going to encrypt this message {settings['DEBUG']}",
+        #                 1,
+        #             )
+        #         )
+        #         dst = message.msg["src"]
+        #         dst.longmsg = dst.longmsg.replace("NOENCRYPT", "")
+        #         dst.longmsg_formatted = dst.longmsg_formatted.replace("NOENCRYPT", "")
+        #     elif message.msg["src"].from_.address == message.msg["src"].to[0].address:
+        #         dbg(
+        #             c(
+        #                 "Sender == recipient so probably a loopback/test-message, skipping encryption...",
+        #                 1,
+        #             )
+        #         )
+        #         dst = message.msg["src"]
+        #     else:
+        #         if message.them["key"] is False:
+        #             dbg("We DO NOT have a key for this recipient")
+        #             # TODO: add policy setting to enforce outbound encryption (allow/deny-list?)
+        #         else:
+        #             dbg("We have a key for this recipient:\n" + prettytable(message.them["key"]))
 
-                dbg(c("Encrypting message...", 2))
-                # pEp.unencrypted_subject(True)
-                if len(settings["EXTRA_KEYS"]) == 0:
-                    dst = message.msg["src"].encrypt()
-                else:
-                    dbg("└ with extra key(s): " + ", ".join(settings["EXTRA_KEYS"]))
-                    dst = message.msg["src"].encrypt(settings["EXTRA_KEYS"], 0)
-                dbg(c("Encrypted in", 2), True)
+        #         dbg(c("Encrypting message...", 2))
+        #         # pEp.unencrypted_subject(True)
+        #         if len(settings["EXTRA_KEYS"]) == 0:
+        #             dst = message.msg["src"].encrypt()
+        #         else:
+        #             dbg("└ with extra key(s): " + ", ".join(settings["EXTRA_KEYS"]))
+        #             dst = message.msg["src"].encrypt(settings["EXTRA_KEYS"], 0)
+        #         dbg(c("Encrypted in", 2), True)
 
-                if settings["DEBUG"]:
-                    dbg("Full dst:\n" + str(dst))
-                    inspectusingsq(str(dst))
+        #         if settings["DEBUG"]:
+        #             dbg("Full dst:\n" + str(dst))
+        #             inspectusingsq(str(dst))
 
         if settings["mode"] == "decrypt":
             # TODO: store some sort of failure-counter (per message ID?) to detect subsequent failures then
@@ -825,9 +825,9 @@ def filter_message(message):
     for filter in settings["scan_pipes"]:
         name = filter["name"]
         cmd = filter["cmd"]
-        if settings["mode"] == "encrypt":
-            dbg("Passing original message to scanner " + c(name, 3))
-            msgtoscan = str(message.msg["src"])
+        # if settings["mode"] == "encrypt":
+        #     dbg("Passing original message to scanner " + c(name, 3))
+        #     msgtoscan = str(message.msg["src"])
         if settings["mode"] == "decrypt":
             dbg("Passing decrypted message to scanner " + c(name, 3))
             msgtoscan = str(message.msg["dst"])
@@ -899,12 +899,12 @@ def add_routing_and_headers(pEp, message):
     }
 
     nextmx_path = os.path.join(settings["home"], settings["nextmx_map"])
-    if settings["mode"] == "encrypt":
-        nextmx = jsonlookup(
-            nextmx_path,
-            message.them["pepid"].address[message.them["pepid"].address.rfind("@") + 1 :],
-            False,
-        )
+    # if settings["mode"] == "encrypt":
+    #     nextmx = jsonlookup(
+    #         nextmx_path,
+    #         message.them["pepid"].address[message.them["pepid"].address.rfind("@") + 1 :],
+    #         False,
+    #     )
 
     if settings["mode"] == "decrypt":
         nextmx = jsonlookup(

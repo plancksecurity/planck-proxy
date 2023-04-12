@@ -26,7 +26,7 @@ usage: pEpgate [-h] [--DEBUG] [--keys_dir KEYS_DIR] [--work_dir WORK_DIR] [--SMT
 pEp Proxy CLI.
 
 positional arguments:
-  {encrypt,decrypt}     Mode
+  {decrypt}     Mode
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -105,10 +105,6 @@ If the message meets those requirements or if the original message is unencrypte
 Once the message is processed it will be ran through the `scan_pipes`commands. If all the commands finish successfully with a 0 exit code, then the message will be sent out using the provided SMTP configuration.
 
 If any of the `scan_pipes` fail, the message will be re-queued on postfix, a warining email will be sent to the address in `admin_addr`setting and another one will be sent back to the email sender.
-
-### NOENCRYPT
-
-On `DEBUG` mode, messages containing the string 'NOENCRYPT' somewhere in the body and with positive feedback from the filtering system, will be sent unencrypted to the next MTA. The string 'NOENCRYPT' will be removed from the message itself.
 
 ## Postfix configuration
 

@@ -15,7 +15,6 @@ from pEpgatemain import (
     enable_dts,
     addr_domain_rewrite,
     init_workdir,
-    check_key_reset,
     check_initial_import,
     print_summary_info,
     init_logging,
@@ -118,7 +117,7 @@ def main(cli_args):
     init_workdir(message)
 
     # Handle keys and encrypt/decrypt
-    check_key_reset(message)
+    # check_key_reset(message)
     import_needed = check_initial_import()
     print_summary_info(message)
     init_logging(message)
@@ -144,12 +143,10 @@ def main(cli_args):
 
 if __name__ == "__main__":
     init_settings()
-    dbg(
-        f"SETTINGS IMPORTED with 'HOME' as {settings['home']} and 'DTS' as {settings['dts']}"
-    )
+    dbg(f"SETTINGS IMPORTED with 'HOME' as {settings['home']} and 'DTS' as {settings['dts']}")
 
     parser = argparse.ArgumentParser(description="pEp Proxy CLI.")
-    parser.add_argument("mode", choices=["encrypt", "decrypt"], help="Mode")
+    parser.add_argument("mode", choices=["decrypt"], help="Mode")
     parser.add_argument(
         "--DEBUG",
         action="store_true",
