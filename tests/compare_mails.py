@@ -1,6 +1,4 @@
 import email
-from email import *
-from conftest import *
 
 
 def get_email_body(email_string):
@@ -8,10 +6,8 @@ def get_email_body(email_string):
     parsed_string = email_parser.parsestr(email_string)
 
     def _get_body(emailobj):
-
         if emailobj.is_multipart():
             for payload in emailobj.get_payload():
-
                 if payload.is_multipart():
                     return _get_body(payload)
 
@@ -21,4 +17,4 @@ def get_email_body(email_string):
         else:
             return emailobj.get_payload()
 
-    body = _get_body(parsed_string)
+    return _get_body(parsed_string)

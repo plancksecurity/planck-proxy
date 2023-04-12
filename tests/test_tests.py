@@ -2,10 +2,6 @@
 This file contains some self-tests for the test-suite.
 """
 
-import os
-import pytest
-
-
 # def test_home(tmp_path_factory):
 #     """
 #     Ensure HOME points to the base directory for this test session.

@@ -1,5 +1,3 @@
-
-import os
 import json
 
 
@@ -25,7 +23,7 @@ def override_settings(test_dirs, settings_file, new_params):
 
     json_object = json.dumps(json_settings, indent=4)
 
-    overwritten_settings_file = test_dirs['tmp'] / "overwritten_settings.json"
+    overwritten_settings_file = test_dirs["tmp"] / "overwritten_settings.json"
 
     with open(overwritten_settings_file, "w") as outfile:
         outfile.write(json_object)

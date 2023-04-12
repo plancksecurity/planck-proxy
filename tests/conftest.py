@@ -4,14 +4,13 @@ import random
 import string
 import pytest
 import shutil
-import json
 
 import pEphelpers
 import pEpgatemain
 
 from dataclasses import dataclass
 from pathlib import Path
-from pEpgatesettings import settings, init_settings
+from pEpgatesettings import init_settings
 from pEpgate import Message
 
 
@@ -22,59 +21,56 @@ class Key:
     fpr: str
 
 
-EXTRA_KEY = Key('extra', 'proxy@test.com',
-                "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3")
-BOB_KEY = Key('bob', 'bob@pep.security',
-              "CC47DB45FDAF07712F1D9F5BFE0D6DE1B8C05AE8")
-ALICE_KEY = Key('alice', 'alice@pep.security',
-                "6002754A3B0551D9729E28168AD5EEE0A979C126")
+EXTRA_KEY = Key("extra", "proxy@test.com", "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3")
+BOB_KEY = Key("bob", "bob@pep.security", "CC47DB45FDAF07712F1D9F5BFE0D6DE1B8C05AE8")
+ALICE_KEY = Key("alice", "alice@pep.security", "6002754A3B0551D9729E28168AD5EEE0A979C126")
 
 
 @pytest.fixture
 def test_dirs(tmp_path):
     return {
-        'tmp': tmp_path,
-        'root': Path(os.environ['TEST_ROOT']),
-        'project_root': Path(os.environ['PROJECT_ROOT']),
-        'keys': tmp_path / "keys",
-        'test_keys': Path(os.environ['TEST_ROOT']) / "test_keys",
-        'work': tmp_path / "work",
-        'emails': Path(os.environ['TEST_ROOT']) / "emails",
+        "tmp": tmp_path,
+        "root": Path(os.environ["TEST_ROOT"]),
+        "project_root": Path(os.environ["PROJECT_ROOT"]),
+        "keys": tmp_path / "keys",
+        "test_keys": Path(os.environ["TEST_ROOT"]) / "test_keys",
+        "work": tmp_path / "work",
+        "emails": Path(os.environ["TEST_ROOT"]) / "emails",
     }
 
 
 @pytest.fixture
 def extra_keypair(test_dirs):
-    pubkey = test_dirs['test_keys'] / str(EXTRA_KEY.fpr + '.pub.asc')
-    privkey = test_dirs['test_keys'] / str(EXTRA_KEY.fpr + '.sec.asc')
+    pubkey = test_dirs["test_keys"] / str(EXTRA_KEY.fpr + ".pub.asc")
+    privkey = test_dirs["test_keys"] / str(EXTRA_KEY.fpr + ".sec.asc")
 
-    if not os.path.exists(test_dirs['keys']):
-        os.makedirs(test_dirs['keys'])
+    if not os.path.exists(test_dirs["keys"]):
+        os.makedirs(test_dirs["keys"])
 
-    shutil.copy(pubkey, test_dirs['keys'])
-    shutil.copy(privkey, test_dirs['keys'])
+    shutil.copy(pubkey, test_dirs["keys"])
+    shutil.copy(privkey, test_dirs["keys"])
     return EXTRA_KEY
 
 
 @pytest.fixture
 def bob_key(test_dirs):
-    pubkey = test_dirs['test_keys'] / str(BOB_KEY.fpr + '.pub.asc')
+    pubkey = test_dirs["test_keys"] / str(BOB_KEY.fpr + ".pub.asc")
 
-    if not os.path.exists(test_dirs['keys']):
-        os.makedirs(test_dirs['keys'])
+    if not os.path.exists(test_dirs["keys"]):
+        os.makedirs(test_dirs["keys"])
 
-    shutil.copy(pubkey, test_dirs['keys'])
+    shutil.copy(pubkey, test_dirs["keys"])
     return BOB_KEY
 
 
 @pytest.fixture
 def alice_key(test_dirs):
-    pubkey = test_dirs['test_keys'] / str(ALICE_KEY.fpr + '.pub.asc')
+    pubkey = test_dirs["test_keys"] / str(ALICE_KEY.fpr + ".pub.asc")
 
-    if not os.path.exists(test_dirs['keys']):
-        os.makedirs(test_dirs['keys'])
+    if not os.path.exists(test_dirs["keys"]):
+        os.makedirs(test_dirs["keys"])
 
-    shutil.copy(pubkey, test_dirs['keys'])
+    shutil.copy(pubkey, test_dirs["keys"])
     return ALICE_KEY
 
 
@@ -85,10 +81,9 @@ def message():
 
 @pytest.fixture
 def obtain_key_db(test_dirs):
-
-    db_location = os.path.join(test_dirs['root'], 'test_db')
+    db_location = os.path.join(test_dirs["root"], "test_db")
     src_folder = os.path.join(db_location, ".pEp")
-    dest_folder = str(test_dirs['tmp'])
+    dest_folder = str(test_dirs["tmp"])
 
     if os.path.exists(dest_folder):
         shutil.rmtree(dest_folder)
@@ -103,10 +98,10 @@ def mailbot_address():
     """
     Get a random address for a pEp mailbot
     """
-    return ''.join(
-        random.choices(string.ascii_uppercase +
-                       string.ascii_lowercase + string.digits, k=16)
-    ) + '@test.pep.security'
+    return (
+        "".join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=16))
+        + "@test.pep.security"
+    )
 
 
 @pytest.fixture
@@ -114,8 +109,8 @@ def collect_email(request):
     """
     Get the contents of a file in the /tests/emails/ folder where the filename matches the expr
     """
-    email = glob.glob(os.environ["TEST_ROOT"] + '/emails/' + request.param)[0]
-    with open(email, 'rb') as f:
+    email = glob.glob(os.environ["TEST_ROOT"] + "/emails/" + request.param)[0]
+    with open(email, "rb") as f:
         return f.read()
 
 
@@ -126,7 +121,7 @@ def settings_file(test_dirs):
 
     This is intended to be used with the  --settings_file parameter in the integration tests
     """
-    settings_file = test_dirs['root'] / 'tests_settings' / 'settings_tests.json'
+    settings_file = test_dirs["root"] / "tests_settings" / "settings_tests.json"
     return settings_file
 
 
@@ -138,8 +133,7 @@ def set_settings(settings_file):
     This is intended to set the correct globals befor running any pEpGate code.
     """
 
-    settings = init_settings(settings_file)
-    return settings
+    return init_settings(settings_file)
 
 
 @pytest.fixture
@@ -148,19 +142,19 @@ def test_settings_dict(test_dirs, extra_keypair):
     Set the basic test_settings that will be used to overwrite the defaults on 'settings_tests.json'
     """
     test_settings = {
-        'work_dir': str(test_dirs['work']),
-        'keys_dir': str(test_dirs['keys']),
-        'test-nomails': True,
+        "work_dir": str(test_dirs["work"]),
+        "keys_dir": str(test_dirs["keys"]),
+        "test-nomails": True,
         "EXTRA_KEYS": [extra_keypair.fpr],
-        "DEBUG": True
+        "DEBUG": True,
     }
     return test_settings
 
 
 @pytest.fixture(autouse=True)
-def run_before_and_after_tests(monkeypatch, set_settings, tmp_path):
+def run_before_and_after_tests(monkeypatch, tmp_path, set_settings):
     """Fixture to execute asserts before and after a test is run"""
-    os.environ['HOME'] = str(tmp_path)
+    os.environ["HOME"] = str(tmp_path)
 
     # overwrite sendmail for tests
     monkeypatch.setattr(pEpgatemain, "sendmail", lambda msg: True)

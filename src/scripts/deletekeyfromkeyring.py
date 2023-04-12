@@ -24,7 +24,7 @@ def delete_key(keyring, address, database_location):
         return 1 if a > b else -1 if a < b else 0
 
     # keys.db
-    db = sqlite3.connect(os.path.join(Path(database_location), 'keys.db'))
+    db = sqlite3.connect(os.path.join(Path(database_location), "keys.db"))
     db.create_collation("EMAIL", collate_email)
 
     q = db.execute("SELECT * FROM userids WHERE userid = ?;", (address,))
@@ -43,11 +43,9 @@ def delete_key(keyring, address, database_location):
     db.commit()
 
     # management.db
-    db = sqlite3.connect(os.path.join(
-        Path(database_location), 'management.db'))
+    db = sqlite3.connect(os.path.join(Path(database_location), "management.db"))
 
-    d = db.execute("DELETE FROM trust WHERE user_id = ?;",
-                   ("TOFU_" + address,))
+    d = db.execute("DELETE FROM trust WHERE user_id = ?;", ("TOFU_" + address,))
     print("Removed trust tofu: " + str(d.rowcount))
 
     d = db.execute("DELETE FROM person WHERE id = ?;", ("TOFU_" + address,))
@@ -59,16 +57,18 @@ def delete_key(keyring, address, database_location):
     db.commit()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
 
     # Parse args
-    parser = argparse.ArgumentParser(description='Delete a user key from another user\'s Database')
+    parser = argparse.ArgumentParser(
+        description="Delete a user key from another user's Database"
+    )
+    parser.add_argument("keyring", help="Email of user whose DB to delete from")
+    parser.add_argument("address", help="Email of user whose key to delete")
     parser.add_argument(
-        'keyring', help='Email of user whose DB to delete from')
-    parser.add_argument('address', help='Email of user whose key to delete')
-    parser.add_argument('--WORK_DIR', default='work',
-                        help='Location of the work folder')
+        "--WORK_DIR", default="work", help="Location of the work folder"
+    )
 
     args = parser.parse_args()
 

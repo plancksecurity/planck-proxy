@@ -18,8 +18,7 @@ def messages_cleanup(work_dir, days, verbose):
         None
     """
     if verbose:
-        print(
-            f'Cleaning messages in {work_dir} folder older than {days} days ')
+        print(f"Cleaning messages in {work_dir} folder older than {days} days ")
 
     # Get the current time
     current_time = time.time()
@@ -32,19 +31,21 @@ def messages_cleanup(work_dir, days, verbose):
         # Loop through all files in the current subfolder
         for file in files:
             # Check if the file is an .eml or .log file
-            if file.endswith('.eml') or file.endswith('.log'):
+            if file.endswith(".eml") or file.endswith(".log"):
                 # Get the creation time of the file
                 filepath = os.path.join(subdir, file)
                 file_modification_time = os.path.getmtime(filepath)
 
                 if verbose:
                     modification_datetime = datetime.datetime.fromtimestamp(
-                        file_modification_time)
+                        file_modification_time
+                    )
                     now_datetime = datetime.datetime.now()
                     time_difference = now_datetime - modification_datetime
                     days_since_modification = time_difference.days
                     print(
-                        f"The file {filepath} was created {days_since_modification} days ago.")
+                        f"The file {filepath} was created {days_since_modification} days ago."
+                    )
 
                 # Check if the file was created before the specified number of days
                 if current_time - file_modification_time > days_in_seconds:
@@ -65,15 +66,25 @@ def messages_cleanup(work_dir, days, verbose):
                 print(f"Folder {subdir} is now empty, removing it.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='Delete files in subfolders created before a specified number of days')
-    parser.add_argument('--work_dir', type=str, default='work_dir',
-                        help='the path to the folder containing the subfolders with .eml files')
-    parser.add_argument('--days', type=int, default=7,
-                        help='the number of days before which to delete the .eml files')
-    parser.add_argument('--verbose', '-v', action='store_true',
-                        default=False, help='Print output data')
+        description="Delete files in subfolders created before a specified number of days"
+    )
+    parser.add_argument(
+        "--work_dir",
+        type=str,
+        default="work_dir",
+        help="the path to the folder containing the subfolders with .eml files",
+    )
+    parser.add_argument(
+        "--days",
+        type=int,
+        default=7,
+        help="the number of days before which to delete the .eml files",
+    )
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", default=False, help="Print output data"
+    )
     args = parser.parse_args()
 
     messages_cleanup(args.work_dir, args.days, args.verbose)
