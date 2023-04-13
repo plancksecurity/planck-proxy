@@ -21,7 +21,6 @@ from pEpgatemain import (
     load_pep,
     import_keys,
     print_keys_and_keaders,
-    check_recipient_pubkey,
     check_sender_privkey,
     set_own_identity,
     create_pEp_message,
@@ -116,8 +115,7 @@ def main(cli_args):
     addr_domain_rewrite(message)
     init_workdir(message)
 
-    # Handle keys and encrypt/decrypt
-    # check_key_reset(message)
+    # Handle keys and decrypt
     import_needed = check_initial_import()
     print_summary_info(message)
     init_logging(message)
@@ -125,8 +123,6 @@ def main(cli_args):
     if import_needed:
         import_keys(pEp)
     print_keys_and_keaders(message)
-    if settings["mode"] == "encrypt":
-        check_recipient_pubkey(pEp, message)
     check_sender_privkey(message)
     set_own_identity(pEp, message)
     create_pEp_message(pEp, message)

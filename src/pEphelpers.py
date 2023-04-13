@@ -353,9 +353,7 @@ def dbgmail(
     mailcontent += ".console { font-family: Courier New; font-size: 13px; line-height: 14px; width: 100%; }"
     mailcontent += "</style></head>"
     mailcontent += '<body topmargin="0" leftmargin="0" marginwidth="0" marginheight="0"><table class="console"><tr><td>'
-    mailcontent += (
-        msg + "<br>" + ("=" * 80) + "<br><br>" if len(msg) > 0 else ""
-    ) + settings["htmllog"]
+    mailcontent += (msg + "<br>" + ("=" * 80) + "<br><br>" if len(msg) > 0 else "") + settings["htmllog"]
     mailcontent += "</td></tr></table></body></html>"
 
     if len(attachments) > 0:
@@ -363,16 +361,8 @@ def dbgmail(
             dbg("Attaching " + att)
 
             mailcontent += "\n\n--pEpMIME\n"
-            mailcontent += (
-                'Content-Type: application/octet-stream; name="'
-                + os.path.basename(att)
-                + '"\n'
-            )
-            mailcontent += (
-                'Content-Disposition: attachment; filename="'
-                + os.path.basename(att)
-                + '"\n'
-            )
+            mailcontent += 'Content-Type: application/octet-stream; name="' + os.path.basename(att) + '"\n'
+            mailcontent += 'Content-Disposition: attachment; filename="' + os.path.basename(att) + '"\n'
             mailcontent += "Content-Transfer-Encoding: base64\n\n"
 
             with open(att, "rb") as f:
@@ -527,29 +517,21 @@ def keysfromkeyring(userid=None):
 
         q3 = db.execute("SELECT tpk, secret FROM keys WHERE primary_key = ?;", (r1[1],))
         for r3 in q3:
-            sqkeyfile = (
-                ("sec" if r3[1] is True else "pub") + "." + r1[0] + "." + r1[1] + ".key"
-            )
+            sqkeyfile = ("sec" if r3[1] is True else "pub") + "." + r1[0] + "." + r1[1] + ".key"
             open(sqkeyfile, "wb").write(r3[0])
             cmd = [sq_bin, "enarmor", sqkeyfile, "-o", sqkeyfile + ".asc"]
-            p = Popen(
-                cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE
-            )  # stderr=STDOUT for debugging
+            p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)  # stderr=STDOUT for debugging
             ret = p.wait()
 
             cmd = [sq_bin, "inspect", "--certifications", sqkeyfile]
-            p = Popen(
-                cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE
-            )  # stderr=STDOUT for debugging
+            p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)  # stderr=STDOUT for debugging
             ret = p.wait()
 
             if ret == 0:
                 inspected = {}
                 inspected["is_private"] = r3[1]
                 inspected["sq_inspect"] = []
-                for line in io.TextIOWrapper(
-                    p.stdout, encoding="utf-8", errors="strict"
-                ):
+                for line in io.TextIOWrapper(p.stdout, encoding="utf-8", errors="strict"):
                     line = line.strip()
                     inspected["sq_inspect"] += [line]
 
@@ -564,9 +546,7 @@ def keysfromkeyring(userid=None):
                 for upr in usernameparseregexes:
                     try:
                         patt = re.compile(upr, re.MULTILINE | re.DOTALL)
-                        inspected["username"] = patt.findall(
-                            "\n".join(inspected["sq_inspect"])
-                        )[0]
+                        inspected["username"] = patt.findall("\n".join(inspected["sq_inspect"]))[0]
                         if len(inspected["username"]) > 0:
                             break
                     except Exception:
@@ -758,31 +738,31 @@ def get_contact_info(inmail, reinjection=False):
         except Exception:
             pass
 
-    aliases_map_path = os.path.join(settings["home"], settings["aliases_map"])
-    aliases = jsonlookup(aliases_map_path, msgto, False)
-    if aliases is not None:
-        dbg("Delivered-To is an aliased address: " + c(", ".join(aliases), 3))
+    # aliases_map_path = os.path.join(settings["home"], settings["aliases_map"])
+    # aliases = jsonlookup(aliases_map_path, msgto, False)
+    # if aliases is not None:
+    #     dbg("Delivered-To is an aliased address: " + c(", ".join(aliases), 3))
 
-        allrcpts = set()
-        for hdr in ("To", "CC", "BCC"):
-            try:
-                for a in ", ".join(getmailheaders(inmail, hdr)).split(", "):
-                    for mpr in mailparseregexes:
-                        rcpt = " ".join(re.findall(re.compile(mpr), a))
-                        if len(rcpt) > 0:
-                            allrcpts.add(rcpt)
-            except Exception:
-                # dbg("No " + hdr + " header in this message")
-                pass
+    #     allrcpts = set()
+    #     for hdr in ("To", "CC", "BCC"):
+    #         try:
+    #             for a in ", ".join(getmailheaders(inmail, hdr)).split(", "):
+    #                 for mpr in mailparseregexes:
+    #                     rcpt = " ".join(re.findall(re.compile(mpr), a))
+    #                     if len(rcpt) > 0:
+    #                         allrcpts.add(rcpt)
+    #         except Exception:
+    #             # dbg("No " + hdr + " header in this message")
+    #             pass
 
-        dbg("All recipients / Alias candidates: " + c(", ".join(allrcpts), 5))
-        for r in allrcpts:
-            if r in aliases:
-                dbg("Matching alias found: " + c(r, 2))
-                msgto = r
-                break
-        else:
-            dbg(c("Couldn't match alias to original Delivered-To!", 1))
+    #     dbg("All recipients / Alias candidates: " + c(", ".join(allrcpts), 5))
+    #     for r in allrcpts:
+    #         if r in aliases:
+    #             dbg("Matching alias found: " + c(r, 2))
+    #             msgto = r
+    #             break
+    #     else:
+    #         dbg(c("Couldn't match alias to original Delivered-To!", 1))
 
     if msgto.count("@") != 1:
         dbg(c("No clue how we've been contacted. Giving up...", 1))
