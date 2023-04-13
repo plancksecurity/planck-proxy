@@ -3,7 +3,6 @@ import json
 import os
 import tempfile
 
-from email.message import Message
 from pEphelpers import get_contact_info, getmailheaders, jsonlookup
 
 
@@ -95,8 +94,7 @@ def test_jsonlookup(json_map_file, key, expected_output, bidilookup):
     assert result == expected_output
 
 
-def test_get_contact_info_sender_only():
-    message = Message()
+def test_get_contact_info_sender_only(message):
     message["From"] = "sender@example.com"
     message["Delivered-To"] = "recipient@example.com"
 
@@ -105,8 +103,7 @@ def test_get_contact_info_sender_only():
     assert recipient == "recipient@example.com"
 
 
-def test_get_contact_info_with_return_path():
-    message = Message()
+def test_get_contact_info_with_return_path(message):
     message["Return-Path"] = "<sender@example.com>"
     message["Delivered-To"] = "recipient@example.com"
 

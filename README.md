@@ -90,6 +90,12 @@ Working directory, will be populated with a structure like this:
 
 You must use this settings to specify the HOST and PORT of the SMTP server the p≡p Gate will use to send the messages.
 
+### nextmx.map
+
+Use this file to rewrite mx address for a given domain if needed.
+The p≡p Gate will look for the domain in the recipient's address as a key in this file, and use the value to rewrite the "X-NextMX" header. Otherwise this header will be "auto".
+This header will be used later on by postfix to send the emails, as referred in the Postfix's configuration `main.cf` file [(see below)](https://git.pep.security/pep/pEpGate/#maincf)
+
 ## Features
 
 ### Decryption
@@ -149,7 +155,7 @@ Example of /etc/postfix/transport:
 /^no-reply@pep.*/ pepgateIN:
 ```
 
-2. Define inbound and outbound (smtp\_)header_checks in main.cf (pEp Gate adds an X-NextMX header to all messages, defined in nexthop.map):
+2. Define inbound and outbound (smtp\_)header_checks in main.cf (pEp Gate adds an X-NextMX header to all messages, defined in nextmx.map):
 
 ```
 header_checks      = regexp:/etc/postfix/header_checks_in

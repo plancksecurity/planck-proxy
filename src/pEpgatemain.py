@@ -543,12 +543,6 @@ def create_pEp_message(pEp, message):
     try:
         src = pEp.Message(message.msg["inmail"])
 
-        # if settings["mode"] == "encrypt":
-        #     src.sent = int(str(datetime.now().timestamp()).split(".")[0])
-        #     src.id = "pEp-" + uuid4().hex + "@" + socket.getfqdn()
-        #     src.from_ = message.us["pepid"]
-        #     src.to = [message.them["pepid"]]
-
         if settings["mode"] == "decrypt":
             src.to = [message.us["pepid"]]
             # TODO: implement proper echo-protocol handling
