@@ -1,28 +1,5 @@
-import pytest
-from unittest.mock import Mock
-from pEpgatemain import add_routing_and_headers, init_logging
-
-from dataclasses import dataclass
-
-
-@dataclass
-class MockpEpMessage:
-    opt_fields: dict = None
-
-    def __str__(self):
-        return f"{self.opt_fields}"
-
-
-@dataclass
-class MockpEpId:
-    address: str = ""
-
-
-@pytest.fixture
-def pEp():
-    pEp = Mock()
-    pEp.engine_version = "1.0.0"
-    return pEp
+from src.pEpgatemain import add_routing_and_headers, init_logging
+from tests.conftest import MockpEpMessage, MockpEpId
 
 
 def test_add_routing_and_headers(set_settings, pEp, message, test_dirs):

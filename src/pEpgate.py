@@ -20,7 +20,7 @@ from pEpgatemain import (
     init_logging,
     load_pep,
     import_keys,
-    print_keys_and_keaders,
+    print_keys_and_headers,
     check_sender_privkey,
     set_own_identity,
     create_pEp_message,
@@ -122,7 +122,7 @@ def main(cli_args):
     pEp = load_pep()
     if import_needed:
         import_keys(pEp)
-    print_keys_and_keaders(message)
+    print_keys_and_headers(message)
     check_sender_privkey(message)
     set_own_identity(pEp, message)
     create_pEp_message(pEp, message)

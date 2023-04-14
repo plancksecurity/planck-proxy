@@ -1,8 +1,8 @@
 import pytest
 import subprocess
 
-from pEpgatemain import filter_message
-from pEphelpers import get_contact_info
+from src.pEpgatemain import filter_message
+from src.pEphelpers import get_contact_info
 
 
 @pytest.mark.parametrize(

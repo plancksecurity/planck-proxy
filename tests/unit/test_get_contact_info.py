@@ -3,7 +3,8 @@ import json
 import os
 import tempfile
 
-from pEphelpers import get_contact_info, getmailheaders, jsonlookup
+from email.message import Message
+from src.pEphelpers import get_contact_info, getmailheaders, jsonlookup
 
 
 @pytest.mark.parametrize(
@@ -94,7 +95,8 @@ def test_jsonlookup(json_map_file, key, expected_output, bidilookup):
     assert result == expected_output
 
 
-def test_get_contact_info_sender_only(message):
+def test_get_contact_info_sender_only():
+    message = Message()
     message["From"] = "sender@example.com"
     message["Delivered-To"] = "recipient@example.com"
 
@@ -103,7 +105,8 @@ def test_get_contact_info_sender_only(message):
     assert recipient == "recipient@example.com"
 
 
-def test_get_contact_info_with_return_path(message):
+def test_get_contact_info_with_return_path():
+    message = Message()
     message["Return-Path"] = "<sender@example.com>"
     message["Delivered-To"] = "recipient@example.com"
 

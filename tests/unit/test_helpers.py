@@ -1,11 +1,11 @@
 import os
 import pytest
 
-from pEphelpers import dbg
-from pEphelpers import c
-from pEphelpers import toplain
-from pEphelpers import tohtml
-from pEpgate import *
+from src.pEphelpers import dbg
+from src.pEphelpers import c
+from src.pEphelpers import toplain
+from src.pEphelpers import tohtml
+from src.pEpgate import *
 
 
 def get_last_line(file_path):

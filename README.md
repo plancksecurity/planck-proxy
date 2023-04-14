@@ -92,8 +92,10 @@ You must use this settings to specify the HOST and PORT of the SMTP server the p
 
 ### nextmx.map
 
-Use this file to rewrite mx address for a given domain if needed.
-The p≡p Gate will look for the domain in the recipient's address as a key in this file, and use the value to rewrite the "X-NextMX" header. Otherwise this header will be "auto".
+This map is used to set the next hop mx address for each domains in the mail server.
+
+The p≡p Gate will look for the domain in the recipient's address as a key in this file, and use the value to populate the "X-NextMX" header. Otherwise this header will be "auto" and postfix would have to perform an MX lookup.
+
 This header will be used later on by postfix to send the emails, as referred in the Postfix's configuration `main.cf` file [(see below)](https://git.pep.security/pep/pEpGate/#maincf)
 
 ## Features

@@ -1,6 +1,6 @@
 import os
 import codecs
-from pEpgatemain import init_logging
+from src.pEpgatemain import init_logging
 
 
 def test_init_logging_creates_log_file(set_settings, test_dirs, message):

@@ -177,7 +177,8 @@ def get_message(message):
 
 def set_addresses(message):
     """
-    Determines the sender and recipient of the message.
+    Determines the sender and recipient of the message, making "them" the sender of the message and
+    "us" the recipient of the message.
 
     Args:
         message (Message): The message object to store the sender and recipient addresses, containing the
@@ -189,22 +190,17 @@ def set_addresses(message):
 
     msgfrom, msgto = get_contact_info(message.msg["inmail"])
 
-    # ouraddr = msgfrom if settings["mode"] == "encrypt" else msgto
-    # theiraddr = msgto if settings["mode"] == "encrypt" else msgfrom
-
-    ouraddr = msgto
-    theiraddr = msgfrom
-
     message.msg["msgfrom"] = msgfrom
     message.msg["msgto"] = msgto
 
-    message.us["addr"] = ouraddr
-    message.them["addr"] = theiraddr
+    message.them["addr"] = msgfrom
+    message.us["addr"] = msgto
 
 
 def enable_dts(message):
     """
-    If sender enabled "Return receipt" allow cleanup() to send back debugging info
+    If sender enabled "Return receipt" and is part of the dts_domains setting,
+    allow cleanup() to send back debugging info
 
     Args:
         message (Message): an instance of the Message class containing the parsed message
@@ -407,7 +403,7 @@ def import_keys(pEp):
 # ### Show me what you got ##########################################################################
 
 
-def print_keys_and_keaders(message):
+def print_keys_and_headers(message):
     """
     Print environment variables, keys in the keyring and headers in original message.
 
@@ -434,7 +430,7 @@ def print_keys_and_keaders(message):
 
 def check_sender_privkey(message):
     """
-    Check if we have a public key for the sender
+    Check if we have a private key for the sender
 
     Args:
         message (Message):  an instance of the Message class containing the 'us' dictionary.
@@ -596,7 +592,7 @@ def create_pEp_message(pEp, message):
 # ### Let p≡p do it's magic #########################################################################
 def process_message(pEp, message):
     """
-    Encrypt or decrypt the message depending on settings['mode']
+    Decrypt the message
 
     Args:
         pEp (module): The p≡p engine module object.

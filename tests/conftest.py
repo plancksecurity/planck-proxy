@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from pEpgatesettings import init_settings
 from pEpgate import Message
+from unittest.mock import Mock
 
 
 @dataclass
@@ -24,6 +25,26 @@ class Key:
 EXTRA_KEY = Key("extra", "proxy@test.com", "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3")
 BOB_KEY = Key("bob", "bob@pep.security", "CC47DB45FDAF07712F1D9F5BFE0D6DE1B8C05AE8")
 ALICE_KEY = Key("alice", "alice@pep.security", "6002754A3B0551D9729E28168AD5EEE0A979C126")
+
+
+@dataclass
+class MockpEpMessage:
+    opt_fields: dict = None
+
+    def __str__(self):
+        return f"{self.opt_fields}"
+
+
+@dataclass
+class MockpEpId:
+    address: str = ""
+
+
+@pytest.fixture
+def pEp():
+    pEp = Mock()
+    pEp.engine_version = "1.0.0"
+    return pEp
 
 
 @pytest.fixture
