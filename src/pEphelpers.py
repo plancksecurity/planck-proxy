@@ -277,6 +277,7 @@ def sendmail(msg):
     # Replace dots at the beginning of a line with the MIME-encoded,
     # quoted-printable counterpart. Fuck you very much, Outlook!
     msg = re.sub("^\.", "=2E", msg, flags=re.M)
+    dbg(f"Sending message: {msg}")
     try:
         msgfrom, msgto = get_contact_info(msg, True)
         with smtplib.SMTP(settings["SMTP_HOST"], settings["SMTP_PORT"]) as server:
@@ -738,31 +739,31 @@ def get_contact_info(inmail, reinjection=False):
         except Exception:
             pass
 
-    # aliases_map_path = os.path.join(settings["home"], settings["aliases_map"])
-    # aliases = jsonlookup(aliases_map_path, msgto, False)
-    # if aliases is not None:
-    #     dbg("Delivered-To is an aliased address: " + c(", ".join(aliases), 3))
+    aliases_map_path = os.path.join(settings["home"], settings["aliases_map"])
+    aliases = jsonlookup(aliases_map_path, msgto, False)
+    if aliases is not None:
+        dbg("Delivered-To is an aliased address: " + c(", ".join(aliases), 3))
 
-    #     allrcpts = set()
-    #     for hdr in ("To", "CC", "BCC"):
-    #         try:
-    #             for a in ", ".join(getmailheaders(inmail, hdr)).split(", "):
-    #                 for mpr in mailparseregexes:
-    #                     rcpt = " ".join(re.findall(re.compile(mpr), a))
-    #                     if len(rcpt) > 0:
-    #                         allrcpts.add(rcpt)
-    #         except Exception:
-    #             # dbg("No " + hdr + " header in this message")
-    #             pass
+        allrcpts = set()
+        for hdr in ("To", "CC", "BCC"):
+            try:
+                for a in ", ".join(getmailheaders(inmail, hdr)).split(", "):
+                    for mpr in mailparseregexes:
+                        rcpt = " ".join(re.findall(re.compile(mpr), a))
+                        if len(rcpt) > 0:
+                            allrcpts.add(rcpt)
+            except Exception:
+                # dbg("No " + hdr + " header in this message")
+                pass
 
-    #     dbg("All recipients / Alias candidates: " + c(", ".join(allrcpts), 5))
-    #     for r in allrcpts:
-    #         if r in aliases:
-    #             dbg("Matching alias found: " + c(r, 2))
-    #             msgto = r
-    #             break
-    #     else:
-    #         dbg(c("Couldn't match alias to original Delivered-To!", 1))
+        dbg("All recipients / Alias candidates: " + c(", ".join(allrcpts), 5))
+        for r in allrcpts:
+            if r in aliases:
+                dbg("Matching alias found: " + c(r, 2))
+                msgto = r
+                break
+        else:
+            dbg(c("Couldn't match alias to original Delivered-To!", 1))
 
     if msgto.count("@") != 1:
         dbg(c("No clue how we've been contacted. Giving up...", 1))
