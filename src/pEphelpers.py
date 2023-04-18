@@ -611,6 +611,7 @@ def decryptusingsq(inmail, secretkeyglob):
         re.MULTILINE | re.DOTALL,
     )
     pgpparts = patt.findall(inmail)
+    keyused = None
 
     dbg(c("[!] Fallback-decrypting via sq CLI tool", 1))
     # dbg("Inmail: " + str(inmail))
@@ -636,9 +637,7 @@ def decryptusingsq(inmail, secretkeyglob):
             p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
             stdout, stderr = p.communicate()
             rc = p.returncode
-            # dbg("STDOUT: " + c(stdout.decode("utf8"), 2))
-            # dbg("STDERR: " + c(stderr.decode("utf8"), 1))
-            # dbg("Return code: " + c(str(rc), 3));
+
             if rc == 0:
                 keyused = [re.search(r"[0-9a-zA-Z]{40}", secretkey)[0]]
                 break

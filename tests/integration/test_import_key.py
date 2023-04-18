@@ -2,7 +2,7 @@ import subprocess
 import sqlite3
 import pytest
 from override_settings import override_settings
-from pEphelpers import get_contact_info
+from src.pEphelpers import get_contact_info
 
 
 @pytest.mark.parametrize("collect_email", ["basic.enc.eml"], indirect=True)
@@ -22,7 +22,10 @@ def test_import_extra_key(
 
     # Run the command
     command = f"./pEpgate decrypt --settings_file {settings_file}"
-    subprocess.run([command], shell=True, capture_output=True, input=collect_email)
+    p = subprocess.run([command], shell=True, capture_output=True, input=collect_email)
+
+    assert p.stderr == b""
+    assert p.returncode == 0
 
     # Check that the key is in the pEp Database
     keys_db = test_dirs["work"] / test_email_to / ".pEp" / "keys.db"

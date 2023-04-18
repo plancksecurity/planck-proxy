@@ -486,7 +486,7 @@ def process_message(pEp, message):
                 dbg(c("Decrypting message via Sequoia...", 2))
                 tmp = decryptusingsq(
                     message.msg["inmail"],
-                    os.path.join(settings["work_dir"], "sec.*.key"),
+                    os.path.join(settings["keys_dir"], "sec.*.key"),
                 )
                 dst, keys, rating = (
                     pEp.Message(tmp[0]),
