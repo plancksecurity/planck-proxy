@@ -533,6 +533,13 @@ def process_message(pEp, message):
 
     message.msg["dst"] = dst
 
+    # Log processed message
+    logfilename = os.path.join(settings["logpath"], "in." + settings["mode"] + ".processed.eml")
+    dbg("p≡p-processed message: " + c(logfilename, 6) + "\n" + str(dst)[0:1337])
+    logfile = codecs.open(logfilename, "w", "utf-8")
+    logfile.write(str(dst))
+    logfile.close()
+
 
 # ### Scan pipeline #################################################################################
 
