@@ -13,7 +13,7 @@ from pEpgatemain import (
     get_message,
     set_addresses,
     enable_dts,
-    addr_domain_rewrite,
+    # addr_domain_rewrite,
     init_workdir,
     check_initial_import,
     print_summary_info,
@@ -21,12 +21,12 @@ from pEpgatemain import (
     load_pep,
     import_keys,
     print_keys_and_headers,
-    check_sender_privkey,
-    set_own_identity,
+    # check_sender_privkey,
+    # set_own_identity,
     create_pEp_message,
     process_message,
     filter_message,
-    add_routing_and_headers,
+    # add_routing_and_headers,
     deliver_mail,
     log_session,
 )
@@ -112,7 +112,7 @@ def main(cli_args):
     get_message(message)
     set_addresses(message)
     enable_dts(message)
-    addr_domain_rewrite(message)
+    # addr_domain_rewrite(message)
     init_workdir(message)
 
     # Handle keys and decrypt
@@ -123,8 +123,8 @@ def main(cli_args):
     if import_needed:
         import_keys(pEp)
     print_keys_and_headers(message)
-    check_sender_privkey(message)
-    set_own_identity(pEp, message)
+    # check_sender_privkey(message)
+    # set_own_identity(pEp, message)
     create_pEp_message(pEp, message)
     process_message(pEp, message)
 
@@ -132,7 +132,7 @@ def main(cli_args):
     filter_message(message)
 
     # Finish processing and deliver
-    add_routing_and_headers(pEp, message)
+    # add_routing_and_headers(pEp, message)
     deliver_mail(message)
     log_session()
 
@@ -149,15 +149,15 @@ if __name__ == "__main__":
         default=get_default("DEBUG", type=bool),
         help=f'Set DEBUG mode, default is {get_default("DEBUG")}',
     )
-    parser.add_argument(
-        "--EXTRA_KEYS",
-        nargs="*",
-        default=get_default("EXTRA_KEYS", type=list),
-        help=(
-            f"Space-separated fingerprint(s) to use as extra key(s) when encrypting"
-            f'messages, default is "{get_default("EXTRA_KEYS")}"'
-        ),
-    )
+    # parser.add_argument(
+    #     "--EXTRA_KEYS",
+    #     nargs="*",
+    #     default=get_default("EXTRA_KEYS", type=list),
+    #     help=(
+    #         f"Space-separated fingerprint(s) to use as extra key(s) when encrypting"
+    #         f'messages, default is "{get_default("EXTRA_KEYS")}"'
+    #     ),
+    # )
     parser.add_argument(
         "--keys_dir",
         default=get_default("keys_dir"),
