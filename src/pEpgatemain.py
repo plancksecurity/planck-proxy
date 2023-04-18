@@ -18,7 +18,6 @@ from pEphelpers import (
     cleanup,
     get_contact_info,
     getmailheaders,
-    jsonlookup,
     messageToSend,
     notifyHandshake,
     keysfromkeyring,
@@ -229,33 +228,6 @@ def enable_dts(message):
             dbg(c("Domain is not allowed to request a debug log", 1))
 
 
-# ### Address- & domain-rewriting (for asymmetric inbound/outbound domains) #########################
-
-
-# def addr_domain_rewrite(message):
-#     """
-#     Address- & domain-rewriting (for asymmetric inbound/outbound domains)
-
-#     Args:
-#         message (Message): an instance of the Message class containing 'us' dictionary.
-
-#     Returns:
-#         None
-#     """
-
-#     forwarding_map_path = os.path.join(settings["home"], settings["forwarding_map"])
-#     rewrite = jsonlookup(forwarding_map_path, message.us["addr"], False)
-#     if rewrite is not None:
-#         dbg("Rewriting our address from " + c(message.us["addr"], 1) + " to " + c(rewrite, 3))
-#         message.us["addr"] = rewrite
-#     else:
-#         ourdomain = message.us["addr"][message.us["addr"].rfind("@") :]
-#         rewrite = jsonlookup(forwarding_map_path, ourdomain, False)
-#         if rewrite is not None:
-#             dbg("Rewriting domain of message from " + c(ourdomain, 3) + " to " + c(rewrite, 1))
-#             message.us["addr"] = message.us["addr"].replace(ourdomain, rewrite)
-
-
 # ### Create & set working directory ################################################################
 
 
@@ -425,104 +397,6 @@ def print_keys_and_headers(message):
     )
 
 
-# ### Check if we have a private key for "us" #######################################################
-
-
-# def check_sender_privkey(message):
-#     """
-#     Check if we have a private key for the sender
-
-#     Args:
-#         message (Message):  an instance of the Message class containing the 'us' dictionary.
-
-#     Returns:
-#         None
-#     """
-#     ourkey = keysfromkeyring(message.us["addr"])
-#     if ourkey is False:
-#         dbg("No private key for our address " + c(message.us["addr"], 3) + ", p≡p will have to generate one later")
-#         ourkeyname = ourkeyaddr = ourkeyfpr = None
-#     else:
-#         dbg(
-#             c("Found existing private key for our address ", 2) + c(message.us["addr"], 5) + ":\n"
-#               + prettytable(ourkey)
-#         )
-#         # TODO: this doesn't support multiple UID's per key, we should figure out the most recent one
-#         ourkeyname = ourkey[0]["key_blob"]["username"]
-#         ourkeyaddr = ourkey[0]["pEp_keys.db"]["UserID"]
-#         ourkeyfpr = ourkey[0]["pEp_keys.db"]["KeyID"]
-#         dbg("Our key name: " + ourkeyname)
-#         dbg("Our key addr: " + ourkeyaddr)
-#         dbg("Our key fpr:  " + ourkeyfpr)
-
-#         message.us["keyname"] = ourkeyname
-#         message.us["keyaddr"] = ourkeyaddr
-#         message.us["keyfpr"] = ourkeyfpr
-
-
-# ### Create/set own identity ######################################################################
-# def set_own_identity(pEp, message):
-#     """
-#     Create or set our own p≡p identity
-
-#     Args:
-#         pEp (module): The p≡p engine module object.
-#         message (Message):  an instance of the Message class containing the 'us' and 'them' dictionaries.
-
-#     Returns:
-#         None
-#     """
-#     username_map_path = os.path.join(settings["home"], settings["username_map"])
-#     ourname = jsonlookup(username_map_path, message.us["addr"], False)
-
-#     if message.us["keyname"] is None and message.us["keyaddr"] is None and message.us["keyfpr"] is None:
-#         dbg(c("No existing key found, letting p≡p generate one", 3))
-#         if ourname is None:
-#             import re
-
-#             ourname = re.sub(r"\@", " at ", message.us["addr"])
-#             ourname = re.sub(r"\.", " dot ", ourname)
-#             ourname = re.sub(r"\W+", " ", ourname)
-#             dbg(
-#                 c("No matching name found", 1)
-#                 + " for address "
-#                 + c(message.us["addr"], 3)
-#                 + ", using de-@'ed address as name: "
-#                 + c(ourname, 5)
-#             )
-#         else:
-#             dbg("Found name matching our address " + c(message.us["addr"], 3) + ": " + c(ourname, 2))
-
-#         i = pEp.Identity(message.us["addr"], ourname)
-#         pEp.myself(i)
-#         # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
-#         ourpepid = pEp.Identity(message.us["addr"], ourname)
-#     else:
-#         dbg(c("Found existing key, p≡p will import/use it", 2))
-#         if ourname is not None and ourname != message.us["keyname"]:
-#             dbg(
-#                 c(
-#                     "Name inside existing key ("
-#                     + message.us["keyname"]
-#                     + ") differs from the one found in username.map ("
-#                     + ourname
-#                     + "), using the latter",
-#                     3,
-#                 )
-#             )
-#             i = pEp.Identity(message.us["keyaddr"], ourname)
-#             # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
-#             ourpepid = pEp.Identity(message.us["keyaddr"], ourname)
-#         else:
-#             i = pEp.Identity(message.us["keyaddr"], message.us["keyname"])
-#             # redundancy needed since we can't use myself'ed or update'd keys in pEp.Message.[to|from]
-#             ourpepid = pEp.Identity(message.us["keyaddr"], message.us["keyname"])
-
-#         i.fpr = message.us["keyfpr"]
-
-#     message.us["pepid"] = ourpepid
-
-
 # ### Prepare message for processing by p≡p #########################################################
 
 
@@ -539,11 +413,6 @@ def create_pEp_message(pEp, message):
     """
     try:
         src = pEp.Message(message.msg["inmail"])
-
-        # if settings["mode"] == "decrypt":
-        # src.to = [message.us["pepid"]]
-        # TODO: implement proper echo-protocol handling
-        # src.recv_by = message.us["pepid"]
 
         # Get rid of CC and BCC for loop-avoidance (since Postfix gives us one separate message per recipient)
         src.cc = []
@@ -626,6 +495,8 @@ def process_message(pEp, message):
                 )
                 dbg(c("Decrypted in", 2), True)
 
+            dbg(f"Message rating {rating}")
+
             if str(rating) == "have_no_key":
                 keys_path = os.path.join(settings["home"], settings["keys_dir"])
                 dbg(
@@ -637,12 +508,12 @@ def process_message(pEp, message):
                     )
                 )
                 # exit(7)
-
-            if keys is None or len(keys) == 0:
-                dbg(c("Original message was NOT encrypted", 1))
-                # TODO: add policy setting to enforce inbound encryption (allow/deny-list?)
             else:
-                dbg(c("Original message was encrypted to these keys", 2) + ":\n" + prettytable(list(set(keys))))
+                if keys is None or len(keys) == 0:
+                    dbg(c("Original message was NOT encrypted", 1))
+                    # TODO: add policy setting to enforce inbound encryption (allow/deny-list?)
+                else:
+                    dbg(c("Original message was encrypted to these keys", 2) + ":\n" + prettytable(list(set(keys))))
 
         # Workaround for engine converting plaintext-only messages into a msg.txt inline-attachment
         # dst = str(dst).replace(' filename="msg.txt"', "")
@@ -733,61 +604,6 @@ def filter_message(message):
         exit(1)  # keep message on hold
 
 
-# def add_routing_and_headers(pEp, message):
-#     """
-#     Complete mail headers with MX routing snd version information
-
-#     Args:
-#         pEp (module): The p≡p engine module object.
-#         message (Message):  an instance of the Message class containing the 'msg', 'us' and 'them' dictionaries.
-
-#     Returns:
-#         None
-
-#     """
-#     global settings
-#     settings["nextmx"] = None
-#     opts = {
-#         "X-pEpGate-mode": settings["mode"],
-#         "X-pEpGate-version": settings["gate_version"],
-#         "X-pEpEngine-version": pEp.engine_version,
-#         "X-NextMX": "auto",
-#     }
-
-#     nextmx_path = os.path.join(settings["home"], settings["nextmx_map"])
-
-#     if settings["mode"] == "decrypt":
-#         nextmx = jsonlookup(
-#             nextmx_path,
-#             message.us["pepid"].address[message.us["pepid"].address.rfind("@") + 1 :],
-#             False,
-#         )
-
-#     if nextmx is not None:
-#         settings["netmx"] = nextmx
-#         dbg(c("Overriding next MX: " + nextmx, 3))
-#         opts["X-NextMX"] = nextmx
-
-#     opts.update(message.msg["dst"].opt_fields)
-#     message.msg["dst"].opt_fields = opts
-
-#     if settings["DEBUG"]:
-#         dbg(
-#             "Optional headers:\n" + prettytable(message.msg["dst"].opt_fields),
-#             pub=False,
-#         )
-
-#     dst = str(message.msg["dst"])
-#     message.msg["dst"] = dst
-
-#     # Log processed message
-#     logfilename = os.path.join(settings["logpath"], "in." + settings["mode"] + ".processed.eml")
-#     dbg("p≡p-processed message: " + c(logfilename, 6) + "\n" + str(dst)[0:1337])
-#     logfile = codecs.open(logfilename, "w", "utf-8")
-#     logfile.write(dst)
-#     logfile.close()
-
-
 def deliver_mail(message):
     """
     Send outgoing mail
@@ -799,8 +615,7 @@ def deliver_mail(message):
         None
 
     """
-    settings["nextmx"] = None
-    dbg("Sending mail via MX: " + (c("auto", 3) if settings["nextmx"] is None else c(str(settings["nextmx"]), 1)))
+    dbg("Sending mail")
     dbg(
         "From: "
         + ((c(message.msg["src"].from_.username, 2)) if len(message.msg["src"].from_.username) > 0 else "")
@@ -815,7 +630,6 @@ def deliver_mail(message):
     if settings["DEBUG"] and "discard" in message.msg["src"].to[0].address:
         dbg("Keyword discard found in recipient address, skipping call to sendmail")
     else:
-        # sendmail(message.msg["dst"])
         sendmail(message.msg["inmail"])
 
     dbg("===== " + c("p≡pGate ended", 1) + " =====")

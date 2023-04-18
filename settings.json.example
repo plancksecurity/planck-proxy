@@ -1,40 +1,23 @@
 {
-
     "work_dir":         "work",
 
-"keys_dir":         "keys",
+    "keys_dir":         "keys",
 
-"logfile":          "debug.log",
+    "logfile":          "debug.log",
 
-"EXTRA_KEYS":       [ "1234ABCDEF1234ABCDEF1234ABCDEF1234ABCDEF" ],
+    "SMTP_HOST":        "127.0.0.1",
+    "SMTP_PORT":        "25",
 
-"SMTP_HOST":        "127.0.0.1",
-"SMTP_PORT":        "25",
+    "sq_bin":           "/usr/local/bin/sq",
 
-"sq_bin":           "/usr/local/bin/sq",
+    "admin_addr":       "someone@yourcompany.tld",
 
-"forwarding_map":   "forwarding.map",
+    "dts_domains":      [ "yourcompany.tld" ],
 
-"username_map":     "username.map",
+    "DEBUG":            false,
 
-"nextmx_map":       "nextmx.map",
-
-"aliases_map":      "aliases.map",
-
-"admin_addr":       "someone@yourcompany.tld",
-
-"dts_domains":      [ "yourcompany.tld" ],
-
-"reset_senders":     [ "service@yourcompany.tld" ],
-
-"never_pEp":        [ "apple.com" ],
-
-"DEBUG":            false,
-
-"noencrypt_senders":    ["None"],
-
-"scan_pipes": [
-    {"name": "SpamAssassin", "cmd": "spamc --check -"},
-    {"name": "ClamAV", "cmd": "clamdscan --verbose -z -"}
-]
+    "scan_pipes": [
+        {"name": "SpamAssassin", "cmd": "spamc --check -"},
+        {"name": "ClamAV", "cmd": "clamdscan --verbose -z -"}
+    ]
 }

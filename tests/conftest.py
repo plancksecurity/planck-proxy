@@ -114,15 +114,15 @@ def obtain_key_db(test_dirs):
     return dest_folder
 
 
-@pytest.fixture
-def mailbot_address():
-    """
-    Get a random address for a pEp mailbot
-    """
-    return (
-        "".join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=16))
-        + "@test.pep.security"
-    )
+# @pytest.fixture
+# def mailbot_address():
+#     """
+#     Get a random address for a pEp mailbot
+#     """
+#     return (
+#         "".join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=16))
+#         + "@test.pep.security"
+#     )
 
 
 @pytest.fixture
@@ -166,7 +166,6 @@ def test_settings_dict(test_dirs, extra_keypair):
         "work_dir": str(test_dirs["work"]),
         "keys_dir": str(test_dirs["keys"]),
         "test-nomails": True,
-        "EXTRA_KEYS": [extra_keypair.fpr],
         "DEBUG": True,
     }
     return test_settings

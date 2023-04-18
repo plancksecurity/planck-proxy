@@ -21,7 +21,7 @@ The core of the pEp Gate is the pEpgate.py script. It is intended to be invoked 
 You can see all the available arguments and their usage running the help command `./pEpgate.py -h`
 
 ```
-usage: pEpgate [-h] [--DEBUG] [--keys_dir KEYS_DIR] [--work_dir WORK_DIR] [--SMTP_HOST SMTP_HOST] [--SMTP_PORT SMTP_PORT] [--EXTRA_KEYS EXTRA_KEYS] [--settings_file SETTINGS_FILE] {encrypt,decrypt}
+usage: pEpgate [-h] [--DEBUG] [--keys_dir KEYS_DIR] [--work_dir WORK_DIR] [--SMTP_HOST SMTP_HOST] [--SMTP_PORT SMTP_PORT] [--settings_file SETTINGS_FILE] {encrypt,decrypt}
 
 pEp Proxy CLI.
 
@@ -31,8 +31,6 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --DEBUG               Set DEBUG mode, default is False
-  --EXTRA_KEYS EXTRA_KEYS
-                        FPR for the Extra Key to decrypt messages, default is "4BBCDBF5967AA2BDB26B5877C3329372697276DE"
   --keys_dir KEYS_DIR   Directory where the extra key should be imported from, default is "keys"
   --work_dir WORK_DIR   Directory where the command outputs are placed, default is "work"
   --SMTP_HOST SMTP_HOST
@@ -90,14 +88,6 @@ Working directory, will be populated with a structure like this:
 
 You must use this settings to specify the HOST and PORT of the SMTP server the p≡p Gate will use to send the messages.
 
-### nextmx.map
-
-This map is used to set the next hop mx address for each domains in the mail server.
-
-The p≡p Gate will look for the domain in the recipient's address as a key in this file, and use the value to populate the "X-NextMX" header. Otherwise this header will be "auto" and postfix would have to perform an MX lookup.
-
-This header will be used later on by postfix to send the emails, as referred in the Postfix's configuration `main.cf` file [(see below)](https://git.pep.security/pep/pEpGate/#maincf)
-
 ## Features
 
 ### Decryption
@@ -106,7 +96,6 @@ When the p≡p Gate is provided an encrypted message and set to the mode `decryp
 
 - The extra key has been properly imported and configured (see "usage and settings")
 - The message has been encrypted with the extra key
-- The key for the message's recipient has been imported to the p≡p Gate
 
 If the message meets those requirements or if the original message is unencrypted it will be processed into the `work_dir/<recipient>/<sender>/`folder
 
@@ -260,7 +249,7 @@ pepGateOUT  unix    -       n       n       -       1       pipe
 
 #### pEpGate
 
-Configure `settings.py` and `*.map` as needed
+Configure `settings.py` as needed
 
 ## Helper scripts
 
