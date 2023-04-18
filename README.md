@@ -1,6 +1,6 @@
-# p≡p Gate
+# planck Proxy
 
-This project provides a tool able to decrypt with p≡p incoming messages which are encrypted with an **extra key**, and pass them along unencrypted to a filtering system. Then the original message is sent encrypted to the next hop or discarded, based on the feedback of the filtering system.
+This project provides a tool able to decrypt with planck incoming messages which are encrypted with an **extra key**, and pass them along unencrypted to a filtering system. Then the original message is sent encrypted to the next hop or discarded, based on the feedback of the filtering system.
 
 ## Requirements
 
@@ -10,18 +10,18 @@ You can automatically insall all the python dependencies with the following comm
 
 `pip install -r requirements.txt`
 
-### p≡p python adapter
+### planck python adapter
 
-In order to run the p≡p Gate you need the p≡p Engine, the p≡p Python adapter and their dependencies installed. It can be done following [this guide](https://dev.pep.foundation/Adapter/Adapter%20Build%20Instructions_Version_3.x_DRAFT)
+In order to run the planck proxy you need the planck Engine, the planck Python adapter and their dependencies installed. It can be done following [this guide](https://dev.pep.foundation/Adapter/Adapter%20Build%20Instructions_Version_3.x_DRAFT)
 
 ## Usage and settings
 
-The core of the pEp Gate is the pEpgate.py script. It is intended to be invoked by a postfix setup in order to handle the decryption of messages. See the [Postfix configuration](https://git.pep.security/pep/pEpGate/#postfix-configuration).
+The core of the planck proxy is the planckProxy.py script. It is intended to be invoked by a postfix setup in order to handle the decryption of messages. See the [Postfix configuration](https://git.pep.security/pep/pEpGate/#postfix-configuration).
 
-You can see all the available arguments and their usage running the help command `./pEpgate.py -h`
+You can see all the available arguments and their usage running the help command `./planckProxy.py -h`
 
 ```
-usage: pEpgate [-h] [--DEBUG] [--keys_dir KEYS_DIR] [--work_dir WORK_DIR] [--SMTP_HOST SMTP_HOST] [--SMTP_PORT SMTP_PORT] [--settings_file SETTINGS_FILE] {encrypt,decrypt}
+usage: planckProxy [-h] [--DEBUG] [--keys_dir KEYS_DIR] [--work_dir WORK_DIR] [--SMTP_HOST SMTP_HOST] [--SMTP_PORT SMTP_PORT] [--settings_file SETTINGS_FILE] {encrypt,decrypt}
 
 pEp Proxy CLI.
 
@@ -41,7 +41,7 @@ optional arguments:
                         Route of the settings file to load, instead of the default settings route, which is <./settings.json>
 ```
 
-All the arguments can also be passed onto the script as environment variables with the same name as the command. For example `./pEpgate.py SMTP_HOST=192.168.0.1` is equivalent to `SMTP_HOST="192.168.0.1" ./pEpgate.py`
+All the arguments can also be passed onto the script as environment variables with the same name as the command. For example `./planckProxy.py SMTP_HOST=192.168.0.1` is equivalent to `SMTP_HOST="192.168.0.1" ./planckProxy.py`
 
 Arguments take priority over environment variables, and environment variables take priority over definitions on the settings.py file.
 
@@ -51,13 +51,13 @@ Enables sone debug testing features. If DEBUG is True, then the logs and the ema
 
 ### Extra key and keys dir
 
-To import the extra key into the p≡p Gate, the keypair must be placed into the `keys_dir` defined in the `settings.py` file.
+To import the extra key into the planck Gate, the keypair must be placed into the `keys_dir` defined in the `settings.py` file.
 By default this directory is set to the `keys` folder in the root of this same project.
 Since all the keys in the `keys_dir`will be imported, you need to specify the FPR for the extra key through the `EXTRA_KEYS` setting.
 
 ### Work dir
 
-It's the folder where the pEpgate command will output the results. By default this directory is set to the `work` folder in the root of this same project.
+It's the folder where the `planckProxy` command will output the results. By default this directory is set to the `work` folder in the root of this same project.
 Working directory, will be populated with a structure like this:
 
 ```
@@ -86,13 +86,13 @@ Working directory, will be populated with a structure like this:
 
 ### SMTP HOST and PORT
 
-You must use this settings to specify the HOST and PORT of the SMTP server the p≡p Gate will use to send the messages.
+You must use this settings to specify the HOST and PORT of the SMTP server the planck Gate will use to send the messages.
 
 ## Features
 
 ### Decryption
 
-When the p≡p Gate is provided an encrypted message and set to the mode `decrypt`, it will decrypt the message given the following conditions.
+When the planck Gate is provided an encrypted message and set to the mode `decrypt`, it will decrypt the message given the following conditions.
 
 - The extra key has been properly imported and configured (see "usage and settings")
 - The message has been encrypted with the extra key
@@ -105,27 +105,27 @@ If any of the `scan_pipes` fail, the message will be re-queued on postfix, a war
 
 ## Postfix configuration
 
-The p≡p Gate uses postfix to handle the message sending and queuing, so some configuration is needed in postfix to correctly bind the email flow to the p≡p Gate:
+The planck Gate uses postfix to handle the message sending and queuing, so some configuration is needed in postfix to correctly bind the email flow to the planck Gate:
 
 ### master.cf
 
-1. Define the pEp Gate in it's two modes in Postfix's master.cf as such:
+1. Define the planck Proxy in it's two modes in Postfix's master.cf as such:
 
 ```
 # Incoming decryption-proxy (specific addresses routed via "transport" file)
-pepgateIN unix - n n - 1 pipe
-flags=DRhu user=pepgate:pepgate argv=<path to pEpGate>/pEpgate decrypt
+planckproxyIN unix - n n - 1 pipe
+flags=DRhu user=planckproxy:planckproxy argv=<path to pEpGate>/planckProxy decrypt
 
 # Outgoing encryption-proxy (specific port routed above)
-pepgateOUT unix - n n - 1 pipe
-flags=DRhu user=pepgate:pepgate argv=<path to pEpGate>/pEpgate encrypt
+planckproxyOUT unix - n n - 1 pipe
+flags=DRhu user=planckproxy:planckproxy argv=<path to pEpGate>/planckProxy encrypt
 ```
 
 2. Define a dedicated port where the pEpGate in encryption mode is enforced, still in master.cf:
 
 ```
 588 inet n - y - - smtpd
--o content_filter=pepgateOUT
+-o content_filter=planckproxyOUT
 -o [ + whatever options you have for port 587/SUBMISSION ]
 ```
 
@@ -141,9 +141,9 @@ Example of /etc/postfix/transport:
 
 ```
 # pEpGate
-/^support@pep.*/ pepgateIN:
-/^noreply@pep.*/ pepgateIN:
-/^no-reply@pep.*/ pepgateIN:
+/^support@pep.*/ planckproxyIN:
+/^noreply@pep.*/ planckproxyIN:
+/^no-reply@pep.*/ planckproxyIN:
 ```
 
 2. Define inbound and outbound (smtp\_)header_checks in main.cf (pEp Gate adds an X-NextMX header to all messages, defined in nextmx.map):
@@ -228,11 +228,11 @@ virtual_mailbox_domains = gate365.peptest.ch
 
 # Incoming decryption-proxy (specific addresses routed via "transport" file)
 pepGateIN   unix    -       n       n       -       1       pipe
-    flags=DRhu user=pepgate:pepgate argv=/home/pEpGate/pEpgate decrypt
+    flags=DRhu user=planckproxy:planckproxy argv=/home/pEpGate/planckProxy decrypt
 
 # Outgoing encryption-proxy (specific port routed above)
 pepGateOUT  unix    -       n       n       -       1       pipe
-    flags=DRhu user=pepgate:pepgate argv=/home/pEpGate/pEpgate encrypt
+    flags=DRhu user=planckproxy:planckproxy argv=/home/pEpGate/planckProxy encrypt
 ```
 
 /etc/postfix/transport:
@@ -257,7 +257,7 @@ There are some utility scrips in the `scripts` folder that can be used externall
 
 ### Decrypt
 
-Decrypts a message using p≡p
+Decrypts a message using planck
 
 ```
 usage: decrypt.py [-h] [--key KEY] [--m M] msg
@@ -273,12 +273,12 @@ optional arguments:
 
 ### Encrypt
 
-Encrypts a message using p≡p
+Encrypts a message using planck
 
 ```
 usage: encrypt.py [-h] [--e E] [--m M] [--debug] msg our_key dest_key
 
-Encrypts an email message using p≡p
+Encrypts an email message using planck
 
 positional arguments:
   msg                   Path to the email to encrypt
