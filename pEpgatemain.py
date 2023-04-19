@@ -212,7 +212,7 @@ def jsonlookup(jsonmapfile, key, bidilookup=False):
 
 	# dbg("== " + key[:key.rfind("@")])
 	if jsonmapfile == fwdmappath and result is None and key[:key.rfind("@")] in ("root", "postmaster", "noreply", "no-reply"): # Silly debug catch-all for backscatter
-		result = "andy@pep-security.net" # must use the .net alias here since Exchange doesn't like From: aw@pep.sec and To: aw@pep.sec within one and the same message
+		result = "tech@planck.security" # must use the .net alias here since Exchange doesn't like From: aw@pep.sec and To: aw@pep.sec within one and the same message
 		dbg(c("Fallback-rewriting ", 2) + key + " to " + result)
 
 	return result
@@ -747,7 +747,10 @@ dbg("Sending mail via MX: " + (c("auto", 3) if nextmx is None else c(str(nextmx)
 dbg("From: " + ((c(src.from_.username, 2)) if len(src.from_.username) > 0 else "") + c(" <" + src.from_.address + ">", 3))
 dbg("  To: " + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "") + c(" <" + src.to[0].address + ">", 3))
 
+sendmail(str(dst))
+
 ### TODO: these if's should not be needed, we'll keep them though as long as pEp messes up unencrypted mails with attachments
+'''
 if mode == "decrypt":
 	if keys is None or len(keys) == 0:
 		dbg("Keys is none so input wasn't encrypted, forwarding input as output without pEp's mess")
@@ -769,7 +772,7 @@ if mode == "encrypt":
 	else:
 		dbg("We have a key for this recipient, sending the encrypted version")
 		sendmail(str(dst))
-
+'''
 
 dbg("===== " + c("p≡pgate ended", 1) + " =====")
 exit(0)
