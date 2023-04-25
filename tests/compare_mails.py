@@ -2,6 +2,16 @@ import email
 
 
 def get_email_body(email_string):
+    """
+    Extracts the body text from a given email message string.
+
+    Args:
+        email_string (str): the string representation of an email message
+
+    Returns:
+        str: the plain text body of the email message
+    """
+
     email_parser = email.parser.Parser()
     parsed_string = email_parser.parsestr(email_string)
 

@@ -6,57 +6,15 @@ import importlib
 import traceback
 
 from time import sleep
-from datetime import datetime
 from glob import glob
 from subprocess import Popen, PIPE
 
-from pEpgatesettings import settings
-from pEphelpers import (
-    dbg,
-    c,
-    prettytable,
-    cleanup,
-    get_contact_info,
-    getmailheaders,
-    messageToSend,
-    notifyHandshake,
-    keysfromkeyring,
-    dbgmail,
-    decryptusingsq,
-    sendmail,
-    getlog,
-)
-
-
-def print_init_info(args):
-    """
-    Print initialization information.
-
-    Args:
-        args (argparse.Namespace): Arguments.
-
-    Returns:
-        None
-    """
-    dbg(
-        "===== "
-        + c("p≡pGate started", 2)
-        + " in mode "
-        + c(settings["mode"], 3)
-        + " | PID "
-        + c(str(os.getpid()), 5)
-        + " | UID "
-        + c(str(os.getuid()), 6)
-        + " | GID "
-        + c(str(os.getgid()), 7)
-        + " ====="
-    )
-    if settings["DEBUG"]:
-        dbg(c("┌ Parameters", 5) + "\n" + prettytable(args.__dict__))
-        cur_settings = settings.copy()
-        for setting in ["adminlog", "textlog", "htmllog"]:
-            cur_settings.pop(setting)
-        dbg(c("┌ Settings (except logs)", 5) + "\n" + prettytable(cur_settings))
+from proxy_settings import settings
+from utils.printers import dbg, c, prettytable
+from utils.parsers import get_contact_info, get_mail_headers
+from utils.emails import dbgmail, sendmail, messageToSend, notifyHandshake
+from utils.cryptography import decryptusingsq
+from utils.hooks import cleanup
 
 
 def init_lockfile():
@@ -198,19 +156,18 @@ def set_addresses(message):
 
 def enable_dts(message):
     """
-    If sender enabled "Return receipt" and is part of the dts_domains setting,
-    allow cleanup() to send back debugging info
+    If sender enabled "Return receipt" and is part of the dts_domains setting, allow cleanup() to send back
+    debugging info
 
     Args:
-        message (Message): an instance of the Message class containing the parsed message
-                            in the 'msg' dictionary.
+        message (Message): an instance of the Message class containing the parsed message in the 'msg' dictionary.
 
     Returns:
         None
 
     """
     global settings
-    dts = getmailheaders(message.msg["inmail"], "Disposition-Notification-To")  # Debug To Sender
+    dts = get_mail_headers(message.msg["inmail"], "Disposition-Notification-To")  # Debug To Sender
 
     if len(dts) > 0:
         addr = dts[0]
@@ -266,68 +223,13 @@ def check_initial_import():
     return not os.path.exists(keys_db_path)
 
 
-# ### Summary #######################################################################################
-
-
-def print_summary_info(message):
-    """
-    Print summary information about the message and whether initial import is required
-
-    Args:
-        message (Message):  an instance of the Message class containing the 'msg' dictionary.
-
-    Returns:
-        None
-    """
-
-    dbg("       Message from: " + c(str(message.msg["msgfrom"]), 5))
-    dbg("         Message to: " + c(str(message.msg["msgto"]), 5))
-    dbg("        Our address: " + c(message.us["addr"], 3))
-    dbg("      Their address: " + c(message.them["addr"], 3))
-    dbg("    Initital import: " + ("Yes" if check_initial_import() else "No"))
-
-
-# ### Logging #######################################################################################
-
-
-def init_logging(message):
-    """
-    Log original message into the workdir
-
-    Args:
-        message (Message):  an instance of the Message class containing the 'msg' and 'them' dictionaries.
-
-    Returns:
-        None
-    """
-
-    global settings
-    logpath = os.path.join(
-        settings["work_dir"],
-        message.them["addr"],
-        datetime.now().strftime("%Y.%m.%d-%H.%M.%S.%f"),
-    )
-    settings["logpath"] = logpath
-    if not os.path.exists(logpath):
-        os.makedirs(logpath)
-
-    logfilename = os.path.join(logpath, "in." + settings["mode"] + ".original.eml")
-    dbg("   Original message: " + c(logfilename, 6))  # + "\n" + inmail)
-    logfile = codecs.open(logfilename, "w", "utf-8")
-    logfile.write(message.msg["inmail"])
-    logfile.close()
-
-    if settings["DEBUG"]:
-        dbg(f"init logpath to {settings['logpath']}")
-
-
 # ### Load p≡p ######################################################################################
 
 
 def load_pep():
     """
-    Import the p≡p engine. This will create the .pEp folder in the current $HOME
-    This method should never be called before init_workdir
+    Import the p≡p engine. This will create the .pEp folder in the current $HOME This method should never be called
+    before init_workdir, otherwise the .pEp folder would be located on the wrong folder.
 
     Returns:
         pEp (module): The p≡p engine module.
@@ -372,32 +274,7 @@ def import_keys(pEp):
         dbg("Imported key(s) from " + f, True)
 
 
-# ### Show me what you got ##########################################################################
-
-
-def print_keys_and_headers(message):
-    """
-    Print environment variables, keys in the keyring and headers in original message.
-
-    Args:
-        message (Message):  an instance of the Message class containing the 'msg' dictionary.
-
-    Returns:
-        None.
-    """
-    dbg(
-        c("┌ Environment variables", 5) + "\n" + prettytable(os.environ),
-        pub=False,
-    )
-    dbg(c("┌ Keys in this keyring (as stored in keys.db)", 5) + "\n" + prettytable(keysfromkeyring()))
-    dbg(
-        c("┌ Headers in original message (as seen by non-p≡p clients)", 5)
-        + "\n"
-        + prettytable(getmailheaders(message.msg["inmail"]))
-    )
-
-
-# ### Prepare message for processing by p≡p #########################################################
+# ### Prepare message for processing by planck #########################################################
 
 
 def create_pEp_message(pEp, message):
@@ -406,7 +283,7 @@ def create_pEp_message(pEp, message):
 
     Args:
         pEp (module): The p≡p engine module object.
-        message (Message):  an instance of the Message class containing the 'msg', 'us' and 'them' dictionaries.
+        message (Message):  an instance of the Message class containing the 'msg' dictionary.
 
     Returns:
         None
@@ -466,7 +343,7 @@ def process_message(pEp, message):
 
     Args:
         pEp (module): The p≡p engine module object.
-        message (Message):  an instance of the Message class containing the 'msg', 'us' and 'them' dictionaries.
+        message (Message):  an instance of the Message class containing the 'msg' dictionary.
 
     Returns:
         None
@@ -640,25 +517,3 @@ def deliver_mail(message):
         sendmail(message.msg["inmail"])
 
     dbg("===== " + c("p≡pGate ended", 1) + " =====")
-
-
-def log_session():
-    """
-    Save per-session logfiles
-
-    Args:
-        None
-
-    Returns:
-        None
-    """
-
-    logfilename = os.path.join(settings["logpath"], "debug.log")
-    logfile = codecs.open(logfilename, "w", "utf-8")
-    logfile.write(getlog("textlog"))
-    logfile.close()
-
-    logfilename = os.path.join(settings["logpath"], "debug.html")
-    logfile = codecs.open(logfilename, "w", "utf-8")
-    logfile.write(getlog("htmllog"))
-    logfile.close()

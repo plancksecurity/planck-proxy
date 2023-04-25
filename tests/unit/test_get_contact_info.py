@@ -4,7 +4,7 @@ import os
 import tempfile
 
 from email.message import Message
-from src.pEphelpers import get_contact_info, getmailheaders, jsonlookup
+from src.utils.parsers import get_contact_info, get_mail_headers
 
 
 @pytest.mark.parametrize(
@@ -54,45 +54,12 @@ def test_get_contact_fail(set_settings, collect_email):
         (["Invalid input"], None, False),
     ],
 )
-def test_getmailheaders(inmsg, headername, expected_output):
+def test_get_mail_headers(inmsg, headername, expected_output):
     assert (
-        getmailheaders(inmsg, headername) == expected_output
+        get_mail_headers(inmsg, headername) == expected_output
         if expected_output is False
-        else getmailheaders(inmsg, headername) == expected_output
+        else get_mail_headers(inmsg, headername) == expected_output
     )
-
-
-@pytest.fixture
-def json_map_file():
-    data = {
-        "colors": ["red", "green", "blue"],
-        "fruits": ["apple", "banana", "cherry"],
-        "vehicles": ["car", "bike", "boat"],
-    }
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-        json.dump(data, f)
-    yield f.name
-    f.close()
-    os.unlink(f.name)
-
-
-@pytest.mark.parametrize(
-    "key, expected_output, bidilookup",
-    [
-        ("colors", ["red", "green", "blue"], False),
-        ("fruits", ["apple", "banana", "cherry"], False),
-        ("vehicles", ["car", "bike", "boat"], False),
-        ("red", None, False),
-        ("car", None, False),
-        ("apple", None, False),
-        ("blue", "colors", True),
-        ("bike", "vehicles", True),
-        ("cherry", "fruits", True),
-    ],
-)
-def test_jsonlookup(json_map_file, key, expected_output, bidilookup):
-    result = jsonlookup(json_map_file, key, bidilookup=bidilookup)
-    assert result == expected_output
 
 
 def test_get_contact_info_sender_only():

@@ -2,88 +2,31 @@
 
 import argparse
 import atexit
-import sys
 import json
+import sys
 
-from pEphelpers import get_default, cleanup, except_hook, dbg
-from pEpgatesettings import settings, init_settings
-from pEpgatemain import (
-    print_init_info,
+
+from utils.message import Message
+from utils.hooks import cleanup, except_hook
+from utils.parsers import get_default
+from utils.printers import dbg, print_init_info, print_summary_info, print_keys_and_headers
+from utils.logging import init_logging, log_session
+
+from proxy_settings import settings, init_settings
+from proxy_main import (
     init_lockfile,
     get_message,
     set_addresses,
     enable_dts,
     init_workdir,
     check_initial_import,
-    print_summary_info,
-    init_logging,
     load_pep,
     import_keys,
-    print_keys_and_headers,
     create_pEp_message,
     process_message,
     filter_message,
     deliver_mail,
-    log_session,
 )
-
-from dataclasses import dataclass, field
-
-
-def init_msg():
-    """
-    Initializes a dictionary for storing message information.
-
-    Returns:
-        dict: A dictionary with the following keys:
-            - 'inmail': None
-            - 'msgfrom': None
-            - 'msgto': None
-            - 'src': None (pEp Message)
-            - 'dst': None (pEp Message)
-    """
-    return {
-        "inmail": None,
-        "msgfrom": None,
-        "msgto": None,
-        "src": None,
-        "dst": None,
-    }
-
-
-def init_person():
-    """
-    Initializes a dictionary for storing person information.
-
-    Returns:
-        dict: A dictionary with the following keys:
-            - 'addr': None
-            - 'key': None
-            - 'keyname': None
-            - 'keyaddr': None
-            - 'keyfpr': None
-            - 'pepid': None (pEp Identity)
-    """
-
-    return {
-        "addr": None,
-        "key": None,
-        "keyname": None,
-        "keyaddr": None,
-        "keyfpr": None,
-        "pepid": None,
-    }
-
-
-@dataclass
-class Message:
-    """
-    Dataclass for storing message information.
-    """
-
-    msg: dict = field(default_factory=init_msg)
-    us: dict = field(default_factory=init_person)
-    them: dict = field(default_factory=init_person)
 
 
 def main(cli_args):
@@ -132,9 +75,9 @@ def main(cli_args):
 
 if __name__ == "__main__":
     init_settings()
-    dbg(f"SETTINGS IMPORTED with 'HOME' as {settings['home']} and 'DTS' as {settings['dts']}")
+    dbg(f"SETTINGS IMPORTED with 'HOME' as {settings['home']}")
 
-    parser = argparse.ArgumentParser(description="pEp Proxy CLI.")
+    parser = argparse.ArgumentParser(description="planck Proxy CLI.")
     parser.add_argument("mode", choices=["decrypt"], help="Mode")
     parser.add_argument(
         "--DEBUG",

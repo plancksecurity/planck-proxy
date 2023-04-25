@@ -1,8 +1,9 @@
 import pytest
 import subprocess
 
-from src.pEpgatemain import filter_message
-from src.pEphelpers import get_contact_info
+from src.proxy_main import filter_message
+from src.utils.parsers import get_contact_info
+from src.utils.message import Message
 
 
 @pytest.mark.parametrize(
@@ -34,13 +35,14 @@ def test_dummy_filter_2(collect_email, expected, test_dirs):
 
 
 @pytest.mark.parametrize("collect_email", ["basic.eml"], indirect=True)
-def test_filtering_good(set_settings, test_dirs, collect_email, message):
+def test_filtering_good(set_settings, test_dirs, collect_email):
     email = collect_email.decode()
     test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     settings = set_settings
     settings["mode"] = "decrypt"
     settings["scan_pipes"] = [{"name": "dummy filter", "cmd": filter_command}]
+    message = Message()
     message.msg["dst"] = collect_email
     message.msg["msgfrom"] = test_email_from
 
@@ -48,13 +50,14 @@ def test_filtering_good(set_settings, test_dirs, collect_email, message):
 
 
 @pytest.mark.parametrize("collect_email", ["basic_filter_evil.eml"], indirect=True)
-def test_filtering_evil(set_settings, test_dirs, collect_email, message):
+def test_filtering_evil(set_settings, test_dirs, collect_email):
     email = collect_email.decode()
     test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     settings = set_settings
     settings["mode"] = "decrypt"
     settings["scan_pipes"] = [{"name": "dummy filter", "cmd": filter_command}]
+    message = Message()
     message.msg["dst"] = collect_email
     message.msg["msgfrom"] = test_email_from
 
@@ -65,13 +68,14 @@ def test_filtering_evil(set_settings, test_dirs, collect_email, message):
 
 
 @pytest.mark.parametrize("collect_email", ["basic_filter_retry.eml"], indirect=True)
-def test_filtering_retry(set_settings, test_dirs, collect_email, monkeypatch, message):
+def test_filtering_retry(set_settings, test_dirs, collect_email):
     email = collect_email.decode()
     test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
     settings = set_settings
     settings["mode"] = "decrypt"
     settings["scan_pipes"] = [{"name": "dummy filter", "cmd": filter_command}]
+    message = Message()
     message.msg["dst"] = collect_email
     message.msg["msgfrom"] = test_email_from
 
@@ -82,7 +86,7 @@ def test_filtering_retry(set_settings, test_dirs, collect_email, monkeypatch, me
 
 
 @pytest.mark.parametrize("collect_email", ["basic.eml"], indirect=True)
-def test_filtering_combined_pass(set_settings, test_dirs, collect_email, message):
+def test_filtering_combined_pass(set_settings, test_dirs, collect_email):
     email = collect_email.decode()
     test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
@@ -93,13 +97,14 @@ def test_filtering_combined_pass(set_settings, test_dirs, collect_email, message
         {"name": "dummy filter", "cmd": filter_command},
         {"name": "dummy filter 2", "cmd": filter_command_2},
     ]
+    message = Message()
     message.msg["dst"] = collect_email
     message.msg["msgfrom"] = test_email_from
     filter_message(message)
 
 
 @pytest.mark.parametrize("collect_email", ["basic_filter_evil.eml"], indirect=True)
-def test_filtering_combined_fail(set_settings, test_dirs, collect_email, message):
+def test_filtering_combined_fail(set_settings, test_dirs, collect_email):
     email = collect_email.decode()
     test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
@@ -110,6 +115,7 @@ def test_filtering_combined_fail(set_settings, test_dirs, collect_email, message
         {"name": "dummy filter", "cmd": filter_command},
         {"name": "dummy filter 2", "cmd": filter_command_2},
     ]
+    message = Message()
     message.msg["dst"] = collect_email
     message.msg["msgfrom"] = test_email_from
     with pytest.raises(SystemExit) as exec_info:

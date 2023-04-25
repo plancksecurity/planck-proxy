@@ -1,13 +1,15 @@
 import os
 import codecs
-from src.pEpgatemain import init_logging
+from src.utils.logging import init_logging
+from src.utils.message import Message
 
 
-def test_init_logging_creates_log_file(set_settings, test_dirs, message):
+def test_init_logging_creates_log_file(set_settings, test_dirs):
     settings = set_settings
     settings["mode"] = "decrypt"
     settings["work_dir"] = str(test_dirs["work"])
 
+    message = Message()
     message.them["addr"] = "user@example.com"
     message.msg["inmail"] = "This is a test message."
 

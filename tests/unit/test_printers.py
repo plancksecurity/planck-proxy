@@ -1,11 +1,8 @@
 import os
 import pytest
 
-from src.pEphelpers import dbg
-from src.pEphelpers import c
-from src.pEphelpers import toplain
-from src.pEphelpers import tohtml
-from src.pEpgate import *
+from src.utils.printers import c, dbg, tohtml, toplain
+from src.planckProxy import *
 
 
 def get_last_line(file_path):

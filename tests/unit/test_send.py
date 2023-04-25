@@ -1,4 +1,4 @@
-from src.pEphelpers import sendmail
+from src.utils.emails import sendmail
 import pytest
 import sys
 

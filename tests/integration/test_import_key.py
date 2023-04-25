@@ -2,7 +2,7 @@ import subprocess
 import sqlite3
 import pytest
 from override_settings import override_settings
-from src.pEphelpers import get_contact_info
+from src.utils.parsers import get_contact_info
 
 
 @pytest.mark.parametrize("collect_email", ["basic.enc.eml"], indirect=True)
@@ -21,7 +21,7 @@ def test_import_extra_key(
     settings_file = override_settings(test_dirs, settings_file, test_settings_dict)
 
     # Run the command
-    command = f"./pEpgate decrypt --settings_file {settings_file}"
+    command = f"./planckProxy decrypt --settings_file {settings_file}"
     p = subprocess.run([command], shell=True, capture_output=True, input=collect_email)
 
     assert p.stderr == b""

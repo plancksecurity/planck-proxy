@@ -1,18 +1,13 @@
 import os
 import glob
-import random
-import string
 import pytest
 import shutil
 
-import pEphelpers
-import pEpgatemain
-
 from dataclasses import dataclass
 from pathlib import Path
-from pEpgatesettings import init_settings
-from pEpgate import Message
-from unittest.mock import Mock
+
+from proxy_settings import init_settings
+from utils.hooks import cleanup
 
 
 @dataclass
@@ -23,32 +18,13 @@ class Key:
 
 
 EXTRA_KEY = Key("extra", "proxy@test.com", "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3")
-BOB_KEY = Key("bob", "bob@pep.security", "CC47DB45FDAF07712F1D9F5BFE0D6DE1B8C05AE8")
-ALICE_KEY = Key("alice", "alice@pep.security", "6002754A3B0551D9729E28168AD5EEE0A979C126")
-
-
-@dataclass
-class MockpEpMessage:
-    opt_fields: dict = None
-
-    def __str__(self):
-        return f"{self.opt_fields}"
-
-
-@dataclass
-class MockpEpId:
-    address: str = ""
-
-
-@pytest.fixture
-def pEp():
-    pEp = Mock()
-    pEp.engine_version = "1.0.0"
-    return pEp
 
 
 @pytest.fixture
 def test_dirs(tmp_path):
+    """
+    Create a dictionary with the paths needed for tests and some temporary folders
+    """
     return {
         "tmp": tmp_path,
         "root": Path(os.environ["TEST_ROOT"]),
@@ -62,6 +38,9 @@ def test_dirs(tmp_path):
 
 @pytest.fixture
 def extra_keypair(test_dirs):
+    """
+    Copy the extra key in the keys directory in the temporary folder
+    """
     pubkey = test_dirs["test_keys"] / str(EXTRA_KEY.fpr + ".pub.asc")
     privkey = test_dirs["test_keys"] / str(EXTRA_KEY.fpr + ".sec.asc")
 
@@ -74,34 +53,10 @@ def extra_keypair(test_dirs):
 
 
 @pytest.fixture
-def bob_key(test_dirs):
-    pubkey = test_dirs["test_keys"] / str(BOB_KEY.fpr + ".pub.asc")
-
-    if not os.path.exists(test_dirs["keys"]):
-        os.makedirs(test_dirs["keys"])
-
-    shutil.copy(pubkey, test_dirs["keys"])
-    return BOB_KEY
-
-
-@pytest.fixture
-def alice_key(test_dirs):
-    pubkey = test_dirs["test_keys"] / str(ALICE_KEY.fpr + ".pub.asc")
-
-    if not os.path.exists(test_dirs["keys"]):
-        os.makedirs(test_dirs["keys"])
-
-    shutil.copy(pubkey, test_dirs["keys"])
-    return ALICE_KEY
-
-
-@pytest.fixture
-def message():
-    return Message()
-
-
-@pytest.fixture
 def obtain_key_db(test_dirs):
+    """
+    Copy the test .pEp database into a temporary folder and return a path to it
+    """
     db_location = os.path.join(test_dirs["root"], "test_db")
     src_folder = os.path.join(db_location, ".pEp")
     dest_folder = str(test_dirs["tmp"])
@@ -112,17 +67,6 @@ def obtain_key_db(test_dirs):
     shutil.copytree(src_folder, dest_folder)
 
     return dest_folder
-
-
-# @pytest.fixture
-# def mailbot_address():
-#     """
-#     Get a random address for a pEp mailbot
-#     """
-#     return (
-#         "".join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=16))
-#         + "@test.pep.security"
-#     )
 
 
 @pytest.fixture
@@ -151,14 +95,14 @@ def set_settings(settings_file):
     """
     Init the settings with the settings file for tests.
 
-    This is intended to set the correct globals befor running any pEpGate code.
+    This is intended to set the correct globals before running any planckProxy code.
     """
 
     return init_settings(settings_file)
 
 
 @pytest.fixture
-def test_settings_dict(test_dirs, extra_keypair):
+def test_settings_dict(test_dirs):
     """
     Set the basic test_settings that will be used to overwrite the defaults on 'settings_tests.json'
     """
@@ -172,14 +116,10 @@ def test_settings_dict(test_dirs, extra_keypair):
 
 
 @pytest.fixture(autouse=True)
-def run_before_and_after_tests(monkeypatch, tmp_path, set_settings):
+def run_before_and_after_tests(tmp_path, set_settings):
     """Fixture to execute asserts before and after a test is run"""
     os.environ["HOME"] = str(tmp_path)
 
-    # overwrite sendmail for tests
-    monkeypatch.setattr(pEpgatemain, "sendmail", lambda msg: True)
-    monkeypatch.setattr(pEphelpers, "sendmail", lambda msg: True)
-
     yield  # this is where the testing happens
 
-    pEphelpers.cleanup()
+    cleanup()
