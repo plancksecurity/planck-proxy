@@ -141,10 +141,10 @@ def inspectusingsq(PGP):
 
 def decryptusingsq(inmail, secretkeyglob):
     """
-    Decrypts a PGP message using the sq CLI tool.
+    Decrypts an encrypted message using the sq CLI tool.
 
     Args:
-        inmail (str): The PGP message to decrypt.
+        inmail (str): The encrypted message to decrypt.
         secretkeyglob (str): A file glob pattern matching the secret key(s) to use for decryption.
 
     Returns:
@@ -167,19 +167,19 @@ def decryptusingsq(inmail, secretkeyglob):
         return c("No -----BEGIN PGP MESSAGE----- found in original message", 3)
 
     for p in pgpparts:
-        tmppath = "/tmp/pEpgate.pgppart." + str(os.getpid())
         if "=0A=" in p:
             import quopri
 
             p = quopri.decodestring(p).decode("utf-8")
 
-        # dbg("PGP part: " + c(p, 5))
-        open(tmppath, "w").write(str(p))
+        dbg("PGP part: " + c(p, 5))
+        tmppath = tempfile.NamedTemporaryFile(mode="w")
+        tmppath.write(str(p))
 
         for secretkey in glob(secretkeyglob):
             dbg(c("Trying secret key file " + secretkey, 3))
-            cmd = [sq_bin, "decrypt", "--recipient-key", secretkey, "--", tmppath]
-            # dbg("CMD: " + " ".join(cmd), pub=False)
+            cmd = [sq_bin, "decrypt", "--recipient-key", secretkey, "--", tmppath.name]
+            dbg("CMD: " + " ".join(cmd), pub=False)
             p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
             stdout, stderr = p.communicate()
             rc = p.returncode
@@ -187,8 +187,6 @@ def decryptusingsq(inmail, secretkeyglob):
             if rc == 0:
                 keyused = [re.search(r"[0-9a-zA-Z]{40}", secretkey)[0]]
                 break
-
-        os.unlink(tmppath)
 
         if len(stdout) > 0:
             patt = re.compile(r"Message-ID:.*?^$", re.MULTILINE | re.DOTALL)

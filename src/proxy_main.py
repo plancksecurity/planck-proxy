@@ -139,7 +139,7 @@ def set_addresses(message):
 
     Args:
         message (Message): The message object to store the sender and recipient addresses, containing the
-                            'msg', 'us' and 'them' dictionaries.
+                            'msg', dictionary.
 
     Returns:
         None.
@@ -150,8 +150,8 @@ def set_addresses(message):
     message.msg["msgfrom"] = msgfrom
     message.msg["msgto"] = msgto
 
-    message.them["addr"] = msgfrom
-    message.us["addr"] = msgto
+    # message.them["addr"] = msgfrom
+    # message.us["addr"] = msgto
 
 
 def enable_dts(message):
@@ -200,7 +200,7 @@ def init_workdir(message):
     """
 
     global settings
-    workdirpath = os.path.join(settings["home"], settings["work_dir"], message.us["addr"])
+    workdirpath = os.path.join(settings["home"], settings["work_dir"], message.msg["msgto"])
     if not os.path.exists(workdirpath):
         os.makedirs(workdirpath)
 
@@ -357,8 +357,6 @@ def process_message(pEp, message):
                 dbg(c("Decrypting message via pEp...", 2))
                 dst, keys, rating, flags = message.msg["src"].decrypt()
                 dbg(c("Decrypted in", 2), True)
-                # Lower the (potentially rewritten) outer recipient back into the inner message
-                # dst.to = [message.us["pepid"]]
             else:
                 dbg(c("Decrypting message via Sequoia...", 2))
                 tmp = decryptusingsq(
@@ -388,7 +386,6 @@ def process_message(pEp, message):
             else:
                 if keys is None or len(keys) == 0:
                     dbg(c("Original message was NOT encrypted", 1))
-                    # TODO: add policy setting to enforce inbound encryption (allow/deny-list?)
                 else:
                     dbg(c("Original message was encrypted to these keys", 2) + ":\n" + prettytable(list(set(keys))))
 

@@ -22,30 +22,6 @@ def init_msg():
     }
 
 
-def init_person():
-    """
-    Initializes a dictionary for storing person information.
-
-    Returns:
-        dict: A dictionary with the following keys:
-            - 'addr': None
-            - 'key': None
-            - 'keyname': None
-            - 'keyaddr': None
-            - 'keyfpr': None
-            - 'pepid': None (pEp Identity)
-    """
-
-    return {
-        "addr": None,
-        "key": None,
-        "keyname": None,
-        "keyaddr": None,
-        "keyfpr": None,
-        "pepid": None,
-    }
-
-
 @dataclass
 class Message:
     """
@@ -53,5 +29,3 @@ class Message:
     """
 
     msg: dict = field(default_factory=init_msg)
-    us: dict = field(default_factory=init_person)
-    them: dict = field(default_factory=init_person)

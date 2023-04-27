@@ -35,7 +35,7 @@ def init_logging(message):
     global settings
     logpath = os.path.join(
         settings["work_dir"],
-        message.them["addr"],
+        message.msg["msgfrom"],
         datetime.now().strftime("%Y.%m.%d-%H.%M.%S.%f"),
     )
     settings["logpath"] = logpath

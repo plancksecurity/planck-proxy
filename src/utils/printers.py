@@ -55,8 +55,8 @@ def print_summary_info(message):
 
     dbg("       Message from: " + c(str(message.msg["msgfrom"]), 5))
     dbg("         Message to: " + c(str(message.msg["msgto"]), 5))
-    dbg("        Our address: " + c(message.us["addr"], 3))
-    dbg("      Their address: " + c(message.them["addr"], 3))
+    # dbg("        Our address: " + c(message.us["addr"], 3))
+    # dbg("      Their address: " + c(message.them["addr"], 3))
     dbg("    Initital import: " + ("Yes" if check_initial_import() else "No"))
 
 
