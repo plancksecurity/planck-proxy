@@ -26,7 +26,7 @@ def init_logging(message):
     Log original message into the workdir
 
     Args:
-        message (Message):  an instance of the Message class containing the 'msg' and 'them' dictionaries.
+        message (Message):  an instance of the Message class.
 
     Returns:
         None
@@ -35,7 +35,7 @@ def init_logging(message):
     global settings
     logpath = os.path.join(
         settings["work_dir"],
-        message.msg["msgfrom"],
+        message.msgfrom,
         datetime.now().strftime("%Y.%m.%d-%H.%M.%S.%f"),
     )
     settings["logpath"] = logpath
@@ -45,7 +45,7 @@ def init_logging(message):
     logfilename = os.path.join(logpath, "in." + settings["mode"] + ".original.eml")
     dbg("   Original message: " + c(logfilename, 6))  # + "\n" + inmail)
     logfile = codecs.open(logfilename, "w", "utf-8")
-    logfile.write(message.msg["inmail"])
+    logfile.write(message.inmail)
     logfile.close()
 
     if settings["DEBUG"]:

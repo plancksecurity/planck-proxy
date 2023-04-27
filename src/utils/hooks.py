@@ -55,7 +55,7 @@ def cleanup():
         dbgmail(
             "As requested via activated Return Receipt here's your debug log:",
             settings["dts"],
-            "[DEBUG LOG] planck Gate @ " + socket.getfqdn(),
+            "[DEBUG LOG] planck Proxy @ " + socket.getfqdn(),
             attachments,
         )
 

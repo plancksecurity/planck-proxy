@@ -10,8 +10,8 @@ def test_init_logging_creates_log_file(set_settings, test_dirs):
     settings["work_dir"] = str(test_dirs["work"])
 
     message = Message()
-    message.msg["msgfrom"] = "user@example.com"
-    message.msg["inmail"] = "This is a test message."
+    message.msgfrom = "user@example.com"
+    message.inmail = "This is a test message."
 
     init_logging(message)
 

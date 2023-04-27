@@ -45,7 +45,7 @@ def print_summary_info(message):
     Print summary information about the message and whether initial import is required
 
     Args:
-        message (Message):  an instance of the Message class containing the 'msg' dictionary.
+        message (Message):  an instance of the Message class.
 
     Returns:
         None
@@ -53,10 +53,8 @@ def print_summary_info(message):
 
     from proxy_main import check_initial_import
 
-    dbg("       Message from: " + c(str(message.msg["msgfrom"]), 5))
-    dbg("         Message to: " + c(str(message.msg["msgto"]), 5))
-    # dbg("        Our address: " + c(message.us["addr"], 3))
-    # dbg("      Their address: " + c(message.them["addr"], 3))
+    dbg("       Message from: " + c(str(message.msgfrom), 5))
+    dbg("         Message to: " + c(str(message.msgto), 5))
     dbg("    Initital import: " + ("Yes" if check_initial_import() else "No"))
 
 
@@ -65,7 +63,7 @@ def print_keys_and_headers(message):
     Print environment variables, keys in the keyring and headers in original message.
 
     Args:
-        message (Message):  an instance of the Message class containing the 'msg' dictionary.
+        message (Message):  an instance of the Message class.
 
     Returns:
         None.
@@ -82,7 +80,7 @@ def print_keys_and_headers(message):
     dbg(
         c("┌ Headers in original message (as seen by non-p≡p clients)", 5)
         + "\n"
-        + prettytable(get_mail_headers(message.msg["inmail"]))
+        + prettytable(get_mail_headers(message.inmail))
     )
 
 

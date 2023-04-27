@@ -43,8 +43,8 @@ def test_filtering_good(set_settings, test_dirs, collect_email):
     settings["mode"] = "decrypt"
     settings["scan_pipes"] = [{"name": "dummy filter", "cmd": filter_command}]
     message = Message()
-    message.msg["dst"] = collect_email
-    message.msg["msgfrom"] = test_email_from
+    message.inmail_decrypted = collect_email
+    message.msgfrom = test_email_from
 
     filter_message(message)
 
@@ -58,8 +58,8 @@ def test_filtering_evil(set_settings, test_dirs, collect_email):
     settings["mode"] = "decrypt"
     settings["scan_pipes"] = [{"name": "dummy filter", "cmd": filter_command}]
     message = Message()
-    message.msg["dst"] = collect_email
-    message.msg["msgfrom"] = test_email_from
+    message.inmail_decrypted = collect_email
+    message.msgfrom = test_email_from
 
     with pytest.raises(SystemExit) as exec_info:
         filter_message(message)
@@ -76,8 +76,8 @@ def test_filtering_retry(set_settings, test_dirs, collect_email):
     settings["mode"] = "decrypt"
     settings["scan_pipes"] = [{"name": "dummy filter", "cmd": filter_command}]
     message = Message()
-    message.msg["dst"] = collect_email
-    message.msg["msgfrom"] = test_email_from
+    message.inmail_decrypted = collect_email
+    message.msgfrom = test_email_from
 
     with pytest.raises(SystemExit) as exec_info:
         filter_message(message)
@@ -98,8 +98,8 @@ def test_filtering_combined_pass(set_settings, test_dirs, collect_email):
         {"name": "dummy filter 2", "cmd": filter_command_2},
     ]
     message = Message()
-    message.msg["dst"] = collect_email
-    message.msg["msgfrom"] = test_email_from
+    message.inmail_decrypted = collect_email
+    message.msgfrom = test_email_from
     filter_message(message)
 
 
@@ -116,8 +116,8 @@ def test_filtering_combined_fail(set_settings, test_dirs, collect_email):
         {"name": "dummy filter 2", "cmd": filter_command_2},
     ]
     message = Message()
-    message.msg["dst"] = collect_email
-    message.msg["msgfrom"] = test_email_from
+    message.inmail_decrypted = collect_email
+    message.msgfrom = test_email_from
     with pytest.raises(SystemExit) as exec_info:
         filter_message(message)
     assert exec_info.type == SystemExit

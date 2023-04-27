@@ -129,29 +129,25 @@ def get_message(message):
         dbg(c("No message was passed to me. Aborting.", 1), pub=False)
         exit(2)
 
-    message.msg["inmail"] = inmail
+    # message.msg["inmail"] = inmail
+    message.inmail = inmail
 
 
 def set_addresses(message):
     """
-    Determines the sender and recipient of the message, making "them" the sender of the message and
-    "us" the recipient of the message.
+    Determines the sender and recipient of the message, and stores the "from" and "to" addresses in the message object
 
     Args:
-        message (Message): The message object to store the sender and recipient addresses, containing the
-                            'msg', dictionary.
+        message (Message): The message object to store the sender and recipient addresses.
 
     Returns:
         None.
     """
 
-    msgfrom, msgto = get_contact_info(message.msg["inmail"])
+    msgfrom, msgto = get_contact_info(message.inmail)
 
-    message.msg["msgfrom"] = msgfrom
-    message.msg["msgto"] = msgto
-
-    # message.them["addr"] = msgfrom
-    # message.us["addr"] = msgto
+    message.msgfrom = msgfrom
+    message.msgto = msgto
 
 
 def enable_dts(message):
@@ -160,14 +156,14 @@ def enable_dts(message):
     debugging info
 
     Args:
-        message (Message): an instance of the Message class containing the parsed message in the 'msg' dictionary.
+        message (Message): an instance of the Message class.
 
     Returns:
         None
 
     """
     global settings
-    dts = get_mail_headers(message.msg["inmail"], "Disposition-Notification-To")  # Debug To Sender
+    dts = get_mail_headers(message.inmail, "Disposition-Notification-To")  # Debug To Sender
 
     if len(dts) > 0:
         addr = dts[0]
@@ -190,17 +186,17 @@ def enable_dts(message):
 
 def init_workdir(message):
     """
-    Create workdir for ouraddr, and set it to the current $HOME
+    Create workdir for the message recipient, and set it to the current $HOME
 
     Args:
-        message (Message): an instance of the Message class containing 'us' dictionary.
+        message (Message): an instance of the Message class.
 
     Returns:
         None
     """
 
     global settings
-    workdirpath = os.path.join(settings["home"], settings["work_dir"], message.msg["msgto"])
+    workdirpath = os.path.join(settings["home"], settings["work_dir"], message.msgto)
     if not os.path.exists(workdirpath):
         os.makedirs(workdirpath)
 
@@ -279,21 +275,21 @@ def import_keys(pEp):
 
 def create_pEp_message(pEp, message):
     """
-    Create a p≡p message object and store it in the message.msg['src'] key.
+    Create a p≡p message object and store it in the message.inmail_parsed.
 
     Args:
         pEp (module): The p≡p engine module object.
-        message (Message):  an instance of the Message class containing the 'msg' dictionary.
+        message (Message):  an instance of the Message class.
 
     Returns:
         None
     """
     try:
-        src = pEp.Message(message.msg["inmail"])
+        inmail_parsed = pEp.Message(message.inmail)
 
         # Get rid of CC and BCC for loop-avoidance (since Postfix gives us one separate message per recipient)
-        src.cc = []
-        src.bcc = []
+        inmail_parsed.cc = []
+        inmail_parsed.bcc = []
 
     except Exception:
         e = sys.exc_info()
@@ -308,15 +304,15 @@ def create_pEp_message(pEp, message):
     try:
         dbg(
             "Processing message from "
-            + ((c(src.from_.username, 2)) if len(src.from_.username) > 0 else "")
-            + c(" <" + src.from_.address + ">", 3)
+            + ((c(inmail_parsed.from_.username, 2)) if len(inmail_parsed.from_.username) > 0 else "")
+            + c(" <" + inmail_parsed.from_.address + ">", 3)
             + " to "
-            + ((c(src.to[0].username, 2)) if len(src.to[0].username) > 0 else "")
-            + c(" <" + src.to[0].address + ">", 3)
+            + ((c(inmail_parsed.to[0].username, 2)) if len(inmail_parsed.to[0].username) > 0 else "")
+            + c(" <" + inmail_parsed.to[0].address + ">", 3)
         )
     except Exception:
         e = sys.exc_info()
-        errmsg = "Couldn't get src.from_ or src.to\n"
+        errmsg = "Couldn't get inmail_parsed.from_ or inmail_parsed.to\n"
         errmsg += "ERROR 5: " + str(e[0]) + ": " + str(e[1]) + "\n"
         errmsg += "Traceback:\n" + prettytable(
             [line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])]
@@ -330,20 +326,20 @@ def create_pEp_message(pEp, message):
     logfilename = os.path.join(settings["logpath"], "in." + settings["mode"] + ".parsed.eml")
     dbg("p≡p-parsed message: " + c(logfilename, 6))
     logfile = codecs.open(logfilename, "w", "utf-8")
-    logfile.write(str(src))
+    logfile.write(str(inmail_parsed))
     logfile.close()
 
-    message.msg["src"] = src
+    message.inmail_parsed = inmail_parsed
 
 
 # ### Let p≡p do it's magic #########################################################################
 def process_message(pEp, message):
     """
-    Decrypt the message
+    Decrypt the message and store in the message.inmail_decrypted attribute.
 
     Args:
         pEp (module): The p≡p engine module object.
-        message (Message):  an instance of the Message class containing the 'msg' dictionary.
+        message (Message):  an instance of the Message class.
 
     Returns:
         None
@@ -355,15 +351,15 @@ def process_message(pEp, message):
             pepfails = False
             if not pepfails:
                 dbg(c("Decrypting message via pEp...", 2))
-                dst, keys, rating, flags = message.msg["src"].decrypt()
+                inmail_decrypted, keys, rating, flags = message.inmail_parsed.decrypt()
                 dbg(c("Decrypted in", 2), True)
             else:
                 dbg(c("Decrypting message via Sequoia...", 2))
                 tmp = decryptusingsq(
-                    message.msg["inmail"],
+                    message.inmail,
                     os.path.join(settings["keys_dir"], "sec.*.key"),
                 )
-                dst, keys, rating = (
+                inmail_decrypted, keys, rating = (
                     pEp.Message(tmp[0]),
                     tmp[1],
                     None,
@@ -405,13 +401,13 @@ def process_message(pEp, message):
         # dst, keys, rating, flags = src, None, None, None
         # pass
 
-    message.msg["dst"] = dst
+    message.inmail_decrypted = inmail_decrypted
 
     # Log processed message
     logfilename = os.path.join(settings["logpath"], "in." + settings["mode"] + ".processed.eml")
-    dbg("p≡p-processed message: " + c(logfilename, 6) + "\n" + str(dst)[0:1337])
+    dbg("p≡p-processed message: " + c(logfilename, 6) + "\n" + str(inmail_decrypted)[0:1337])
     logfile = codecs.open(logfilename, "w", "utf-8")
-    logfile.write(str(dst))
+    logfile.write(str(inmail_decrypted))
     logfile.close()
 
 
@@ -420,10 +416,10 @@ def process_message(pEp, message):
 
 def filter_message(message):
     """
-    Run all the commands on the settings['scan_pipes'] for the message
+    Run all the commands on the settings['scan_pipes'] for the decrypted message
 
     Args:
-        message (Message):  an instance of the Message class containing the 'msg' dictionary.
+        message (Message):  an instance of the Message class.
 
     Returns:
         None
@@ -438,7 +434,7 @@ def filter_message(message):
         cmd = filter["cmd"]
         if settings["mode"] == "decrypt":
             dbg("Passing decrypted message to scanner " + c(name, 3))
-            msgtoscan = str(message.msg["dst"])
+            msgtoscan = str(message.inmail_decrypted)
         try:
             p = Popen(
                 cmd.split(" "),
@@ -477,8 +473,8 @@ def filter_message(message):
         dbg("All scans " + c("PASSED", 2) + ", relaying message", 2)
     else:
         dbg("Some scans " + c("FAILED", 1) + ", not relaying message (keeping it in the Postfix queue for now)")
-        admin_msg = f"A message from {message.msg['msgfrom']} and to {message.msg['msgfrom']} failed some of the scans."
-        dbgmail(msg=admin_msg, subject="pEp Gate Scan failure")
+        admin_msg = f"A message from {message.msgfrom} and to {message.msgto} failed some of the scans."
+        dbgmail(msg=admin_msg, subject="planck Proxy Scan failure")
         # sender_msg = f"Your message could not be delivered to {message.msg['msgto']}
         # because it failed some of our scans."
         # failurescanmail(sender_msg, message.msg['msgfrom'])
@@ -490,7 +486,7 @@ def deliver_mail(message):
     Send outgoing mail
 
     Args:
-        message (Message):  an instance of the Message class containing the 'msg' dictionary.
+        message (Message):  an instance of the Message class.
 
     Returns:
         None
@@ -499,18 +495,18 @@ def deliver_mail(message):
     dbg("Sending mail")
     dbg(
         "From: "
-        + ((c(message.msg["src"].from_.username, 2)) if len(message.msg["src"].from_.username) > 0 else "")
-        + c(" <" + message.msg["src"].from_.address + ">", 3)
+        + ((c(message.inmail_parsed.from_.username, 2)) if len(message.inmail_parsed.from_.username) > 0 else "")
+        + c(" <" + message.inmail_parsed.from_.address + ">", 3)
     )
     dbg(
         "  To: "
-        + ((c(message.msg["src"].to[0].username, 2)) if len(message.msg["src"].to[0].username) > 0 else "")
-        + c(" <" + message.msg["src"].to[0].address + ">", 3)
+        + ((c(message.inmail_parsed.to[0].username, 2)) if len(message.inmail_parsed.to[0].username) > 0 else "")
+        + c(" <" + message.inmail_parsed.to[0].address + ">", 3)
     )
 
-    if settings["DEBUG"] and "discard" in message.msg["src"].to[0].address:
+    if settings["DEBUG"] and "discard" in message.inmail_parsed.to[0].address:
         dbg("Keyword discard found in recipient address, skipping call to sendmail")
     else:
-        sendmail(message.msg["inmail"])
+        sendmail(message.inmail)
 
-    dbg("===== " + c("p≡pGate ended", 1) + " =====")
+    dbg("===== " + c("planck Proxy ended", 1) + " =====")
