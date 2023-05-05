@@ -10,9 +10,9 @@ You can automatically insall all the python dependencies with the following comm
 
 `pip install -r requirements.txt`
 
-### planck python adapter
+### pEp python adapter
 
-In order to run the planck proxy you need the planck Engine, the planck Python adapter and their dependencies installed. It can be done following [this guide](https://dev.pep.foundation/Adapter/Adapter%20Build%20Instructions_Version_3.x_DRAFT)
+In order to run the planck proxy you need the pEp Engine, the pEp Python adapter and their dependencies installed. It can be done following [this guide](https://dev.pep.foundation/Adapter/Adapter%20Build%20Instructions_Version_3.x_DRAFT)
 
 ## Usage and settings
 
@@ -105,7 +105,10 @@ If any of the `scan_pipes` fail, the message will be re-queued on postfix, a war
 
 ## Postfix configuration
 
-The planck Gate uses postfix to handle the message sending and queuing, so some configuration is needed in postfix to correctly bind the email flow to the planck Gate:
+The planck Gate uses postfix to handle the message sending and queuing, so some configuration is needed in postfix to correctly bind the email flow to the planck Proxy. We are also relying on the headers postfix is adding to the messages, so please *always use the flags=DRhu*.
+
+Delivered-To:
+Return-Path:
 
 ### master.cf
 
@@ -114,11 +117,11 @@ The planck Gate uses postfix to handle the message sending and queuing, so some 
 ```
 # Incoming decryption-proxy (specific addresses routed via "transport" file)
 planckproxyIN unix - n n - 1 pipe
-flags=DRhu user=planckproxy:planckproxy argv=<path to pEpGate>/planckProxy decrypt
+flags=DRhu user=planckproxy:planckproxy argv=<path to planckProxy>/planckProxy decrypt
 
 # Outgoing encryption-proxy (specific port routed above)
 planckproxyOUT unix - n n - 1 pipe
-flags=DRhu user=planckproxy:planckproxy argv=<path to pEpGate>/planckProxy encrypt
+flags=DRhu user=planckproxy:planckproxy argv=<path to planckProxy>/planckProxy encrypt
 ```
 
 2. Define a dedicated port where the pEpGate in encryption mode is enforced, still in master.cf:
@@ -140,10 +143,10 @@ transport_maps = regexp:/etc/postfix/transport
 Example of /etc/postfix/transport:
 
 ```
-# pEpGate
-/^support@pep.*/ planckproxyIN:
-/^noreply@pep.*/ planckproxyIN:
-/^no-reply@pep.*/ planckproxyIN:
+# planck Proxy
+/^support@planck.*/ planckproxyIN:
+/^noreply@planck.*/ planckproxyIN:
+/^no-reply@planck.*/ planckproxyIN:
 ```
 
 2. Define inbound and outbound (smtp\_)header_checks in main.cf (pEp Gate adds an X-NextMX header to all messages, defined in nextmx.map):
@@ -209,14 +212,14 @@ _ Apply to all messages
 _ Use the following connector: Mailhub outbound
 _ Except if the subject includes "NOENCRYPT" \* or the sender's IP address is in the range <Mailhub's IP>
 
-### On pEpProxy:
+### On planckProxy:
 
 #### Postfix
 
 /etc/postfix/main.cf:
 
 ```
-virtual_mailbox_domains = gate365.peptest.ch
+virtual_mailbox_domains = gate365.plancktest.ch
 ```
 
 /etc/postfix/master.cf:
@@ -224,27 +227,27 @@ virtual_mailbox_domains = gate365.peptest.ch
 ```
 25          inet    n       -       y       -       -       smtpd
 [...]
--o content_filter=pEpGateIN
+-o content_filter=planckproxyIN
 
 # Incoming decryption-proxy (specific addresses routed via "transport" file)
-pepGateIN   unix    -       n       n       -       1       pipe
-    flags=DRhu user=planckproxy:planckproxy argv=/home/pEpGate/planckProxy decrypt
+planckproxyIN   unix    -       n       n       -       1       pipe
+    flags=DRhu user=planckproxy:planckproxy argv=/home/planck_proxy/planckProxy decrypt
 
 # Outgoing encryption-proxy (specific port routed above)
 pepGateOUT  unix    -       n       n       -       1       pipe
-    flags=DRhu user=planckproxy:planckproxy argv=/home/pEpGate/planckProxy encrypt
+    flags=DRhu user=planckproxy:planckproxy argv=/home/planck_proxy/planckProxy encrypt
 ```
 
 /etc/postfix/transport:
 
 ```
-/^.*@{gate,proxy}365\.peptest\.ch/ smtp:<tenant slug>.onmicrosoft.com
+/^.*@{gate,proxy}365\.plancktest\.ch/ smtp:<tenant slug>.onmicrosoft.com
 ```
 
 /etc/postfix/virtual:
 
 ```
-@{gate,proxy}365.peptest.ch @<tenant slug>.onmicrosoft.com
+@{gate,proxy}365.plancktest.ch @<tenant slug>.onmicrosoft.com
 ```
 
 #### pEpGate

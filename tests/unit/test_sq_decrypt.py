@@ -1,5 +1,4 @@
 import pytest
-import os
 from src.utils.cryptography import decryptusingsq
 
 
@@ -14,8 +13,9 @@ def test_decryptusingsq_handles_missing_pgp_message():
 def test_sq_decrypt(collect_email, extra_keypair, test_dirs):
     key_path = test_dirs["keys"] / str(extra_keypair.fpr + ".sec.asc")
     assert key_path.exists()
-    dec_msg = decryptusingsq(str(collect_email), str(key_path))
-    assert dec_msg is None
+    dec_msg = decryptusingsq(collect_email.decode("utf-8"), str(key_path))
     assert len(dec_msg) == 2
     assert isinstance(dec_msg[0], str)
     assert isinstance(dec_msg[1], list)
+    assert "Hello" in dec_msg[0]
+    assert extra_keypair.fpr in dec_msg[1]

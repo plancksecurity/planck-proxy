@@ -6,7 +6,7 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
-from proxy_settings import init_settings
+from proxy_settings import settings, init_settings
 from utils.hooks import cleanup
 
 

@@ -1,5 +1,6 @@
 From: "Alice" <alice@pep.security>
 Delivered-To: bob@pep.security
+Disposition-Notification-To: dtsaddress@icandts.org
 To: "Bob" <bob@pep.security>
 Subject: Hello world!
 Date: Mon, 30 Jan 2023 09:00:00 +0200

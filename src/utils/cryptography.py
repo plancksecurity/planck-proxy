@@ -117,28 +117,6 @@ def keys_from_keyring(userid=None):
         return False
 
 
-def inspectusingsq(PGP):
-    """
-    Inspects the given PGP blob using Sequoia.
-
-    Args:
-        PGP (str): The PGP blob to be inspected.
-
-    Returns:
-        None
-    """
-    sq_bin = settings["sq_bin"]
-    tf = tempfile.NamedTemporaryFile()
-    tf.write(PGP.encode("utf8"))
-    cmd = [sq_bin, "inspect", "--certifications", tf.name]
-    p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-    p.wait()
-
-    for line in io.TextIOWrapper(p.stdout, encoding="utf-8", errors="strict"):
-        line = line.strip()
-        dbg(line)
-
-
 def decryptusingsq(inmail, secretkeyglob):
     """
     Decrypts an encrypted message using the sq CLI tool.
@@ -189,8 +167,9 @@ def decryptusingsq(inmail, secretkeyglob):
                 break
 
         if len(stdout) > 0:
-            patt = re.compile(r"Message-ID:.*?^$", re.MULTILINE | re.DOTALL)
-            pepparts = patt.findall(stdout.decode("utf8"))
-            ret += "\n".join(pepparts)
+            ret += stdout.decode("utf8")
+            # patt = re.compile(r"Message-ID:.*?^$", re.MULTILINE | re.DOTALL)
+            # pepparts = patt.findall(stdout.decode("utf8"))
+            # ret += "\n".join(pepparts)
 
     return [ret.replace("X-pEp-Wrapped-Message-Info: INNER\r\n", ""), keyused]

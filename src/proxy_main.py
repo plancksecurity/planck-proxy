@@ -159,7 +159,7 @@ def enable_dts(message):
         message (Message): an instance of the Message class.
 
     Returns:
-        None
+        settings (dict): the settings dictionary
 
     """
     global settings
@@ -170,12 +170,7 @@ def enable_dts(message):
         dts = "-".join(re.findall(re.compile(r"<?.*@(\w{2,}\.\w{2,})>?"), addr))
         dbg(c("Return receipt (debug log) requested by: " + str(addr), 3))
         if dts in settings["dts_domains"]:
-            dbg(
-                c(
-                    "Domain " + c(dts, 5) + " is allowed to request a debug log",
-                    2,
-                )
-            )
+            dbg(c("Domain " + c(dts, 5) + " is allowed to request a debug log", 2))
             settings["dts"] = addr
         else:
             dbg(c("Domain is not allowed to request a debug log", 1))
