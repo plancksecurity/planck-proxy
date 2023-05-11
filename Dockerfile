@@ -72,10 +72,10 @@ RUN make install
 RUN mkdir -p ~/src/libpEpTransport
 RUN cd ~/src/libpEpTransport
 RUN git clone https://gitea.pep.foundation/pEp.foundation/libpEpTransport .
-RUN echo 'PREFIX=$(HOME)/local' > local.conf
-RUN echo 'YML2_PATH=$(HOME)/src/yml2' >> local.conf
-RUN echo 'YML2_PROC=$(YML2_PATH)/yml2proc $(YML2_OPTS)' >> local.conf
-RUN echo 'YML2_OPTS=--encoding=utf8' >> local.conf
+RUN echo 'PREFIX=$(HOME)/local \
+    YML2_PATH=$(HOME)/src/yml2 \
+    YML2_PROC=$(YML2_PATH)/yml2proc $(YML2_OPTS) \
+    YML2_OPTS=--encoding=utf8' > local.conf
 RUN make 
 RUN make install
 
@@ -83,10 +83,10 @@ RUN make install
 RUN mkdir -p ~/src/pEpEngine
 RUN cd ~/src/pEpEngine
 RUN git clone https://gitea.pep.foundation/pEp.foundation/pEpEngine .
-RUN echo 'PREFIX=$(HOME)/local' > local.conf
-RUN echo 'YML2_PATH=$(HOME)/src/yml2' >> local.conf
-RUN echo 'ASN1C=$(PREFIX)/bin/asn1c' >> local.conf
-RUN echo 'DEBUG = release' >> local.conf
+RUN echo 'PREFIX=$(HOME)/local \
+    YML2_PATH=$(HOME)/src/yml2 \
+    ASN1C=$(PREFIX)/bin/asn1c \
+    DEBUG = release' > local.conf
 RUN make install
 RUN make dbinstall
 
