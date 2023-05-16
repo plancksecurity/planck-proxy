@@ -13,8 +13,7 @@ def test_dts(set_settings, collect_email):
     settings["work_dir"] = "work"
 
     message = Message()
-    message.inmail = str(collect_email)
+    message.inmail = collect_email.decode()
     enable_dts(message)
-    print(settings)
 
     assert settings["dts"] == "dtsaddress@icandts.org"
