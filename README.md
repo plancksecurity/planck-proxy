@@ -23,7 +23,7 @@ You can see all the available arguments and their usage running the help command
 ```
 usage: planckProxy [-h] [--DEBUG] [--keys_dir KEYS_DIR] [--work_dir WORK_DIR] [--SMTP_HOST SMTP_HOST] [--SMTP_PORT SMTP_PORT] [--settings_file SETTINGS_FILE] {encrypt,decrypt}
 
-pEp Proxy CLI.
+planck Proxy CLI.
 
 positional arguments:
   {decrypt}     Mode
@@ -110,28 +110,6 @@ The planck Gate uses postfix to handle the message sending and queuing, so some 
 Delivered-To:
 Return-Path:
 
-### master.cf
-
-1. Define the planck Proxy in it's two modes in Postfix's master.cf as such:
-
-```
-# Incoming decryption-proxy (specific addresses routed via "transport" file)
-planckproxyIN unix - n n - 1 pipe
-flags=DRhu user=planckproxy:planckproxy argv=<path to planckProxy>/planckProxy decrypt
-
-# Outgoing encryption-proxy (specific port routed above)
-planckproxyOUT unix - n n - 1 pipe
-flags=DRhu user=planckproxy:planckproxy argv=<path to planckProxy>/planckProxy encrypt
-```
-
-2. Define a dedicated port where the pEpGate in encryption mode is enforced, still in master.cf:
-
-```
-588 inet n - y - - smtpd
--o content_filter=planckproxyOUT
--o [ + whatever options you have for port 587/SUBMISSION ]
-```
-
 ### main.cf
 
 1. Define a transport map in Postfix's main.cf:
@@ -149,7 +127,7 @@ Example of /etc/postfix/transport:
 /^no-reply@planck.*/ planckproxyIN:
 ```
 
-2. Define inbound and outbound (smtp\_)header_checks in main.cf (pEp Gate adds an X-NextMX header to all messages, defined in nextmx.map):
+2. Define inbound and outbound (smtp\_)header_checks in main.cf (planck Proxy adds an X-NextMX header to all messages, defined in nextmx.map):
 
 ```
 header_checks      = regexp:/etc/postfix/header_checks_in
@@ -168,6 +146,17 @@ smtp_header_checks = regexp:/etc/postfix/header_checks_out
 ```
 /^X-NextMX:.*$/ IGNORE
 ```
+
+### master.cf
+
+Define the planck Proxy in it's two modes in Postfix's master.cf as such:
+
+```
+# Incoming decryption-proxy (specific addresses routed via "transport" file)
+planckproxyIN unix - n n - 1 pipe
+flags=DRhu user=planckproxy:planckproxy argv=<path to planckProxy>/planckProxy decrypt
+```
+
 
 ## Monitoring
 
@@ -233,9 +222,6 @@ virtual_mailbox_domains = gate365.plancktest.ch
 planckproxyIN   unix    -       n       n       -       1       pipe
     flags=DRhu user=planckproxy:planckproxy argv=/home/planck_proxy/planckProxy decrypt
 
-# Outgoing encryption-proxy (specific port routed above)
-pepGateOUT  unix    -       n       n       -       1       pipe
-    flags=DRhu user=planckproxy:planckproxy argv=/home/planck_proxy/planckProxy encrypt
 ```
 
 /etc/postfix/transport:
