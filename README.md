@@ -51,7 +51,7 @@ Enables sone debug testing features. If DEBUG is True, then the logs and the ema
 
 ### Extra key and keys dir
 
-To import the extra key into the planck Gate, the keypair must be placed into the `keys_dir` defined in the `settings.py` file.
+To import the extra key into the planck Proxy, the keypair must be placed into the `keys_dir` defined in the `settings.py` file.
 By default this directory is set to the `keys` folder in the root of this same project.
 Since all the keys in the `keys_dir`will be imported, you need to specify the FPR for the extra key through the `EXTRA_KEYS` setting.
 
@@ -86,13 +86,13 @@ Working directory, will be populated with a structure like this:
 
 ### SMTP HOST and PORT
 
-You must use this settings to specify the HOST and PORT of the SMTP server the planck Gate will use to send the messages.
+You must use this settings to specify the HOST and PORT of the SMTP server the planck Proxy will use to send the messages.
 
 ## Features
 
 ### Decryption
 
-When the planck Gate is provided an encrypted message and set to the mode `decrypt`, it will decrypt the message given the following conditions.
+When the planck Proxy is provided an encrypted message and set to the mode `decrypt`, it will decrypt the message given the following conditions.
 
 - The extra key has been properly imported and configured (see "usage and settings")
 - The message has been encrypted with the extra key
@@ -105,7 +105,7 @@ If any of the `scan_pipes` fail, the message will be re-queued on postfix, a war
 
 ## Postfix configuration
 
-The planck Gate uses postfix to handle the message sending and queuing, so some configuration is needed in postfix to correctly bind the email flow to the planck Proxy. We are also relying on the headers postfix is adding to the messages, so please *always use the flags=DRhu*.
+The planck Proxy uses postfix to handle the message sending and queuing, so some configuration is needed in postfix to correctly bind the email flow to the planck Proxy. We are also relying on the headers postfix is adding to the messages, so please *always use the flags=DRhu*.
 
 Delivered-To:
 Return-Path:
@@ -208,7 +208,7 @@ _ Except if the subject includes "NOENCRYPT" \* or the sender's IP address is in
 /etc/postfix/main.cf:
 
 ```
-virtual_mailbox_domains = gate365.plancktest.ch
+virtual_mailbox_domains = proxy365.plancktest.ch
 ```
 
 /etc/postfix/master.cf:
@@ -236,7 +236,7 @@ planckproxyIN   unix    -       n       n       -       1       pipe
 @{gate,proxy}365.plancktest.ch @<tenant slug>.onmicrosoft.com
 ```
 
-#### pEpGate
+#### planckProxy
 
 Configure `settings.py` as needed
 
