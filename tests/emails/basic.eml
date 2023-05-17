@@ -1,7 +1,8 @@
-From: <alice@pep.security>
+From: "Alice" <alice@pep.security>
 Delivered-To: bob@pep.security
 To: "Bob" <bob@pep.security>
 Subject: Hello world!
 Date: Mon, 30 Jan 2023 09:00:00 +0200
+Message-ID: <1fZtkf-2oQ-00@pep.security>
 
 Hello encrypted world!

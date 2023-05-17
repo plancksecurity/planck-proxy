@@ -1,4 +1,0 @@
-{
-	"support@hub.pep":      [ "support@pep.security", "contact@pep.security", "it@pep.security" ],
-	"support@pep.security": [ "support@pep.security", "contact@pep.security", "it@pep.security" ]
-}

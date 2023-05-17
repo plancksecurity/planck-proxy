@@ -1,12 +1,13 @@
 import os
 import glob
-import random
-import string
 import pytest
 import shutil
+
 from dataclasses import dataclass
 from pathlib import Path
-from pEpgatesettings import settings, init_settings
+
+from proxy_settings import settings, init_settings
+from utils.hooks import cleanup
 
 
 @dataclass
@@ -16,88 +17,109 @@ class Key:
     fpr: str
 
 
+EXTRA_KEY = Key("extra", "proxy@test.com", "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3")
 
-EXTRA_KEY = Key('extra', 'proxy@test.com', "3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3")
-BOB_KEY = Key('bob', 'bob@pep.security', "CC47DB45FDAF07712F1D9F5BFE0D6DE1B8C05AE8")
-ALICE_KEY = Key('alice', 'alice@pep.security', "")
-
-@pytest.hookimpl(trylast=True)  # run after configure for TempPathFactory
-def pytest_configure(config):
-    """
-    Change HOME to point to the base directory for this test session.
-    """
-    # FIXME: Find a official way to get this here
-    global TEST_HOME
-    TEST_HOME = config._tmp_path_factory.getbasetemp()
-    # TODO: Fix: Does not work for Windows
-    os.environ["HOME"] = str(TEST_HOME)
-
-def per_user_directory():
-    # BUG: This assumes Engine internals
-    # TODO: Fix: Does not work for Windows
-    return Path(os.environ["HOME"]) / ".pEp"
 
 @pytest.fixture
 def test_dirs(tmp_path):
+    """
+    Create a dictionary with the paths needed for tests and some temporary folders
+    """
     return {
-        'tmp': tmp_path,
-        'root': Path(os.environ['TEST_ROOT']),
-        'keys': tmp_path / "keys",
-        'test_keys': Path(os.environ['TEST_ROOT']) / "test_keys",
-        'work': tmp_path / "work",
-        'emails': Path(os.environ['TEST_ROOT']) / "emails",
+        "tmp": tmp_path,
+        "root": Path(os.environ["TEST_ROOT"]),
+        "project_root": Path(os.environ["PROJECT_ROOT"]),
+        "keys": tmp_path / "keys",
+        "test_keys": Path(os.environ["TEST_ROOT"]) / "test_keys",
+        "work": tmp_path / "work",
+        "emails": Path(os.environ["TEST_ROOT"]) / "emails",
     }
 
-@pytest.fixture
-def reset_pep_folder(tmp_path):
-    # TODO: Fix: Does not work for Windows
-    os.environ["HOME"] = str(tmp_path)
-    os.environ["PEP_HOME"] = str(tmp_path)
-    pep_folder = per_user_directory()
-    assert not pep_folder.exists()
-    pep_folder.mkdir(parents=True)
-    return pep_folder
 
 @pytest.fixture
 def extra_keypair(test_dirs):
-    pubkey = test_dirs['test_keys'] / str(EXTRA_KEY.fpr + '.pub.asc')
-    privkey = test_dirs['test_keys'] / str(EXTRA_KEY.fpr + '.sec.asc')
+    """
+    Copy the extra key in the keys directory in the temporary folder
+    """
+    pubkey = test_dirs["test_keys"] / str(EXTRA_KEY.fpr + ".pub.asc")
+    privkey = test_dirs["test_keys"] / str(EXTRA_KEY.fpr + ".sec.asc")
 
-    if not os.path.exists(test_dirs['keys']):
-        os.makedirs(test_dirs['keys'])
+    if not os.path.exists(test_dirs["keys"]):
+        os.makedirs(test_dirs["keys"])
 
-    shutil.copy(pubkey, test_dirs['keys'])
-    shutil.copy(privkey, test_dirs['keys'])
+    shutil.copy(pubkey, test_dirs["keys"])
+    shutil.copy(privkey, test_dirs["keys"])
     return EXTRA_KEY
 
-@pytest.fixture
-def bob_key(test_dirs):
-    pubkey = test_dirs['test_keys'] / str(BOB_KEY.fpr + '.pub.asc')
-
-    if not os.path.exists(test_dirs['keys']):
-        os.makedirs(test_dirs['keys'])
-
-    shutil.copy(pubkey, test_dirs['keys'])
-    return BOB_KEY
 
 @pytest.fixture
-def mailbot_address():
+def obtain_key_db(test_dirs):
     """
-    Get a random address for a pEp mailbot
+    Copy the test .pEp database into a temporary folder and return a path to it
     """
-    return ''.join(
-        random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=16)
-        ) + '@test.pep.security'
+    db_location = os.path.join(test_dirs["root"], "test_db")
+    src_folder = os.path.join(db_location, ".pEp")
+    dest_folder = str(test_dirs["tmp"])
+
+    if os.path.exists(dest_folder):
+        shutil.rmtree(dest_folder)
+
+    shutil.copytree(src_folder, dest_folder)
+
+    return dest_folder
+
 
 @pytest.fixture
 def collect_email(request):
     """
     Get the contents of a file in the /tests/emails/ folder where the filename matches the expr
     """
-    email = glob.glob(os.environ["TEST_ROOT"] + '/emails/' + request.param)[0]
-    with open(email) as f:
+    email = glob.glob(os.environ["TEST_ROOT"] + "/emails/" + request.param)[0]
+    with open(email, "rb") as f:
         return f.read()
 
+
 @pytest.fixture
-def settings():
-    return init_settings()
+def settings_file(test_dirs):
+    """
+    Get the settings file path for tests.
+
+    This is intended to be used with the  --settings_file parameter in the integration tests
+    """
+    settings_file = test_dirs["root"] / "tests_settings" / "settings_tests.json"
+    return settings_file
+
+
+@pytest.fixture
+def set_settings(settings_file):
+    """
+    Init the settings with the settings file for tests.
+
+    This is intended to set the correct globals before running any planckProxy code.
+    """
+
+    return init_settings(settings_file)
+
+
+@pytest.fixture
+def test_settings_dict(test_dirs):
+    """
+    Set the basic test_settings that will be used to overwrite the defaults on 'settings_tests.json'
+    """
+    test_settings = {
+        "work_dir": str(test_dirs["work"]),
+        "keys_dir": str(test_dirs["keys"]),
+        "test-nomails": True,
+        "DEBUG": True,
+    }
+    return test_settings
+
+
+@pytest.fixture(autouse=True)
+def run_before_and_after_tests(tmp_path, set_settings):
+    """Fixture to execute asserts before and after a test is run"""
+    os.environ["HOME"] = str(tmp_path)
+
+    yield  # this is where the testing happens
+
+    cleanup()

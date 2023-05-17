@@ -1,5 +1,6 @@
 debug.log
 settings.json
+settings_OTHER.json
 pytestdebug.log
 keys/*.asc
 work/**
