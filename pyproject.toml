@@ -25,4 +25,7 @@ Repository = "https://git.planck.security/planck/planck-proxy"
 Changelog = "https://git.planck.security/planck/planck-proxy/-/blob/main/CHANGELOG.md"
 
 [project.scripts]
+planckencrypt = "proxy.scripts.encrypt:main"
+planckdecrypt = "proxy.scripts.decrypt:main"
+planckcleanup = "proxy.scripts.messages_cleanup:main"
 planckproxy = "proxy.planckProxy:main"

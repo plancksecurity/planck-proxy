@@ -37,15 +37,11 @@ def messages_cleanup(work_dir, days, verbose):
                 file_modification_time = os.path.getmtime(filepath)
 
                 if verbose:
-                    modification_datetime = datetime.datetime.fromtimestamp(
-                        file_modification_time
-                    )
+                    modification_datetime = datetime.datetime.fromtimestamp(file_modification_time)
                     now_datetime = datetime.datetime.now()
                     time_difference = now_datetime - modification_datetime
                     days_since_modification = time_difference.days
-                    print(
-                        f"The file {filepath} was created {days_since_modification} days ago."
-                    )
+                    print(f"The file {filepath} was created {days_since_modification} days ago.")
 
                 # Check if the file was created before the specified number of days
                 if current_time - file_modification_time > days_in_seconds:
@@ -66,10 +62,8 @@ def messages_cleanup(work_dir, days, verbose):
                 print(f"Folder {subdir} is now empty, removing it.")
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Delete files in subfolders created before a specified number of days"
-    )
+def main():
+    parser = argparse.ArgumentParser(description="Delete files in subfolders created before a specified number of days")
     parser.add_argument(
         "--work_dir",
         type=str,
@@ -82,9 +76,11 @@ if __name__ == "__main__":
         default=7,
         help="the number of days before which to delete the .eml files",
     )
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", default=False, help="Print output data"
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", default=False, help="Print output data")
     args = parser.parse_args()
 
     messages_cleanup(args.work_dir, args.days, args.verbose)
+
+
+if __name__ == "__main__":
+    main()

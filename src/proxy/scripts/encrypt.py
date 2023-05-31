@@ -133,14 +133,12 @@ def encrypt_msg(msg, our_key, dest_key, extra_key, home_dir, debug):
     os.environ["HOME"] = home
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Encrypts an email message using p≡p")
     parser.add_argument("msg", help="Path to the email to encrypt")
     parser.add_argument("our_key", help="path to the private key of the message sender")
     parser.add_argument("dest_key", help="path to the pub key of the message recipient")
-    parser.add_argument(
-        "--e", "--extra_key", default=None, help="path to the public extra key"
-    )
+    parser.add_argument("--e", "--extra_key", default=None, help="path to the public extra key")
     parser.add_argument(
         "--m",
         "--home_dir",
@@ -155,3 +153,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     encrypt_msg(args.msg, args.our_key, args.dest_key, args.e, args.m, args.debug)
+
+
+if __name__ == "__main__":
+    main()
