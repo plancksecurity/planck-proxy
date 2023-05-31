@@ -7,7 +7,7 @@ import base64
 from .printers import dbg, c
 from .parsers import get_contact_info
 
-from proxy_settings import settings
+from proxy.proxy_settings import settings
 
 
 def sendmail(msg):
@@ -53,7 +53,7 @@ def failurescanmail(msg, rcpt, subject="planck Proxy Scan failure"):
     """
     dbg("Sending scanning notification failure to to " + c(rcpt, 2))
     mailcontent = "Content-type: text/plain; charset=UTF-8\n"
-    mailcontent += "From: pepgate@" + socket.getfqdn() + "\n"
+    mailcontent += "From: proxy@" + socket.getfqdn() + "\n"
     mailcontent += "To: " + rcpt + "\n"
     mailcontent += "Subject: " + subject + "\n\n"
     mailcontent += msg + "\n"
@@ -90,7 +90,7 @@ def dbgmail(
     else:
         mailcontent = 'Content-Type: multipart/mixed; boundary="pEpMIME"\n'
 
-    mailcontent += "From: pepgate@" + socket.getfqdn() + "\n"
+    mailcontent += "From: proxy@" + socket.getfqdn() + "\n"
     mailcontent += "To: " + rcpt + "\n"
     mailcontent += "Subject: " + subject + "\n\n"
 

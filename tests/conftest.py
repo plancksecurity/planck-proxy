@@ -6,8 +6,8 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
-from proxy_settings import settings, init_settings
-from utils.hooks import cleanup
+from proxy.proxy_settings import settings, init_settings
+from proxy.utils.hooks import cleanup
 
 
 @dataclass
@@ -119,6 +119,7 @@ def test_settings_dict(test_dirs):
 def run_before_and_after_tests(tmp_path, set_settings):
     """Fixture to execute asserts before and after a test is run"""
     os.environ["HOME"] = str(tmp_path)
+    os.chdir(str(tmp_path))
 
     yield  # this is where the testing happens
 

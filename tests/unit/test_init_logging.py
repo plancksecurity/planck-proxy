@@ -1,7 +1,7 @@
 import os
 import codecs
-from src.utils.logging import init_logging
-from src.utils.message import Message
+from proxy.utils.logging import init_logging
+from proxy.utils.message import Message
 
 
 def test_init_logging_creates_log_file(set_settings, test_dirs):

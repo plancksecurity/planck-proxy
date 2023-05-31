@@ -1,5 +1,5 @@
 import pytest
-from src.utils.cryptography import decryptusingsq
+from proxy.utils.cryptography import decryptusingsq
 
 
 def test_decryptusingsq_handles_missing_pgp_message():

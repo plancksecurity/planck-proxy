@@ -1,7 +1,7 @@
 import os
 import time
 import pytest
-from src.scripts.messages_cleanup import messages_cleanup
+from proxy.scripts.messages_cleanup import messages_cleanup
 
 
 def mod_timestamp(file, days):

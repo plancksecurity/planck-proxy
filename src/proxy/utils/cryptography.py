@@ -20,7 +20,7 @@ from subprocess import Popen, PIPE, STDOUT
 
 from .printers import dbg, c
 
-from proxy_settings import settings
+from proxy.proxy_settings import settings
 
 
 def keys_from_keyring(userid=None):

@@ -6,8 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 ### Added
+- pyproject.toml for packaging
 ### Changed
 ### Fixed
+- Updated some outdated information in the README
 ### Removed
 
 ## [v3.0.0] - 17-5-23

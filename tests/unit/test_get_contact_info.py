@@ -1,10 +1,7 @@
 import pytest
-import json
-import os
-import tempfile
 
 from email.message import Message
-from src.utils.parsers import get_contact_info, get_mail_headers
+from proxy.utils.parsers import get_contact_info, get_mail_headers
 
 
 @pytest.mark.parametrize(

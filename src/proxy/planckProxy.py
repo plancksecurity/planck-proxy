@@ -6,14 +6,14 @@ import json
 import sys
 
 
-from utils.message import Message
-from utils.hooks import cleanup, except_hook
-from utils.parsers import get_default
-from utils.printers import dbg, print_init_info, print_summary_info, print_keys_and_headers
-from utils.logging import init_logging, log_session
+from proxy.utils.message import Message
+from proxy.utils.hooks import cleanup, except_hook
+from proxy.utils.parsers import get_default
+from proxy.utils.printers import dbg, print_init_info, print_summary_info, print_keys_and_headers
+from proxy.utils.logging import init_logging, log_session
 
-from proxy_settings import settings, init_settings
-from proxy_main import (
+from .proxy_settings import settings, init_settings
+from .proxy_main import (
     init_lockfile,
     get_message,
     set_addresses,
@@ -29,9 +29,9 @@ from proxy_main import (
 )
 
 
-def main(cli_args):
+def run_proxy(cli_args):
     """
-    Command entry point which runs all the code logic
+    Command which runs all the code logic
     Args:
         cli_args (argparse.Namespace): Arguments.
 
@@ -73,9 +73,16 @@ def main(cli_args):
     log_session()
 
 
-if __name__ == "__main__":
+def main():
+    # init_settings to import data from the settings.json into the global settings dict
     init_settings()
     dbg(f"SETTINGS IMPORTED with 'HOME' as {settings['home']}")
+
+    # Parse the settings from the CLI, or get some default vaulues from the env if the argument is not provided
+    # Parsed settings will be:
+    # 1 - The param provided
+    # 2 - Env with the setting name in the OS
+    # 3 - Default value in the settings global var
 
     parser = argparse.ArgumentParser(description="planck Proxy CLI.")
     parser.add_argument("mode", choices=["decrypt"], help="Mode")
@@ -112,10 +119,12 @@ if __name__ == "__main__":
         default=None,
     )
 
+    # Update the settings dict with the parsed arguments
     cli_args = parser.parse_args()
     for key, val in vars(cli_args).items():
         settings[key] = val
 
+    # if a settings file is provided, use it to overwrite the settings dict
     if settings["settings_file"] is not None:
         with open(settings["settings_file"], "rb") as f:
             filesettings = json.load(f)
@@ -126,4 +135,8 @@ if __name__ == "__main__":
     if cli_args.DEBUG:
         settings["DEBUG"] = True
 
-    main(cli_args)
+    run_proxy(cli_args)
+
+
+if __name__ == "__main__":
+    main()

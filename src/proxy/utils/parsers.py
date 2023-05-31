@@ -7,7 +7,7 @@ import traceback
 
 from .printers import dbg, c
 
-from proxy_settings import settings
+from proxy.proxy_settings import settings
 
 # ## Parse args ##############################################################
 
@@ -16,7 +16,7 @@ def get_default(setting, type=str):
     """
     Get the default value for the given setting with the following priority:
     1. Env variable
-    2. String on settings.py file (aka vars loaded into the memory space)
+    2. Variable in the global settings dict.
 
     Args:
         setting (str): The name of the setting to retrieve

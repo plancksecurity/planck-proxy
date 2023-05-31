@@ -1,4 +1,4 @@
-from src.utils.emails import sendmail
+from proxy.utils.emails import sendmail
 import pytest
 import sys
 

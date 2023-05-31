@@ -1,8 +1,8 @@
 import pytest
 
-from src.proxy_main import enable_dts
-from src.utils.message import Message
-from proxy_settings import settings
+from proxy.proxy_main import enable_dts
+from proxy.utils.message import Message
+from proxy.proxy_settings import settings
 
 
 @pytest.mark.parametrize("collect_email", ["basic_dts.eml"], indirect=True)

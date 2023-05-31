@@ -6,7 +6,7 @@ import html
 from datetime import datetime
 from collections import OrderedDict
 
-from proxy_settings import settings
+from proxy.proxy_settings import settings
 
 
 def print_init_info(args):
@@ -51,7 +51,7 @@ def print_summary_info(message):
         None
     """
 
-    from proxy_main import check_initial_import
+    from proxy.proxy_main import check_initial_import
 
     dbg("       Message from: " + c(str(message.msgfrom), 5))
     dbg("         Message to: " + c(str(message.msgto), 5))

@@ -1,8 +1,8 @@
 import os
 import pytest
 
-from src.utils.printers import c, dbg, tohtml, toplain
-from src.planckProxy import *
+from proxy.utils.printers import c, dbg, tohtml, toplain
+from proxy.planckProxy import *
 
 
 def get_last_line(file_path):

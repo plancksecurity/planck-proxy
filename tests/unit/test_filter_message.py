@@ -1,9 +1,9 @@
 import pytest
 import subprocess
 
-from src.proxy_main import filter_message
-from src.utils.parsers import get_contact_info
-from src.utils.message import Message
+from proxy.proxy_main import filter_message
+from proxy.utils.parsers import get_contact_info
+from proxy.utils.message import Message
 
 
 @pytest.mark.parametrize(

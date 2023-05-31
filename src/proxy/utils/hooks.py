@@ -8,7 +8,7 @@ from glob import glob
 from .printers import dbg, c
 from .emails import dbgmail
 
-from proxy_settings import settings
+from proxy.proxy_settings import settings
 
 
 # ## Exception / post-execution handling #####################################

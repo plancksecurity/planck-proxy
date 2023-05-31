@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "planck-proxy"
+version = "3.0.1"
+description = "Proxy for planck"
+authors = [
+  { name = "David Beltrà", email = "dbe@planck.security" },
+  { name = "Andy Weber", email = "aw@planck.security" },
+  { name = "Alice Aliaga", email = "am@planck.security" },
+]
+license = { file = "LICENSE.txt" }
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://planck.security"
+Repository = "https://git.planck.security/planck/planck-proxy"
+Changelog = "https://git.planck.security/planck/planck-proxy/-/blob/main/CHANGELOG.md"
+
+[project.scripts]
+planckproxy = "proxy.planckProxy:main"

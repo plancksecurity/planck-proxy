@@ -10,13 +10,13 @@ You can automatically insall all the python dependencies with the following comm
 
 `pip install -r requirements.txt`
 
-### pEp python adapter
+### planck python wrapper
 
-In order to run the planck proxy you need the pEp Engine, the pEp Python adapter and their dependencies installed. It can be done following [this guide](https://dev.pep.foundation/Adapter/Adapter%20Build%20Instructions_Version_3.x_DRAFT)
+In order to run the planck proxy you need the planck core, the planck python wrapper adapter and their dependencies installed. It can be done following [this guide](https://dev.pep.foundation/Adapter/Adapter%20Build%20Instructions_Version_3.x_DRAFT)
 
 ## Usage and settings
 
-The core of the planck proxy is the planckProxy.py script. It is intended to be invoked by a postfix setup in order to handle the decryption of messages. See the [Postfix configuration](https://git.pep.security/pep/pEpGate/#postfix-configuration).
+The core of the planck proxy is the planckProxy.py script. It is intended to be invoked by a postfix setup in order to handle the decryption of messages. See the [Postfix configuration](https://git.planck.security/planck/planck-proxy/#postfix-configuration).
 
 You can see all the available arguments and their usage running the help command `./planckProxy.py -h`
 
@@ -57,7 +57,7 @@ Since all the keys in the `keys_dir`will be imported, you need to specify the FP
 
 ### Work dir
 
-It's the folder where the `planckProxy` command will output the results. By default this directory is set to the `work` folder in the root of this same project.
+It's the folder where the `planckProxy` command will output the results. By default this directory is set to the `work` folder in the current working directory.
 Working directory, will be populated with a structure like this:
 
 ```
