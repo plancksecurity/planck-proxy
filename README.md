@@ -2,13 +2,25 @@
 
 This project provides a tool able to decrypt with planck incoming messages which are encrypted with an **extra key**, and pass them along unencrypted to a filtering system. Then the original message is sent encrypted to the next hop or discarded, based on the feedback of the filtering system.
 
+## Installation
+
+The planckp proxy can be installed with pip from the tarball or wheel file.
+
+`pip install path/to/planck-proxy-X.Y.Z-py3-none-any.whl` or `pip install path/to/planck-proxy-X.Y.Z.tar.gz`
+
+### Development mode
+
+The package can be installed for development mode with the editable flag.
+
+`pip install -e .`
+
 ## Requirements
 
-### Python dependencies
+### Python developer dependencies
 
 You can automatically insall all the python dependencies with the following command:
 
-`pip install -r requirements.txt`
+`pip install -r requirements_dev.txt`
 
 ### planck python wrapper
 
@@ -18,7 +30,7 @@ In order to run the planck proxy you need the planck core, the planck python wra
 
 The core of the planck proxy is the planckProxy.py script. It is intended to be invoked by a postfix setup in order to handle the decryption of messages. See the [Postfix configuration](https://git.planck.security/planck/planck-proxy/#postfix-configuration).
 
-You can see all the available arguments and their usage running the help command `./planckProxy.py -h`
+You can see all the available arguments and their usage running the help command `planckproxy -h`
 
 ```
 usage: planckProxy [-h] [--DEBUG] [--keys_dir KEYS_DIR] [--work_dir WORK_DIR] [--SMTP_HOST SMTP_HOST] [--SMTP_PORT SMTP_PORT] [--settings_file SETTINGS_FILE] {encrypt,decrypt}
