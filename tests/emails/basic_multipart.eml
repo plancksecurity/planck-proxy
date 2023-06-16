@@ -1,0 +1,35 @@
+MIME-Version: 1.0
+From: sender@example.com
+To: recipient@example.com
+Subject: MIME Multi-Part Email Example
+Content-Type: multipart/alternative; boundary="boundary"
+
+--boundary
+Content-Type: text/plain; charset="UTF-8"
+
+Hello,
+
+This is the plain text version of the email.
+
+Regards,
+Sender
+
+--boundary
+Content-Type: text/html; charset="UTF-8"
+
+<html>
+<body>
+  <h2>Hello,</h2>
+  <p>This is the HTML version of the email.</p>
+  <p>Regards,<br>Sender</p>
+</body>
+</html>
+
+--boundary
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename="attachment.txt"
+Content-Transfer-Encoding: base64
+
+SGVsbG8gd29ybGQhCg==
+
+--boundary--

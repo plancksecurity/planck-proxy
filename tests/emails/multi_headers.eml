@@ -1,0 +1,65 @@
+Return-Path: <service@planck-security.net>
+Delivered-To: andy@planck-security.net
+Received: from [0.0.0.0] (hs-planck-02.planck-security.net [95.128.37.71])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by hub.planck.security (Postfix) with ESMTPSA id 74A461C0AE1;
+	Tue, 10 Jul 2018 15:31:42 +0200 (CEST)
+Received: from 127.0.0.1 (ident=unknown) by
+ vm-planck-web-01.planck-security.intranet with esmtp (masqmail 0.2.30) id
+ 1fcsk2-3qQ-00; Tue, 10 Jul 2018 15:31:42 +0200
+Date: Tue, 10 Jul 2018 15:31:42 +0200
+From: service@planck-security.net
+To: andy@planck-security.net,
+ sandro@planck-project.org,
+ martin@planck-security.net,
+ patrick@planck-security.net
+Message-ID: <redmine.journal-3674.20180710133142.522ba696bbbca234@planck-security.net>
+References: <redmine.issue-3023.20180704081951@planck-security.net>
+Subject: [Crashreport - Bug #3023] Test issue
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Redmine-Project: crashreport
+X-Redmine-Issue-Id: 3023
+X-Redmine-Issue-Author: andy
+X-Redmine-Sender: andy
+X-Mailer: Redmine
+X-Redmine-Host: bug.planck-security.net
+X-Redmine-Site: planck Tracker
+X-Auto-Response-Suppress: All
+Auto-Submitted: auto-generated
+List-Id: <service.planck-security.net>
+
+Issue #3023 has been updated by Andy Weber.
+
+
+Once again...
+
+----------------------------------------
+Bug #3023: Test issue
+https://bug.planck-security.net/issues/3023#change-3674
+
+* Author: Andy Weber
+* Status: new
+* Priority: Normal
+* Assignee:
+* Category:
+* Target version:
+* owner-email: andy@0x3d.lu
+* Documentation:
+----------------------------------------
+For testing planckGate, ticket owned by service@planck-security.net (there's no service@planck.security key published yet)
+
+---Files--------------------------------
+planckkey.asc (1.71 KB)
+msg.txt (224 Bytes)
+msg.txt (249 Bytes)
+msg.txt (416 Bytes)
+msg.asc (4.44 KB)
+
+
+--
+You have received this notification because you have either subscribed to it, or are involved in it.
+To change your notification preferences, please click here: https://bug.planck-security.net/my/account

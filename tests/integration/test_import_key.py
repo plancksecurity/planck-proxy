@@ -27,7 +27,7 @@ def test_import_extra_key(
     assert p.stderr == b""
     assert p.returncode == 0
 
-    # Check that the key is in the pEp Database
+    # Check that the key is in the planck Database
     keys_db = test_dirs["work"] / test_email_to / ".pEp" / "keys.db"
     db = sqlite3.connect(keys_db)
     keys = db.execute("SELECT primary_key FROM keys")

@@ -1,0 +1,24 @@
+From: "Alice" <alice@pep.security>
+Delivered-To: bob@pep.security
+To: "Bob" <bob@pep.security>
+Subject: Hello attached World
+Content-Type: multipart/mixed; boundary="boundary"
+
+--boundary
+Content-Type: text/plain; charset=UTF-8
+Content-Disposition: inline
+
+Hello,
+
+Please find attached the hello_world.txt file.
+
+Regards,
+Sender
+
+--boundary
+Content-Type: text/plain; name="hello_world.txt"
+Content-Disposition: attachment; filename="hello_world.txt"
+
+hello world
+
+--boundary--
