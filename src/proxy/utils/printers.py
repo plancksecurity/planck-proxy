@@ -21,7 +21,7 @@ def print_init_info(args):
     """
     dbg(
         "===== "
-        + c("p≡pGate started", 2)
+        + c("planck proxy started", 2)
         + " in mode "
         + c(settings["mode"], 3)
         + " | PID "
@@ -78,7 +78,7 @@ def print_keys_and_headers(message):
     )
     dbg(c("┌ Keys in this keyring (as stored in keys.db)", 5) + "\n" + prettytable(keys_from_keyring()))
     dbg(
-        c("┌ Headers in original message (as seen by non-p≡p clients)", 5)
+        c("┌ Headers in original message (as seen by non-planck clients)", 5)
         + "\n"
         + prettytable(get_mail_headers(message.inmail))
     )

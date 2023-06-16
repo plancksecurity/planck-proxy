@@ -8,7 +8,7 @@ import sqlite3
 
 def encrypt_msg(msg, our_key, dest_key, extra_key, home_dir, debug):
     """
-    Encrypts an email message using p≡p.
+    Encrypts an email message using planck.
 
     Args:
         msg (str): Path to the email to encrypt.
@@ -26,10 +26,10 @@ def encrypt_msg(msg, our_key, dest_key, extra_key, home_dir, debug):
     if os.path.isdir(home_dir):
         shutil.rmtree(home_dir)
         if debug:
-            print(f"previous p≡p directory at {home_dir} erased.")
+            print(f"previous planck directory at {home_dir} erased.")
     if not os.path.isdir(home_dir):
         if debug:
-            print(f"p≡p directory created at {home_dir}")
+            print(f"planck directory created at {home_dir}")
         os.makedirs(home_dir)
 
     os.environ["HOME"] = home_dir
@@ -134,7 +134,7 @@ def encrypt_msg(msg, our_key, dest_key, extra_key, home_dir, debug):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Encrypts an email message using p≡p")
+    parser = argparse.ArgumentParser(description="Encrypts an email message using planck")
     parser.add_argument("msg", help="Path to the email to encrypt")
     parser.add_argument("our_key", help="path to the private key of the message sender")
     parser.add_argument("dest_key", help="path to the pub key of the message recipient")

@@ -203,54 +203,54 @@ def init_workdir(message):
         dbg(f"init workdir to {settings['work_dir']}")
 
 
-# ## Check if Sequoia-DB already exists, if not import keys later using p≡p ########################
+# ## Check if Sequoia-DB already exists, if not import keys later using planck ########################
 
 
 def check_initial_import():
     """
-    Check if keys.db already exists, if not import keys later using p≡p
+    Check if keys.db already exists, if not import keys later using planck
     """
     keys_db_path = os.path.join(os.environ["HOME"], ".pEp", "keys.db")
     return not os.path.exists(keys_db_path)
 
 
-# ### Load p≡p ######################################################################################
+# ### Load planck ######################################################################################
 
 
-def load_pep():
+def load_planck():
     """
-    Import the p≡p engine. This will create the .pEp folder in the current $HOME This method should never be called
+    Import the planck core. This will create the .pEp folder in the current $HOME This method should never be called
     before init_workdir, otherwise the .pEp folder would be located on the wrong folder.
 
     Returns:
-        pEp (module): The p≡p engine module.
+        planck (module): The planck core module.
     """
 
-    pEp = importlib.import_module("pEp")
-    pEp.set_debug_log_enabled(True)  # TODO
-    pEp.message_to_send = messageToSend
-    pEp.notify_handshake = notifyHandshake
+    planck = importlib.import_module("pEp")
+    planck.set_debug_log_enabled(True)  # TODO
+    planck.message_to_send = messageToSend
+    planck.notify_handshake = notifyHandshake
 
     dbg(
-        "p≡p ("
-        + str(pEp.about).strip().replace("\n", ", ")
-        + ", p≡p engine version "
-        + pEp.engine_version
+        "planck core ("
+        + str(planck.about).strip().replace("\n", ", ")
+        + ", planck core version "
+        + planck.engine_version
         + ") loaded in",
         True,
     )
-    return pEp
+    return planck
 
 
 # ### Import static / globally available / extra keys ###############################################
 
 
-def import_keys(pEp):
+def import_keys(planck):
     """
     Imports keys from the keys_dir.
 
     Args:
-        pEp (module): The p≡p engine module object.
+        planck (module): The planck core module object.
 
     Returns:
         None.
@@ -261,26 +261,26 @@ def import_keys(pEp):
     for f in key_files:
         keys = open(f, "rb").read()
         dbg("")
-        pEp.import_key(keys)
+        planck.import_key(keys)
         dbg("Imported key(s) from " + f, True)
 
 
 # ### Prepare message for processing by planck #########################################################
 
 
-def create_pEp_message(pEp, message):
+def create_planck_message(planck, message):
     """
-    Create a p≡p message object and store it in the message.inmail_parsed.
+    Create a planck message object and store it in the message.inmail_parsed.
 
     Args:
-        pEp (module): The p≡p engine module object.
+        planck (module): The planck core module object.
         message (Message):  an instance of the Message class.
 
     Returns:
         None
     """
     try:
-        inmail_parsed = pEp.Message(message.inmail)
+        inmail_parsed = planck.Message(message.inmail)
 
         # Get rid of CC and BCC for loop-avoidance (since Postfix gives us one separate message per recipient)
         inmail_parsed.cc = []
@@ -319,7 +319,7 @@ def create_pEp_message(pEp, message):
     # Log parsed message
 
     logfilename = os.path.join(settings["logpath"], "in." + settings["mode"] + ".parsed.eml")
-    dbg("p≡p-parsed message: " + c(logfilename, 6))
+    dbg("planck-parsed message: " + c(logfilename, 6))
     logfile = codecs.open(logfilename, "w", "utf-8")
     logfile.write(str(inmail_parsed))
     logfile.close()
@@ -327,13 +327,13 @@ def create_pEp_message(pEp, message):
     message.inmail_parsed = inmail_parsed
 
 
-# ### Let p≡p do it's magic #########################################################################
-def process_message(pEp, message):
+# ### Let the planck core do it's magic #########################################################################
+def process_message(planck, message):
     """
     Decrypt the message and store in the message.inmail_decrypted attribute.
 
     Args:
-        pEp (module): The p≡p engine module object.
+        planck (module): The planck core module object.
         message (Message):  an instance of the Message class.
 
     Returns:
@@ -343,9 +343,9 @@ def process_message(pEp, message):
         if settings["mode"] == "decrypt":
             # TODO: store some sort of failure-counter (per message ID?) to detect subsequent failures then
             #  fallback to sq, then forward as-is
-            pepfails = False
-            if not pepfails:
-                dbg(c("Decrypting message via pEp...", 2))
+            planckfails = False
+            if not planckfails:
+                dbg(c("Decrypting message via planck...", 2))
                 inmail_decrypted, keys, rating, flags = message.inmail_parsed.decrypt()
                 dbg(c("Decrypted in", 2), True)
             else:
@@ -355,7 +355,7 @@ def process_message(pEp, message):
                     os.path.join(settings["keys_dir"], "sec.*.key"),
                 )
                 inmail_decrypted, keys, rating = (
-                    pEp.Message(tmp[0]),
+                    planck.Message(tmp[0]),
                     tmp[1],
                     None,
                 )
@@ -400,7 +400,7 @@ def process_message(pEp, message):
 
     # Log processed message
     logfilename = os.path.join(settings["logpath"], "in." + settings["mode"] + ".processed.eml")
-    dbg("p≡p-processed message: " + c(logfilename, 6) + "\n" + str(inmail_decrypted)[0:1337])
+    dbg("planck-processed message: " + c(logfilename, 6) + "\n" + str(inmail_decrypted)[0:1337])
     logfile = codecs.open(logfilename, "w", "utf-8")
     logfile.write(str(inmail_decrypted))
     logfile.close()

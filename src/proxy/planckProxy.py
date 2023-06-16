@@ -20,9 +20,9 @@ from .proxy_main import (
     enable_dts,
     init_workdir,
     check_initial_import,
-    load_pep,
+    load_planck,
     import_keys,
-    create_pEp_message,
+    create_planck_message,
     process_message,
     filter_message,
     deliver_mail,
@@ -58,12 +58,12 @@ def run_proxy(cli_args):
     import_needed = check_initial_import()
     print_summary_info(message)
     init_logging(message)
-    pEp = load_pep()
+    planck = load_planck()
     if import_needed:
-        import_keys(pEp)
+        import_keys(planck)
     print_keys_and_headers(message)
-    create_pEp_message(pEp, message)
-    process_message(pEp, message)
+    create_planck_message(planck, message)
+    process_message(planck, message)
 
     # Send to filter
     filter_message(message)

@@ -4,7 +4,7 @@ import os
 
 def decrypt_msg(msg, key, home_dir, debug):
     """
-    Decrypt a message using p≡p.
+    Decrypt a message using planck.
 
     Args:
         msg (str): Path to the email to decrypt.
@@ -18,7 +18,7 @@ def decrypt_msg(msg, key, home_dir, debug):
     # Change to pEp home
     home = os.environ.get("HOME")
     if not os.path.isdir(home_dir):
-        print(f"p≡p directory created at {home_dir}")
+        print(f"planck directory created at {home_dir}")
         os.makedirs(home_dir)
 
     os.environ["HOME"] = home_dir

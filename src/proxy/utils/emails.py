@@ -63,7 +63,7 @@ def failurescanmail(msg, rcpt, subject="planck Proxy Scan failure"):
 def dbgmail(
     msg,
     rcpt=None,
-    subject="[FATAL] pEp Gate @ " + socket.getfqdn() + " crashed!",
+    subject="[FATAL] planck proxy @ " + socket.getfqdn() + " crashed!",
     attachments=[],
 ):
     """
