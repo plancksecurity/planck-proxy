@@ -52,5 +52,6 @@ def init_settings(settings_file=None):
     settings["dts"] = None
     settings["lockfilepath"] = os.path.join(home, "proxy.lock")
     settings["logfile"] = os.path.join(home, settings["logfile"])
+    settings["project_root"] = Path(os.path.dirname(__file__))
 
     return settings

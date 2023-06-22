@@ -4,6 +4,7 @@ import re
 import codecs
 import importlib
 import traceback
+import shutil
 
 from time import sleep
 from glob import glob
@@ -230,6 +231,14 @@ def load_planck():
     planck.set_debug_log_enabled(True)  # TODO
     planck.message_to_send = messageToSend
     planck.notify_handshake = notifyHandshake
+
+    databases = ["management.db", "keys.db"]
+    for database in databases:
+        db_path = os.path.join(settings["work_dir"], ".pEp", database)
+        if not os.path.exists(db_path):
+            blank_db_path = os.path.join(settings["project_root"], "data", database)
+            shutil.copy(blank_db_path, db_path)
+            dbg(f"{database} not found, using empty backup.")
 
     dbg(
         "planck core ("

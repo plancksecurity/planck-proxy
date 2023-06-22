@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "planck-proxy"
-version = "3.0.1"
+version = "3.0.1-a.1"
 description = "Proxy for planck"
 authors = [
   { name = "David Beltrà", email = "dbe@planck.security" },

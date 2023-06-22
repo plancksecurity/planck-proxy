@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Fixed
 - Updated some outdated information in the README
+- Added fallback system in case management or keys.db are not present
 ### Removed
 
 ## [v3.0.0] - 17-5-23
