@@ -11,8 +11,8 @@ from proxy.utils.hooks import cleanup, except_hook
 from proxy.utils.printers import dbg, print_init_info, print_summary_info, print_keys_and_headers
 from proxy.utils.logging import init_logging, log_session
 
-from .proxy_settings import settings, init_settings
-from .proxy_main import (
+from proxy.proxy_settings import settings, init_settings
+from proxy.proxy_main import (
     init_lockfile,
     get_message,
     set_addresses,

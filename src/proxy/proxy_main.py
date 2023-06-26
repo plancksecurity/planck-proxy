@@ -10,7 +10,7 @@ from time import sleep
 from glob import glob
 from subprocess import Popen, PIPE
 
-from .proxy_settings import settings
+from proxy.proxy_settings import settings
 from proxy.utils.printers import dbg, c, prettytable
 from proxy.utils.parsers import get_contact_info, get_mail_headers
 from proxy.utils.emails import dbgmail, sendmail, messageToSend, notifyHandshake
