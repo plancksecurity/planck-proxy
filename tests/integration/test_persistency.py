@@ -18,7 +18,7 @@ def test_decrypt_message_keep(
     test_email_from, test_email_to = get_contact_info(email)
     settings_file = override_settings(test_dirs, settings_file, test_settings_dict)
 
-    command = f"planckproxy decrypt --settings_file {settings_file}"
+    command = f"planckproxy decrypt {settings_file}"
     p = subprocess.run([command], shell=True, capture_output=True, input=collect_email)
     assert p.stderr == b""
     assert p.returncode == 0
@@ -42,7 +42,7 @@ def test_decrypt_message_deletion(
     test_settings_dict["DEBUG"] = False
     settings_file = override_settings(test_dirs, settings_file, test_settings_dict)
 
-    command = f"planckproxy decrypt --settings_file {settings_file}"
+    command = f"planckproxy decrypt {settings_file}"
     p = subprocess.run([command], shell=True, capture_output=True, input=collect_email)
     assert p.stderr == b""
     assert p.returncode == 0

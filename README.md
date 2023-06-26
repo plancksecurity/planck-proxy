@@ -14,6 +14,9 @@ The package can be installed for development mode with the editable flag.
 
 `pip install -e .`
 
+### Building
+`python -m build`
+
 ## Requirements
 
 ### Python developer dependencies
@@ -134,30 +137,9 @@ Example of /etc/postfix/transport:
 
 ```
 # planck Proxy
-/^support@planck.*/ planckproxyIN:
-/^noreply@planck.*/ planckproxyIN:
-/^no-reply@planck.*/ planckproxyIN:
+/*.*/ planckproxy:
 ```
 
-2. Define inbound and outbound (smtp\_)header_checks in main.cf (planck Proxy adds an X-NextMX header to all messages, defined in nextmx.map):
-
-```
-header_checks      = regexp:/etc/postfix/header_checks_in
-smtp_header_checks = regexp:/etc/postfix/header_checks_out
-```
-
-/etc/postfix/header_checks_in:
-
-```
-/^X-NextMX: auto$/ FILTER smtp:
-/^X-NextMX: (.*)$/ FILTER smtp:$1
-```
-
-/etc/postfix/header_checks_out:
-
-```
-/^X-NextMX:.*$/ IGNORE
-```
 
 ### master.cf
 
@@ -165,8 +147,8 @@ Define the planck Proxy in it's two modes in Postfix's master.cf as such:
 
 ```
 # Incoming decryption-proxy (specific addresses routed via "transport" file)
-planckproxyIN unix - n n - 1 pipe
-flags=DRhu user=planckproxy:planckproxy argv=<path to planckProxy>/planckProxy decrypt
+planckproxy unix - n n - 1 pipe
+flags=DRhu user=planckproxy argv=<path to planckProxy>/planckProxy decrypt
 ```
 
 
@@ -211,7 +193,6 @@ _ Routing: Route email messages through these smart hosts: `hub.peptest.ch`
 _ Rules:
 _ Apply to all messages
 _ Use the following connector: Mailhub outbound
-_ Except if the subject includes "NOENCRYPT" \* or the sender's IP address is in the range <Mailhub's IP>
 
 ### On planckProxy:
 
@@ -228,11 +209,11 @@ virtual_mailbox_domains = proxy365.plancktest.ch
 ```
 25          inet    n       -       y       -       -       smtpd
 [...]
--o content_filter=planckproxyIN
+-o content_filter=planckproxy
 
 # Incoming decryption-proxy (specific addresses routed via "transport" file)
-planckproxyIN   unix    -       n       n       -       1       pipe
-    flags=DRhu user=planckproxy:planckproxy argv=/home/planck_proxy/planckProxy decrypt
+planckproxy   unix    -       n       n       -       1       pipe
+    flags=DRhu user=planckproxy argv=/home/planck_proxy/planckProxy decrypt
 
 ```
 

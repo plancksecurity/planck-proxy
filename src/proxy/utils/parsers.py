@@ -1,4 +1,3 @@
-import os
 import re
 import email
 import sys
@@ -7,34 +6,7 @@ import traceback
 
 from .printers import dbg, c
 
-from proxy.proxy_settings import settings
-
 # ## Parse args ##############################################################
-
-
-def get_default(setting, type=str):
-    """
-    Get the default value for the given setting with the following priority:
-    1. Env variable
-    2. Variable in the global settings dict.
-
-    Args:
-        setting (str): The name of the setting to retrieve
-        type (type, optional): The type to cast the value to. Defaults to str.
-
-    Returns:
-        Any: The value of the setting
-    """
-    env_val = os.getenv(setting)
-    if env_val:
-        if type is list:
-            return env_val.split(" ")
-        if type is bool:
-            if env_val in ["True", "true", "1"]:
-                return True
-            return False
-        return env_val
-    return settings.get(setting)
 
 
 def get_contact_info(inmail, reinjection=False):
