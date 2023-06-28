@@ -1,4 +1,6 @@
 {
+    "home":             "/home/proxy/",
+
     "work_dir":         "work",
 
     "keys_dir":         "keys",
