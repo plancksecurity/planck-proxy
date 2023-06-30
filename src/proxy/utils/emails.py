@@ -27,7 +27,11 @@ def sendmail(msg):
     # quoted-printable counterpart. Fuck you very much, Outlook!
     msg = re.sub("^\.", "=2E", msg, flags=re.M)  # noqa
 
-    dbg(f"Sending message: {msg}")
+    # We must NEVER pass a Delivered-To header back into the MTA
+    # The next hop might think it's part of a mail loop when it sees it's own hostname "again"
+    msg = re.sub("^Delivered-To:.*\n", "", msg, flags=re.M)
+
+    dbg(f"Sending message:\n{msg}")
     try:
         msgfrom, msgto = get_contact_info(msg, True)
         with smtplib.SMTP(settings["SMTP_HOST"], settings["SMTP_PORT"]) as server:
@@ -104,7 +108,9 @@ def dbgmail(
     mailcontent += ".console { font-family: Courier New; font-size: 13px; line-height: 14px; width: 100%; }"
     mailcontent += "</style></head>"
     mailcontent += '<body topmargin="0" leftmargin="0" marginwidth="0" marginheight="0"><table class="console"><tr><td>'
-    mailcontent += (msg + "<br>" + ("=" * 80) + "<br><br>" if len(msg) > 0 else "") + settings["htmllog"]
+    mailcontent += (
+        msg + "<br>" + ("=" * 80) + "<br><br>" if len(msg) > 0 else ""
+    ) + settings["htmllog"]
     mailcontent += "</td></tr></table></body></html>"
 
     if len(attachments) > 0:
@@ -112,8 +118,16 @@ def dbgmail(
             dbg("Attaching " + att)
 
             mailcontent += "\n\n--pEpMIME\n"
-            mailcontent += 'Content-Type: application/octet-stream; name="' + os.path.basename(att) + '"\n'
-            mailcontent += 'Content-Disposition: attachment; filename="' + os.path.basename(att) + '"\n'
+            mailcontent += (
+                'Content-Type: application/octet-stream; name="'
+                + os.path.basename(att)
+                + '"\n'
+            )
+            mailcontent += (
+                'Content-Disposition: attachment; filename="'
+                + os.path.basename(att)
+                + '"\n'
+            )
             mailcontent += "Content-Transfer-Encoding: base64\n\n"
 
             with open(att, "rb") as f:
