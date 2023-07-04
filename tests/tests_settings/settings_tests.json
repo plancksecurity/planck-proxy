@@ -10,7 +10,7 @@
 
     "SMTP_PORT":        "25",
 
-    "sq_bin":           "/usr/local/bin/sq",
+    "sq_bin":           "/Users/dirk/projects/planck/planckCoreStack/sequoia-sq/target/release/sq",
 
     "admin_addr":       "someone@yourcompany.tld",
 
