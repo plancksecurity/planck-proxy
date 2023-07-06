@@ -1,9 +1,9 @@
 # set -x
 
 if [ "x"$1 != "x" ]; then
-	keydbs=$(find /home/pepgate/work/$1/.pEp/ -type f -name keys.db | grep $1)
+	keydbs=$(find /home/PlanckGate/work/$1/.pEp/ -type f -name keys.db | grep $1)
 else
-	keydbs=$(find /home/pepgate/work/*/.pEp/ -type f -name keys.db)
+	keydbs=$(find /home/PlanckGate/work/*/.pEp/ -type f -name keys.db)
 fi
 
 for kdb in ${keydbs}; do

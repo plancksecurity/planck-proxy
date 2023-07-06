@@ -114,4 +114,4 @@ sys.excepthook = except_hook
 
 lastactiontime = datetime.now()
 
-import pEpgatemain
+import main
