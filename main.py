@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from pEpgate import *
+from loader import *
 
 ### More helper functions #########################################################################
 
