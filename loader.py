@@ -28,7 +28,7 @@ nextmxpath   = home + "nextmx.map"
 aliasespath  = home + "aliases.map"
 workdirpath  = home + "work/"
 logfilepath  = home + "debug.log"
-lockfilepath = home + "pEpgate.lock"
+lockfilepath = home + "PlanckGate.lock"
 testmailglob = home + "tests/*.eml"
 
 # exportedpath = home + "keys.exported/" # TODO: remove once most/all old GnuPG keys are migrated to sq
@@ -95,14 +95,14 @@ def sendmail(msg):
 
 def dbgmail(msg):
 	dbg(c("Sending debug message", 1))
-	mailcontent  = "From: debug@gate.pep.security\n"
-	mailcontent += "To: aw@pep.security\n"
-	mailcontent += "Subject: [FATAL] pEp Gate barfed!\n\n"
+	mailcontent  = "From: debug@gate.planck.security\n"
+	mailcontent += "To: aw@planck.security\n"
+	mailcontent += "Subject: [FATAL] Planck Gate barfed!\n\n"
 	mailcontent += msg
 	sendmail(mailcontent)
 
 def except_hook(type, value, tback):
-	dbg(c("!!! pEp Gate - Unhandled exception !!!", 1))
+	dbg(c("!!! Planck Gate - Unhandled exception !!!", 1))
 	mailcontent = ""
 	for line in traceback.format_exception(type, value, tback):
 		dbg(line.strip())

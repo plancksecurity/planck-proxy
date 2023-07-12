@@ -1,3 +1,4 @@
 debug.log
+*.lock
 keys.*/*.asc
 work/**
