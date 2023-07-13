@@ -1,0 +1,40 @@
+stages:
+  - test
+  - release
+
+
+.debian-coreV3:
+  stage: release
+  tags: [ linux ]
+  needs: []
+  image: python:3.9-bullseye
+  script:
+    - apt-get update && apt-get install -yqq --no-install-recommends unzip sq
+    - echo "downloading planckPythonWrapper ref:${WRAPPER_REF}"
+    - wrapperURL="https://git.planck.security/api/v4/projects/392/jobs/artifacts/${WRAPPER_REF}/download?job=debian-${WRAPPER_REF}-release"
+    - curl --location --header "PRIVATE-TOKEN:${GITLAB_ACCESS_TOKEN}" ${wrapperURL} --output artifacts.zip
+    - unzip artifacts.zip
+    - pip install dist/pEp-*.whl
+    - pip install -r requirements_dev.txt
+    - pip install pytest .
+    - pytest --ignore=tests/integration
+    - pip install build
+    - python -m build
+  artifacts:
+    paths:
+      - dist/pepgate*.whl
+    expire_in: 2 mos
+    name: planck-proxy-corev3-${WRAPPER_REF}-${CI_COMMIT_BRANCH}
+
+
+debian-coreV3-develop:
+  extends: .debian-coreV3
+  when: manual
+  variables:
+    WRAPPER_REF: "develop"
+
+debian-coreV3-master:
+  extends: .debian-coreV3
+  when: manual
+  variables:
+    WRAPPER_REF: "master"
