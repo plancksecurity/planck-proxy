@@ -145,7 +145,7 @@ def c(text, color=0):
         str: The formatted text with the given color.
     """
     if text:
-        return "\033[1;3" + str(color) + "m" + text + "\033[1;m"
+        return "\033[1;3" + str(color) + "m" + text + "\033[0;m"
     return ""
 
 
@@ -168,6 +168,7 @@ def toplain(text):
     ret = ret.replace("\033[1;35m", "")
     ret = ret.replace("\033[1;36m", "")
     ret = ret.replace("\033[1;37m", "")
+    ret = ret.replace("\033[0;m", "")
     ret = ret.replace("\033[1;m", "")
     return ret
 
@@ -195,6 +196,7 @@ def tohtml(text):
     ret = ret.replace("\033[1;35m", '<font color="#ff00ff">')  # pink
     ret = ret.replace("\033[1;36m", '<font color="#5555ff">')  # bright-blue
     ret = ret.replace("\033[1;37m", '<font color="#666666">')  # white
+    ret = ret.replace("\033[0;m", "</font>")
     ret = ret.replace("\033[1;m", "</font>")
     return ret
 
