@@ -10,7 +10,7 @@
 
     "SMTP_PORT":        "25",
 
-    "sq_bin":           "/usr/local/bin/sq",
+    "sq_bin":           "sq",
 
     "admin_addr":       "someone@yourcompany.tld",
 
