@@ -25,10 +25,10 @@ def test_dbg(set_settings):
 @pytest.mark.parametrize(
     "text, color, output",
     [
-        ("hello world", "1", "\033[1;31mhello world\033[1;m"),
-        ("hello world!", "0", "\033[1;30mhello world!\033[1;m"),
-        ("hellò wörld!", "3", "\033[1;33mhellò wörld!\033[1;m"),
-        ("✨👍🏻", "2", "\033[1;32m✨👍🏻\033[1;m"),
+        ("hello world", "1", "\033[1;31mhello world\033[0;m"),
+        ("hello world!", "0", "\033[1;30mhello world!\033[0;m"),
+        ("hellò wörld!", "3", "\033[1;33mhellò wörld!\033[0;m"),
+        ("✨👍🏻", "2", "\033[1;32m✨👍🏻\033[0;m"),
     ],
 )
 def test_c(text, color, output):

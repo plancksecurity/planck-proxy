@@ -22,7 +22,7 @@ stages:
     - python -m build
   artifacts:
     paths:
-      - dist/pepgate*.whl
+      - dist/planck_proxy*.whl
     expire_in: 2 mos
     name: planck-proxy-corev3-${WRAPPER_REF}-${CI_COMMIT_BRANCH}
 
