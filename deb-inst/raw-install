@@ -1,0 +1,164 @@
+##MANUAL INSTALLATION OF CORE V3 AND PLANCKPROXY on Debian 11 Machines
+
+
+
+##SYSTEM SETUP (Update system + Install dependencies + Install and setup Clang13)
+
+sudo apt update && sudo apt -y upgrade
+sudo apt -y install sudo curl git build-essential python3 python3-pip clang pkg-config nettle-dev capnproto libssl-dev python3-lxml libtool autoconf uuid-dev sqlite3 libsqlite3-dev python3-venv libboost-all-dev
+sudo pip install setuptools==45
+sudo apt -y install clang-13 && sudo apt -y remove clang clang-11 && sudo apt -y autoremove
+sudo cp /usr/bin/clang++-13 /usr/bin/clang++ && sudo cp /usr/bin/clang-13 /usr/bin/clang && sudo cp /usr/bin/clang-cpp-13 /usr/bin/clang-cpp
+
+
+##CREATE A SYMLINK BETWEEN LOCAL/LIB and /USR/BIN
+
+mkdir ~/local
+mkdir ~/local/lib
+sudo ln -s /usr/lib ~/local/lib
+sudo chmod 777 ~/local/lib
+
+
+##DOWNLOAD SEQUOIA-BACKEND
+
+mkdir -p ~/src/pEpEngineSequoiaBackend
+cd ~/src/pEpEngineSequoiaBackend
+git clone https://gitea.pep.foundation/pEp.foundation/pEpEngineSequoiaBackend.git .
+git checkout v1.0.0
+
+echo '
+PREFIX=$(HOME)/local
+DEBUG=release
+' > local.conf
+
+##INSTALL BOTAN
+mkdir ~/src/botan
+cd ~/src/botan
+git clone https://github.com/randombit/botan.git .
+git checkout 3.0.0
+./configure.py --cc=clang --prefix=$HOME/local ##IF YOUR CPU IS AARCH64, ADD THE FOLLOWING FLAG: --cpu=aarch64
+make
+make install
+
+##INSTALL RUST
+curl https://sh.rustup.rs -sSf | sh -s -- -y
+source $HOME/.cargo/env
+
+##CONFIGURE SEQUOIA BACKEND WITH BOTAN AND INSTALL SEQUOIA BACKEND
+cd ~/src/pEpEngineSequoiaBackend
+
+    ##Inside the "build.rs" file, at the end, add the following below line 58
+        println!(r"cargo:rustc-link-search=~/src/botan");
+
+    ##Inside the "Cargo.toml" file, under the dependencies category, add the following
+        botan = { version = "0.10" }
+
+    ##Inside the "Cargo.toml" file, at the end, add the following
+        crypto-botan = ["sequoia-openpgp/crypto-botan"]
+	
+make install
+
+##INSTALL SEQUOIA SQ CLI
+mkdir ~/src/sequoia-sq
+cd ~/src/sequoia-sq
+git clone https://gitlab.com/sequoia-pgp/sequoia.git .
+git checkout sq/v0.27.0
+cargo build --release -p sequoia-sq
+sudo ln -s /home/planck/src/sequoia-sq/target/release/sq /usr/local/bin/sq
+
+##INSTALL YML2
+mkdir -p ~/src/yml2
+cd ~/src/yml2
+git clone https://gitea.pep.foundation/fdik/yml2 .
+git checkout v2.7.5
+make install
+
+echo 'export PATH=$PATH:$HOME/src/yml2' >> ~/.bash_profile
+source ~/.bash_profile
+
+##INSTALL LIBETPAN
+mkdir -p ~/src/libetpan
+cd ~/src/libetpan
+git clone https://gitea.pep.foundation/pEp.foundation/libetpan .
+mkdir build
+./autogen.sh --prefix=$HOME/local
+make install
+
+
+##INSTALL ASN1C
+mkdir -p ~/src/asn1c 
+cd ~/src/asn1c
+git clone https://github.com/vlm/asn1c.git .
+git checkout tags/v0.9.28 -b pep-engine
+autoreconf -iv
+./configure --prefix=$HOME/local
+make install
+
+
+##INSTALL LIBPEPTRANSPORT
+mkdir -p ~/src/libpEpTransport
+cd ~/src/libpEpTransport
+git clone https://gitea.pep.foundation/pEp.foundation/libpEpTransport .
+echo '
+PREFIX=$(HOME)/local
+YML2_PATH=$(HOME)/src/yml2
+YML2_PROC=$(YML2_PATH)/yml2proc $(YML2_OPTS)
+YML2_OPTS=--encoding=utf8
+' > local.conf
+make 
+make install
+
+
+##INSTALL PLANCKCORE		
+mkdir -p ~/src/pEpEngine
+cd ~/src/pEpEngine
+git clone https://gitea.pep.foundation/pEp.foundation/pEpEngine .
+echo '
+PREFIX=$(HOME)/local
+YML2_PATH=$(HOME)/src/yml2
+ASN1C=$(PREFIX)/bin/asn1c
+DEBUG = release
+' > local.conf
+
+make install dbinstall
+
+
+##INSTALL LIBPEPCXX11
+mkdir -p ~/src/libpEpCxx11/
+cd ~/src/libpEpCxx11/
+git clone https://gitea.pep.foundation/pEp.foundation/libpEpCxx11.git .
+echo '
+PREFIX=$(HOME)/local
+DEBUG=0
+' > local.conf
+make install
+
+
+##INSTALL LIBEPADAPTER
+mkdir -p ~/src/libpEpAdapter/
+cd ~/src/libpEpAdapter/
+git clone https://gitea.pep.foundation/pEp.foundation/libpEpAdapter .
+echo '
+PREFIX=$(HOME)/local
+DEBUG=0
+' > local.conf
+make install
+
+
+##INSTALL PEPPYTHONADAPTER
+mkdir -p ~/src/pEpPythonAdapter/
+cd ~/src/pEpPythonAdapter/
+git clone https://gitea.pep.foundation/pEp.foundation/pEpPythonAdapter .
+echo '
+PREFIX=$(HOME)/local
+DEBUG=0
+' > local.conf
+
+make
+make install
+
+
+##INSTALL PLANCK-PROXY
+sudo mkdir /opt/planck-proxy
+cd /opt/planck-proxy
+git clone https://git.planck.security/planck/proxy.git .
