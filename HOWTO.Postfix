@@ -1,4 +1,4 @@
-### Define the pEp Gate in it's two modes in Postfix' master.cf as such:
+### Define the Planck Gate in it's two modes in Postfix' master.cf as such:
 
 # Incoming decryption-proxy (specific addresses routed via "transport" file)
 pepgateIN   unix    -       n       n       -       1       pipe
