@@ -61,7 +61,6 @@ def prettytable(thing, colwidth=26):
 
 def keysfromkeyring(userid=None):
 	global jsonout
-	import sqlite3
 	db = sqlite3.connect(os.environ["HOME"] + "/.pEp/keys.db")
 
 	def collate_email(a, b):

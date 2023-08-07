@@ -8,6 +8,7 @@ import json
 import atexit
 import codecs
 import random
+import sqlite3
 import traceback
 
 from glob        import glob
@@ -29,7 +30,7 @@ aliasespath  = home + "aliases.map"
 workdirpath  = home + "work/"
 logfilepath  = home + "debug.log"
 lockfilepath = home + "PlanckGate.lock"
-testmailglob = home + "tests/*.eml"
+testmailglob = home + "tests/?*.eml"
 
 # exportedpath = home + "keys.exported/" # TODO: remove once most/all old GnuPG keys are migrated to sq
 statickpath  = home + "keys.static/"
