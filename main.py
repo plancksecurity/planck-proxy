@@ -90,11 +90,11 @@ def keysfromkeyring(userid=None):
 		for r3 in q3:
 			sqkeyfile = ("sec" if r3[1] == True else "pub") + "." + r1[0] + "." + r1[1] + ".key"
 			open(sqkeyfile, "wb").write(r3[0])
-			cmd = ["/usr/local/bin/sq", "enarmor", sqkeyfile, "-o", sqkeyfile + ".asc"]
+			cmd = [sq_bin, "enarmor", sqkeyfile, "-o", sqkeyfile + ".asc"]
 			p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE) # stderr=STDOUT for debugging
 			ret = p.wait()
 
-			cmd = ["/usr/local/bin/sq", "inspect", "--certifications", sqkeyfile]
+			cmd = [sq_bin, "inspect", "--certifications", sqkeyfile]
 			p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE) # stderr=STDOUT for debugging
 			ret = p.wait()
 
@@ -148,7 +148,7 @@ def decryptusingsq(inmail, secretkeyglob):
 		for secretkey in glob(secretkeyglob):
 			dbg(c("Trying secret key file " + secretkey, 3))
 
-			cmd = ["/usr/local/bin/sq", "decrypt", "--secret-key-file", secretkey, "--", tmppath]
+			cmd = [sq_bin, "decrypt", "--secret-key-file", secretkey, "--", tmppath]
 			dbg("CMD: " + " ".join(cmd))
 
 			p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)

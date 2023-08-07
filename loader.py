@@ -36,8 +36,8 @@ testmailglob = home + "tests/?*.eml"
 statickpath  = home + "keys.static/"
 globalkpath  = home + "keys.global/"
 
+sq_bin       = "/bin/sq"
 bldomains    = ["apple.com"]
-
 locktimeout  = 60
 
 ### Extra configuration / workarounds for being called by Postfix #################################
