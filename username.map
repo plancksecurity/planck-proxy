@@ -19,6 +19,7 @@
 	"root@crm.planck.security":						"planck SuiteCRM",
 	"root@spareparts.planck.security":				"planck Spareparts",
 	"root@files.planck.security":					"planck nextCloud",
+	"nextcloud@files.planck.security":				"planck nextCloud",
 	"root@translate.planck.security":				"planck Weblate",
 	"root@ns1.planck.security":						"planck DNS (NS1)",
 	"root@ns2.planck.security":						"planck DNS (NS2)",
