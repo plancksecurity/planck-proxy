@@ -306,14 +306,20 @@ def create_planck_message(planck, message):
         exit(4)
 
     try:
-        dbg(
-            "Processing message from "
-            + ((c(inmail_parsed.from_.username, 2)) if len(inmail_parsed.from_.username) > 0 else "")
-            + c(" <" + inmail_parsed.from_.address + ">", 3)
-            + " to "
-            + ((c(inmail_parsed.to[0].username, 2)) if len(inmail_parsed.to[0].username) > 0 else "")
-            + c(" <" + inmail_parsed.to[0].address + ">", 3)
-        )
+        from_username = inmail_parsed.from_.username
+        from_address = inmail_parsed.from_.address
+
+        from_username_part = c(from_username, 2) if from_username and len(from_username) > 0 else ""
+        from_address_part = c(" <" + from_address + ">", 3)
+
+        to_username = inmail_parsed.to[0].username
+        to_address = inmail_parsed.to[0].address
+
+        to_username_part = c(to_username, 2) if to_username and len(to_username) > 0 else ""
+        to_address_part = c(" <" + to_address + ">", 3)
+
+        dbg(f"Processing message from {from_username_part}{from_address_part} to {to_username_part}{to_address_part}")
+
     except Exception:
         e = sys.exc_info()
         errmsg = "Couldn't get inmail_parsed.from_ or inmail_parsed.to\n"
