@@ -19,17 +19,25 @@ def print_init_info(args):
     Returns:
         None
     """
+    pid = str(os.getpid())
+    if os.name == "posix":  # Unix-like systems
+        uid = str(os.getuid())
+        gid = str(os.getgid())
+    else:
+        uid = "N/A"
+        gid = "N/A"
+
     dbg(
         "===== "
         + c("planck proxy started", 2)
         + " in mode "
         + c(settings["mode"], 3)
         + " | PID "
-        + c(str(os.getpid()), 5)
+        + c(pid, 5)
         + " | UID "
-        + c(str(os.getuid()), 6)
+        + c(uid, 6)
         + " | GID "
-        + c(str(os.getgid()), 7)
+        + c(gid, 7)
         + " ====="
     )
     if settings["DEBUG"]:
@@ -76,7 +84,11 @@ def print_keys_and_headers(message):
         c("┌ Environment variables", 5) + "\n" + prettytable(os.environ),
         pub=False,
     )
-    dbg(c("┌ Keys in this keyring (as stored in keys.db)", 5) + "\n" + prettytable(keys_from_keyring()))
+    dbg(
+        c("┌ Keys in this keyring (as stored in keys.db)", 5)
+        + "\n"
+        + prettytable(keys_from_keyring())
+    )
     dbg(
         c("┌ Headers in original message (as seen by non-planck clients)", 5)
         + "\n"
