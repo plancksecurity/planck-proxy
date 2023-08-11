@@ -19,25 +19,17 @@ def print_init_info(args):
     Returns:
         None
     """
-    pid = str(os.getpid())
-    if os.name == "posix":  # Unix-like systems
-        uid = str(os.getuid())
-        gid = str(os.getgid())
-    else:
-        uid = "N/A"
-        gid = "N/A"
-
     dbg(
         "===== "
         + c("planck proxy started", 2)
         + " in mode "
         + c(settings["mode"], 3)
         + " | PID "
-        + c(pid, 5)
+        + c(str(os.getpid()), 5)
         + " | UID "
-        + c(uid, 6)
+        + c(str(os.getuid()), 6)
         + " | GID "
-        + c(gid, 7)
+        + c(str(os.getgid()), 7)
         + " ====="
     )
     if settings["DEBUG"]:
