@@ -14,6 +14,7 @@ import os
 import re
 import io
 import tempfile
+import subprocess
 
 from glob import glob
 from subprocess import Popen, PIPE, STDOUT
@@ -21,6 +22,16 @@ from subprocess import Popen, PIPE, STDOUT
 from .printers import dbg, c
 
 from proxy.proxy_settings import settings
+
+
+def is_sq_installed(sq_bin):
+    try:
+        subprocess.run(
+            [sq_bin, "-h"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+        )
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
 
 def keys_from_keyring(userid=None):
@@ -35,7 +46,11 @@ def keys_from_keyring(userid=None):
         - 'key_blob': a dictionary with two keys ('is_private', 'sq_inspect'), 'is_private' being a boolean value and
           'sq_inspect' being a list of strings.
     """
+    run_sq = False
     sq_bin = settings["sq_bin"]
+    if is_sq_installed(sq_bin):
+        run_sq = True
+
     if os.name == "posix":
         database_folder = ".pEp"
     else:
@@ -70,57 +85,66 @@ def keys_from_keyring(userid=None):
         fromdb["Subkeys"] = subkeys
 
         q3 = db.execute("SELECT tpk, secret FROM keys WHERE primary_key = ?;", (r1[1],))
-        for r3 in q3:
-            sqkeyfile = (
-                ("sec" if r3[1] is True else "pub") + "." + r1[0] + "." + r1[1] + ".key"
-            )
-            open(sqkeyfile, "wb").write(r3[0])
-            cmd = [sq_bin, "enarmor", sqkeyfile, "-o", sqkeyfile + ".asc"]
-            p = Popen(
-                cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE
-            )  # stderr=STDOUT for debugging
-            ret = p.wait()
+        if run_sq:
+            for r3 in q3:
+                sqkeyfile = (
+                    ("sec" if r3[1] is True else "pub")
+                    + "."
+                    + r1[0]
+                    + "."
+                    + r1[1]
+                    + ".key"
+                )
+                open(sqkeyfile, "wb").write(r3[0])
+                cmd = [sq_bin, "enarmor", sqkeyfile, "-o", sqkeyfile + ".asc"]
+                p = Popen(
+                    cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE
+                )  # stderr=STDOUT for debugging
+                ret = p.wait()
 
-            cmd = [sq_bin, "inspect", "--certifications", sqkeyfile]
-            p = Popen(
-                cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE
-            )  # stderr=STDOUT for debugging
-            ret = p.wait()
+                cmd = [sq_bin, "inspect", "--certifications", sqkeyfile]
+                p = Popen(
+                    cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE
+                )  # stderr=STDOUT for debugging
+                ret = p.wait()
 
-            if ret == 0:
-                inspected = {}
-                inspected["is_private"] = r3[1]
-                inspected["sq_inspect"] = []
-                for line in io.TextIOWrapper(
-                    p.stdout, encoding="utf-8", errors="strict"
-                ):
-                    line = line.strip()
-                    inspected["sq_inspect"] += [line]
+                if ret == 0:
+                    inspected = {}
+                    inspected["is_private"] = r3[1]
+                    inspected["sq_inspect"] = []
+                    for line in io.TextIOWrapper(
+                        p.stdout, encoding="utf-8", errors="strict"
+                    ):
+                        line = line.strip()
+                        inspected["sq_inspect"] += [line]
 
-                # Hide internal filename & extra whitespace
-                inspected["sq_inspect"] = inspected["sq_inspect"][2:]
+                    # Hide internal filename & extra whitespace
+                    inspected["sq_inspect"] = inspected["sq_inspect"][2:]
 
-                usernameparseregexes = [
-                    r"UserID: (.*?) <?[\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+>?\n?",
-                    r"UserID: (.*?) <[\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+>\n?",
-                    r"UserID: ([\w\-\_\"\.\ ]+)\n?",
-                ]
-                for upr in usernameparseregexes:
-                    try:
-                        patt = re.compile(upr, re.MULTILINE | re.DOTALL)
-                        inspected["username"] = patt.findall(
-                            "\n".join(inspected["sq_inspect"])
-                        )[0]
-                        if len(inspected["username"]) > 0:
-                            break
-                    except Exception:
-                        pass
+                    usernameparseregexes = [
+                        r"UserID: (.*?) <?[\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+>?\n?",
+                        r"UserID: (.*?) <[\w\-\_\"\.]+@[\w\-\_\"\.{1,}]+>\n?",
+                        r"UserID: ([\w\-\_\"\.\ ]+)\n?",
+                    ]
+                    for upr in usernameparseregexes:
+                        try:
+                            patt = re.compile(upr, re.MULTILINE | re.DOTALL)
+                            inspected["username"] = patt.findall(
+                                "\n".join(inspected["sq_inspect"])
+                            )[0]
+                            if len(inspected["username"]) > 0:
+                                break
+                        except Exception:
+                            pass
 
-                if len(inspected["username"]) == 0:
-                    dbg(
-                        "[!] No username/user ID was contained in this PGP blob. Full sq inspect:\n"
-                        + "\n".join(inspected["sq_inspect"])
-                    )
+                    if len(inspected["username"]) == 0:
+                        dbg(
+                            "[!] No username/user ID was contained in this PGP blob. Full sq inspect:\n"
+                            + "\n".join(inspected["sq_inspect"])
+                        )
+
+        else:
+            inspected = {"is_private": "N/A", "sq_inspect": "N/A"}
 
         allkeys += [{"pEp_keys.db": fromdb, "key_blob": inspected}]
 
