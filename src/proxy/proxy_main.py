@@ -203,6 +203,10 @@ def init_workdir(message):
     if settings["DEBUG"]:
         dbg(f"init workdir to {settings['work_dir']}")
 
+    if os.name != "posix":
+        # On windows, set the local app data folder to be the same as the workdir so the databases can be created correctly
+        os.environ['LOCALAPPDATA'] = settings["workdir"]
+
 
 # ## Check if Sequoia-DB already exists, if not import keys later using planck ########################
 
