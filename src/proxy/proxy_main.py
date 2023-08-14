@@ -227,6 +227,10 @@ def load_planck():
         planck (module): The planck core module.
     """
 
+    if os.name != "posix":
+        # On windows, set the local app data folder to be the same as the workdir so the databases can be created correctly
+        os.environ['LOCALAPPDATA'] = settings["workdir"]
+
     planck = importlib.import_module("pEp")
     planck.set_debug_log_enabled(True)  # TODO
     planck.message_to_send = messageToSend
