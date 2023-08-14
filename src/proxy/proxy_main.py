@@ -232,6 +232,13 @@ def load_planck():
     planck.message_to_send = messageToSend
     planck.notify_handshake = notifyHandshake
 
+    if os.name != "posix":
+        # On windows we need to manually trigger the database creation
+        try:
+            planck.import_key("")
+        except ValueError:
+            pass
+
     databases = ["management.db", "keys.db"]
     for database in databases:
         db_path = os.path.join(settings["work_dir"], ".pEp", database)
