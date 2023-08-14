@@ -211,7 +211,12 @@ def check_initial_import():
     """
     Check if keys.db already exists, if not import keys later using planck
     """
-    keys_db_path = os.path.join(os.environ["HOME"], ".pEp", "keys.db")
+    if os.name == "posix":
+        database_folder = ".pEp"
+    else:
+        database_folder = "pEp"
+
+    keys_db_path = os.path.join(os.environ["HOME"], database_folder, "keys.db")
     return not os.path.exists(keys_db_path)
 
 
@@ -233,15 +238,18 @@ def load_planck():
     planck.notify_handshake = notifyHandshake
 
     if os.name != "posix":
+        database_folder = "pEp"
         # On windows we need to manually trigger the database creation
         try:
             planck.import_key("")
         except ValueError:
             pass
+    else:
+        database_folder = ".pEp"
 
     databases = ["management.db", "keys.db"]
     for database in databases:
-        db_path = os.path.join(settings["work_dir"], ".pEp", database)
+        db_path = os.path.join(settings["work_dir"], database_folder, database)
         if not os.path.exists(db_path):
             blank_db_path = os.path.join(settings["project_root"], "data", database)
             shutil.copy(blank_db_path, db_path)
