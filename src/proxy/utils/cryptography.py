@@ -26,11 +26,9 @@ from proxy.proxy_settings import settings
 
 def is_sq_installed(sq_bin):
     try:
-        subprocess.run(
-            [sq_bin, "-h"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
-        )
+        subprocess.run([sq_bin, "-h"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
         return True
-    except subprocess.CalledProcessError:
+    except Exception:
         return False
 
 
@@ -87,34 +85,21 @@ def keys_from_keyring(userid=None):
         q3 = db.execute("SELECT tpk, secret FROM keys WHERE primary_key = ?;", (r1[1],))
         if run_sq:
             for r3 in q3:
-                sqkeyfile = (
-                    ("sec" if r3[1] is True else "pub")
-                    + "."
-                    + r1[0]
-                    + "."
-                    + r1[1]
-                    + ".key"
-                )
+                sqkeyfile = ("sec" if r3[1] is True else "pub") + "." + r1[0] + "." + r1[1] + ".key"
                 open(sqkeyfile, "wb").write(r3[0])
                 cmd = [sq_bin, "enarmor", sqkeyfile, "-o", sqkeyfile + ".asc"]
-                p = Popen(
-                    cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE
-                )  # stderr=STDOUT for debugging
+                p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)  # stderr=STDOUT for debugging
                 ret = p.wait()
 
                 cmd = [sq_bin, "inspect", "--certifications", sqkeyfile]
-                p = Popen(
-                    cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE
-                )  # stderr=STDOUT for debugging
+                p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)  # stderr=STDOUT for debugging
                 ret = p.wait()
 
                 if ret == 0:
                     inspected = {}
                     inspected["is_private"] = r3[1]
                     inspected["sq_inspect"] = []
-                    for line in io.TextIOWrapper(
-                        p.stdout, encoding="utf-8", errors="strict"
-                    ):
+                    for line in io.TextIOWrapper(p.stdout, encoding="utf-8", errors="strict"):
                         line = line.strip()
                         inspected["sq_inspect"] += [line]
 
@@ -129,9 +114,7 @@ def keys_from_keyring(userid=None):
                     for upr in usernameparseregexes:
                         try:
                             patt = re.compile(upr, re.MULTILINE | re.DOTALL)
-                            inspected["username"] = patt.findall(
-                                "\n".join(inspected["sq_inspect"])
-                            )[0]
+                            inspected["username"] = patt.findall("\n".join(inspected["sq_inspect"]))[0]
                             if len(inspected["username"]) > 0:
                                 break
                         except Exception:
