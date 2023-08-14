@@ -207,6 +207,10 @@ def init_workdir(message):
         # On windows, set the local app data folder to be the same as the workdir so the databases can be created correctly
         os.environ["LOCALAPPDATA"] = settings["work_dir"]
 
+        #On Windows, create the home folder
+        os.mkdir(settings["home"])
+
+
 
 # ## Check if Sequoia-DB already exists, if not import keys later using planck ########################
 
