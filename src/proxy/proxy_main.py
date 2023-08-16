@@ -192,7 +192,7 @@ def enable_dts(message):
 
 def init_workdir(message):
     """
-    Create workdir for the message recipient, and set it to the current $HOME
+    Create workdir for the message recipient, and set it to the current $HOME. Then check if HOME folder exists and create otherwise
 
     Args:
         message (Message): an instance of the Message class.
@@ -206,7 +206,7 @@ def init_workdir(message):
     if not os.path.exists(workdirpath):
         os.makedirs(workdirpath)
 
-    os.environ["HOME"] = workdirpath
+    os.environ["HOME"] = workdirpath    
     os.chdir(workdirpath)
 
     settings["work_dir"] = workdirpath
@@ -216,6 +216,9 @@ def init_workdir(message):
     if os.name != "posix":
         # On windows, set the local app data folder to be the same as the workdir so the databases can be created correctly
         os.environ["LOCALAPPDATA"] = settings["work_dir"]
+
+    if not os.path.exists(settings['home']):
+        os.makedirs(settings['home'])
 
 
 # ## Check if Sequoia-DB already exists, if not import keys later using planck ########################
