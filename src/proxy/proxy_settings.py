@@ -44,4 +44,11 @@ def init_settings(settings_file=None):
     settings["logfile"] = os.path.join(settings["home"], settings["logfile"])
     settings["project_root"] = Path(os.path.dirname(__file__))
 
+    if os.name == "posix":
+        database_folder = ".pEp"
+    else:
+        database_folder = "pEp"
+
+    settings["database_folder"] = database_folder
+
     return settings
