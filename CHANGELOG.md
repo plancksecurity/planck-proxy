@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pyproject.toml for packaging
 - "home" setting on settings.json. This lets define the execution home and meets the requirements to be able to work with Postfix.
 - Added exception handling for writing permissions.
+- Windows support
 
 ### Changed
 - settings_file is now a mandatory argument. We cannot rely on "settings.json" to be inside the home directory if we define that inside the settings itself, it's a chicken vs egg problem.
