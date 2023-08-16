@@ -14,7 +14,7 @@ settings = {
 
 def init_settings(settings_file=None):
     """
-    Init settings dict with data from the settings.json file
+    Init settings dict with data from the settings.json file. Creates the HOME folder if it does not exist
 
     Returns:
         None
@@ -22,6 +22,9 @@ def init_settings(settings_file=None):
     global settings
     # Postfix sets this to "C" by default, we want full Unicode support though
     os.environ["LANG"] = os.environ["LC_ALL"] = "en_US.UTF-8"
+
+    if not os.path.exists(settings['home']):
+        os.makedirs(settings['home'])
 
     if settings_file is not None:
         with open(settings_file, "rb") as f:
