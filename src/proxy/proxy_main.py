@@ -32,7 +32,9 @@ def init_lockfile():
     locktime = 0
     lockpid = None
 
-    while os.path.isfile(settings["lockfilepath"]) and locktime < settings["locktimeout"]:
+    while (
+        os.path.isfile(settings["lockfilepath"]) and locktime < settings["locktimeout"]
+    ):
         lock = open(settings["lockfilepath"], "r")
         lockpid = lock.read()
         lock.close()
@@ -57,14 +59,20 @@ def init_lockfile():
                 )
         else:
             dbg(
-                "Lockfile doesn't contain any numeric PID [" + str(lockpid) + "]. Removing file",
+                "Lockfile doesn't contain any numeric PID ["
+                + str(lockpid)
+                + "]. Removing file",
                 pub=False,
             )
             cleanup()
         locktime += 1
         sleep(1)
 
-    if os.path.isfile(settings["lockfilepath"]) and lockpid is not None and lockpid.isdigit():
+    if (
+        os.path.isfile(settings["lockfilepath"])
+        and lockpid is not None
+        and lockpid.isdigit()
+    ):
         lockpid = int(lockpid)
         if lockpid > 1:
             try:
@@ -164,7 +172,9 @@ def enable_dts(message):
 
     """
     global settings
-    dts = get_mail_headers(message.inmail, "Disposition-Notification-To")  # Debug To Sender
+    dts = get_mail_headers(
+        message.inmail, "Disposition-Notification-To"
+    )  # Debug To Sender
 
     if len(dts) > 0:
         addr = dts[0]
@@ -182,7 +192,7 @@ def enable_dts(message):
 
 def init_workdir(message):
     """
-    Create workdir for the message recipient, and set it to the current $HOME
+    Create workdir for the message recipient, and set it to the current $HOME. Then check if HOME folder exists and create otherwise
 
     Args:
         message (Message): an instance of the Message class.
@@ -196,12 +206,19 @@ def init_workdir(message):
     if not os.path.exists(workdirpath):
         os.makedirs(workdirpath)
 
-    os.environ["HOME"] = workdirpath
+    os.environ["HOME"] = workdirpath    
     os.chdir(workdirpath)
 
     settings["work_dir"] = workdirpath
     if settings["DEBUG"]:
         dbg(f"init workdir to {settings['work_dir']}")
+
+    if os.name != "posix":
+        # On windows, set the local app data folder to be the same as the workdir so the databases can be created correctly
+        os.environ["LOCALAPPDATA"] = settings["work_dir"]
+
+    if not os.path.exists(settings['home']):
+        os.makedirs(settings['home'])
 
 
 # ## Check if Sequoia-DB already exists, if not import keys later using planck ########################
@@ -211,7 +228,10 @@ def check_initial_import():
     """
     Check if keys.db already exists, if not import keys later using planck
     """
-    keys_db_path = os.path.join(os.environ["HOME"], ".pEp", "keys.db")
+
+    keys_db_path = os.path.join(
+        os.environ["HOME"], settings["database_folder"], "keys.db"
+    )
     return not os.path.exists(keys_db_path)
 
 
@@ -232,9 +252,18 @@ def load_planck():
     planck.message_to_send = messageToSend
     planck.notify_handshake = notifyHandshake
 
+    if os.name != "posix":
+        # On windows we need to manually trigger the database creation
+        try:
+            planck.import_key("")
+        except ValueError:
+            pass
+
     databases = ["management.db", "keys.db"]
     for database in databases:
-        db_path = os.path.join(settings["work_dir"], ".pEp", database)
+        db_path = os.path.join(
+            settings["work_dir"], settings["database_folder"], database
+        )
         if not os.path.exists(db_path):
             blank_db_path = os.path.join(settings["project_root"], "data", database)
             shutil.copy(blank_db_path, db_path)
@@ -309,16 +338,22 @@ def create_planck_message(planck, message):
         from_username = inmail_parsed.from_.username
         from_address = inmail_parsed.from_.address
 
-        from_username_part = c(from_username, 2) if from_username and len(from_username) > 0 else ""
+        from_username_part = (
+            c(from_username, 2) if from_username and len(from_username) > 0 else ""
+        )
         from_address_part = c(" <" + from_address + ">", 3)
 
         to_username = inmail_parsed.to[0].username
         to_address = inmail_parsed.to[0].address
 
-        to_username_part = c(to_username, 2) if to_username and len(to_username) > 0 else ""
+        to_username_part = (
+            c(to_username, 2) if to_username and len(to_username) > 0 else ""
+        )
         to_address_part = c(" <" + to_address + ">", 3)
 
-        dbg(f"Processing message from {from_username_part}{from_address_part} to {to_username_part}{to_address_part}")
+        dbg(
+            f"Processing message from {from_username_part}{from_address_part} to {to_username_part}{to_address_part}"
+        )
 
     except Exception:
         e = sys.exc_info()
@@ -333,7 +368,9 @@ def create_planck_message(planck, message):
 
     # Log parsed message
 
-    logfilename = os.path.join(settings["logpath"], "in." + settings["mode"] + ".parsed.eml")
+    logfilename = os.path.join(
+        settings["logpath"], "in." + settings["mode"] + ".parsed.eml"
+    )
     dbg("planck-parsed message: " + c(logfilename, 6))
     logfile = codecs.open(logfilename, "w", "utf-8")
     logfile.write(str(inmail_parsed))
@@ -393,7 +430,11 @@ def process_message(planck, message):
                 if keys is None or len(keys) == 0:
                     dbg(c("Original message was NOT encrypted", 1))
                 else:
-                    dbg(c("Original message was encrypted to these keys", 2) + ":\n" + prettytable(list(set(keys))))
+                    dbg(
+                        c("Original message was encrypted to these keys", 2)
+                        + ":\n"
+                        + prettytable(list(set(keys)))
+                    )
 
         # Workaround for engine converting plaintext-only messages into a msg.txt inline-attachment
         # dst = str(dst).replace(' filename="msg.txt"', "")
@@ -414,8 +455,15 @@ def process_message(planck, message):
     message.inmail_decrypted = inmail_decrypted
 
     # Log processed message
-    logfilename = os.path.join(settings["logpath"], "in." + settings["mode"] + ".processed.eml")
-    dbg("planck-processed message: " + c(logfilename, 6) + "\n" + str(inmail_decrypted)[0:1337])
+    logfilename = os.path.join(
+        settings["logpath"], "in." + settings["mode"] + ".processed.eml"
+    )
+    dbg(
+        "planck-processed message: "
+        + c(logfilename, 6)
+        + "\n"
+        + str(inmail_decrypted)[0:1337]
+    )
     logfile = codecs.open(logfilename, "w", "utf-8")
     logfile.write(str(inmail_decrypted))
     logfile.close()
@@ -472,9 +520,15 @@ def filter_message(message):
 
         if settings["DEBUG"]:
             if stdout and len(stdout) > 0:
-                dbg(c("STDOUT:\n", 2) + prettytable(stdout.decode("utf8").strip().split("\n")))
+                dbg(
+                    c("STDOUT:\n", 2)
+                    + prettytable(stdout.decode("utf8").strip().split("\n"))
+                )
             if stderr and len(stderr) > 0:
-                dbg(c("STDERR:\n", 1) + prettytable(stderr.decode("utf8").strip().split("\n")))
+                dbg(
+                    c("STDERR:\n", 1)
+                    + prettytable(stderr.decode("utf8").strip().split("\n"))
+                )
             # dbg("Return code: " + c(str(rc), 3));
 
     dbg("Combined scan results:\n" + prettytable(scanresults))
@@ -482,7 +536,11 @@ def filter_message(message):
     if sum(scanresults.values()) == 0:
         dbg("All scans " + c("PASSED", 2) + ", relaying message", 2)
     else:
-        dbg("Some scans " + c("FAILED", 1) + ", not relaying message (keeping it in the Postfix queue for now)")
+        dbg(
+            "Some scans "
+            + c("FAILED", 1)
+            + ", not relaying message (keeping it in the Postfix queue for now)"
+        )
         admin_msg = f"A message from {message.msgfrom} and to {message.msgto} failed some of the scans."
         dbgmail(msg=admin_msg, subject="planck Proxy Scan failure")
         # sender_msg = f"Your message could not be delivered to {message.msg['msgto']}
@@ -505,12 +563,20 @@ def deliver_mail(message):
     dbg("Sending mail")
     dbg(
         "From: "
-        + ((c(message.inmail_parsed.from_.username, 2)) if len(message.inmail_parsed.from_.username) > 0 else "")
+        + (
+            (c(message.inmail_parsed.from_.username, 2))
+            if len(message.inmail_parsed.from_.username) > 0
+            else ""
+        )
         + c(" <" + message.inmail_parsed.from_.address + ">", 3)
     )
     dbg(
         "  To: "
-        + ((c(message.inmail_parsed.to[0].username, 2)) if len(message.inmail_parsed.to[0].username) > 0 else "")
+        + (
+            (c(message.inmail_parsed.to[0].username, 2))
+            if len(message.inmail_parsed.to[0].username) > 0
+            else ""
+        )
         + c(" <" + message.inmail_parsed.to[0].address + ">", 3)
     )
 
