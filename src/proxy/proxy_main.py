@@ -109,12 +109,20 @@ def get_message(message):
 
     inbuf = bytearray()
     inmail = ""
-    while True:
-        part = sys.stdin.buffer.read(1024)
-        if len(part) > 0:
-            inbuf += part
-        else:
-            break
+
+    if settings['eml_file'] != False:
+        with open(settings['eml_file'], 'rb') as file:
+            data = file.read()
+        inbuf = data
+        dbg('Data has been read')
+
+    else:
+        while True:
+            part = sys.stdin.buffer.read(1024)
+            if len(part) > 0:
+                inbuf += part
+            else:
+                break
 
     try:
         for line in inbuf.decode(encoding="utf-8", errors="strict"):
