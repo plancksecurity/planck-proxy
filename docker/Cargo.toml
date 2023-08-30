@@ -2,7 +2,7 @@
 name = "pep_engine_sequoia_backend"
 description = "An implementation of the p≡p Engine's cryptotech interface using Sequoia."
 version = "1.0.0"
-authors = ["Neal H. Walfield <neal@pep.foundation>"]
+authors = ["Neal H. Walfield neal@pep.foundation"]
 homepage = "https://sequoia-pgp.org/"
 repository = "https://gitea.pep.foundation/pEp.foundation/pEpEngineSequoiaBackend/"
 readme = "README.md"
@@ -25,12 +25,12 @@ libc = "0.2"
 lru = "0.6.6"
 memmem = "0.1"
 memoffset = "0.6"
+
 # When bumping the version of Sequoia search the code for XXX to find
 # spots where we can take advantage of new features.
-sequoia-openpgp = { version = "1.14.0", default-features = false }
-# botan = { version = "0.10", features=["vendored"] }
-botan = { version = "0.10" }
+sequoia-openpgp = { version = "1.0", default-features = false }
 thiserror = "1"
+botan = { version = "0.10" }
 
 [dependencies.rusqlite]
 version = "0.25"

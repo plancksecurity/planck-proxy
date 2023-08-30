@@ -76,7 +76,7 @@ RUN echo 'PREFIX=$(HOME)/local \
     YML2_PATH=$(HOME)/src/yml2 \
     YML2_PROC=$(YML2_PATH)/yml2proc $(YML2_OPTS) \
     YML2_OPTS=--encoding=utf8' > local.conf
-RUN make 
+RUN make
 RUN make install
 
 #Install Planckcore
