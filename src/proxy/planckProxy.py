@@ -82,9 +82,10 @@ def main():
     )
 
     parser.add_argument(
-        "--eml_file",
+        "-f",
+        "--file",
         default=False,
-        help=('Route for the eml file to analyze.'),
+        help=("Route for the file to analyze."),
     )
 
     parser.add_argument(

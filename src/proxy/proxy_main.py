@@ -110,11 +110,11 @@ def get_message(message):
     inbuf = bytearray()
     inmail = ""
 
-    if settings['eml_file'] != False:
-        with open(settings['eml_file'], 'rb') as file:
+    if settings["file"]:
+        with open(settings["file"], "rb") as file:
             data = file.read()
         inbuf = data
-        dbg('Data has been read')
+        dbg("Data has been read")
 
     else:
         while True:
