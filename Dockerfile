@@ -1,6 +1,7 @@
 # Alpine Docker build
 # SEQUOIA_BRANCH=giulio/time_t (v1.1.0)
 # YML2_BRANCH=v2.7.5
+# BOTAN_BRANCH=3.0.0
 # LIBETPAN_BRANCH=v3.3.1
 # ASN1C_BRANCH=v0.9.28
 # LIBPLANCKTRANSPORT_BRANCH=v1.0.0
@@ -32,6 +33,16 @@ RUN make dist
 
 FROM alpine:3.18.3 as alpine-gcc
 RUN apk update && apk add gcc git make autoconf automake libtool build-base
+
+### building botan
+FROM alpine-gcc as botanBuilder
+ENV BOTAN_BRANCH=3.0.0
+RUN apk update && apk add python3
+WORKDIR /root/
+RUN git clone --depth=1 --branch=$BOTAN_BRANCH https://github.com/randombit/botan.git
+WORKDIR /root/botan
+RUN ./configure.py --prefix=/opt/planck
+RUN make install
 
 ### building libetpan
 FROM alpine-gcc as libetpanBuilder
@@ -110,61 +121,41 @@ RUN make install
 WORKDIR /root/planckPythonWrapper/
 RUN git clone --depth=1 --branch=$PYTHONWRAPPER_BRANCH https://git.planck.security/foundation/planckPythonWrapper.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
-# RUN make dist-whl
+RUN ln -s /usr/lib/libboost_python311.so /usr/lib/libboost_python3.so
+RUN make dist-whl
 
+### build runner
+FROM python:3.9-alpine as runner
+RUN apk update && apk add python3 py3-pip postfix boost-dev boost-python3
+WORKDIR /root/
+COPY --from=sequoiaBuilder /opt/planck /opt/planck
+COPY --from=libetpanBuilder /opt/planck /opt/planck
+COPY --from=botanBuilder /opt/planck /opt/planck
+COPY --from=asn1cBuilder /opt/planck /opt/planck
+COPY --from=libPlanckTransportBuilder /opt/planck /opt/planck
+COPY --from=libPlanckCxxBuilder /opt/planck /opt/planck
+COPY --from=pyWrapperBuilder /opt/planck /opt/planck
+COPY --from=pyWrapperBuilder /root/planckPythonWrapper/dist /opt/planck/dist
+ENV LD_LIBRARY_PATH=/opt/planck/lib
+ENV DYLD_LIBRARY_PATH=/opt/planck/lib
+RUN ln -s /usr/lib/libboost_python311.so /usr/lib/libboost_python3.so
+RUN pip install /opt/planck/dist/pEp-3.2.1-cp39-cp39-linux_x86_64.whl
 
+# Copy the proxy files
+COPY ./src/* /opt/planck-proxy/
 
+# Copy the postfix configuration files
+COPY ./docker/postfix/* /etc/postfix/
+RUN postmap /etc/postfix/transport
+RUN postmap /etc/postfix/transport-proxy
 
+# Add the "proxy" user without a password
+RUN adduser --disabled-password proxy
 
+# Create the workdir and set permissions
+RUN mkdir /home/proxy/work
+WORKDIR /home/proxy/work
+RUN chown proxy:proxy . -R
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # building final runner
-# FROM alpine-gcc as runner
-
-# COPY --from=sequoiaBuilder /opt/planck /opt/planck
-
-# # # WARNING: even if version v2.7.5 is checked out, the version is still 2.7.4
-# COPY --from=yml2Builder /root/yml2/dist/yml2-2.7.4.tar.gz /root/
-# RUN apk update && apk add python3 py3-pip postfix
-# RUN python3 -m venv /opt/tools/virtualenv
-# RUN . /opt/tools/virtualenv/bin/activate && pip install /root/yml2-2.7.4.tar.gz
-
-# COPY --from=libetpanBuilder /opt/planck /opt/planck
-# COPY --from=asn1cBuilder /opt/planck /opt/planck
-# COPY --from=libPlanckTransportBuilder /opt/planck /opt/planck
-
-# ENV LD_LIBRARY_PATH=/opt/planck/lib
-# ENV DYLD_LIBRARY_PATH=/opt/planck/lib
-
-# # Copy the proxy files
-# COPY ./src/* /opt/planck-proxy/
-
-# # Copy the postfix configuration files
-# COPY ./docker/postfix/* /etc/postfix/
-# RUN postmap /etc/postfix/transport
-# RUN postmap /etc/postfix/transport-proxy
-
-# # Add the "proxy" user without a password
-# RUN adduser --disabled-password proxy
-
-# # Create the workdir and set permissions
-# RUN mkdir /home/proxy/work
-# WORKDIR /home/proxy/work
-# RUN chown proxy:proxy . -R
-
-# # Copy the settings file
-# COPY ./docker/docker-settings.json /home/proxy/settings.json
+# Copy the settings file
+COPY ./docker/docker-settings.json /home/proxy/settings.json
