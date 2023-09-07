@@ -76,11 +76,9 @@ WORKDIR /root/libPlanckCxx11
 RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN make install
 
-### build python wrapper
-FROM python:3.9-alpine as pyWrapperBuilder
+### build core
+FROM python:3.9-alpine as planckCoreBuilder
 ENV PLANCKCORE_BRANCH=v3.2.1
-ENV LIBPLANCKWRAPPER_BRANCH=v3.2.0
-ENV PYTHONWRAPPER_BRANCH=v3.2.1
 
 RUN apk update && apk add git build-base util-linux-dev sqlite-dev boost-dev boost-python3 botan-libs botan-dev
 WORKDIR /root/
@@ -102,35 +100,62 @@ ENV DYLD_LIBRARY_PATH=/opt/planck/lib
 RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtualenv/bin" && \
     export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make && make install
 
+### build libplanck adapter
+FROM alpine-gcc as libWrapperBuilder
+ENV LIBPLANCKWRAPPER_BRANCH=v3.2.0
+RUN apk update && apk add python3 py3-pip e2fsprogs-dev
 WORKDIR /root/libPlanckWrapper/
+COPY --from=planckCoreBuilder /opt/planck /opt/planck
 RUN git clone --depth=1 --branch=$LIBPLANCKWRAPPER_BRANCH https://git.planck.security/foundation/libPlanckWrapper.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN make install
 
+### build pywrapper
+FROM python:3.9-alpine as pyWrapperBuilder
+ENV PYTHONWRAPPER_BRANCH=v3.2.1
+RUN apk update && apk add git boost-dev make gcc build-base e2fsprogs-dev
+COPY --from=sequoiaBuilder /opt/planck /opt/planck
+COPY --from=libetpanBuilder /opt/planck /opt/planck
+COPY --from=asn1cBuilder /opt/planck /opt/planck
+COPY --from=libPlanckTransportBuilder /opt/planck /opt/planck
+COPY --from=libPlanckCxxBuilder /opt/planck /opt/planck
+COPY --from=planckCoreBuilder /opt/planck /opt/planck
+COPY --from=libWrapperBuilder /opt/planck /opt/planck
+ENV LD_LIBRARY_PATH=/opt/planck/lib
+ENV DYLD_LIBRARY_PATH=/opt/planck/lib
 WORKDIR /root/planckPythonWrapper/
 RUN git clone --depth=1 --branch=$PYTHONWRAPPER_BRANCH https://git.planck.security/foundation/planckPythonWrapper.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN ln -s /usr/lib/libboost_python311.so /usr/lib/libboost_python3.so
 RUN make dist-whl
 
+### build proxy
+FROM python:3.9-alpine as proxyBuilder
+RUN apk update && apk add python3 py3-pip
+WORKDIR /root/proxy/
+COPY . /root/proxy/
+RUN pip install build
+RUN python -m build
+
 ### build runner
 FROM python:3.9-alpine as runner
 RUN apk update && apk add python3 py3-pip postfix boost-dev boost-python3 botan-libs botan-dev
+RUN ln -s /usr/lib/libboost_python311.so /usr/lib/libboost_python3.so
 WORKDIR /root/
 COPY --from=sequoiaBuilder /opt/planck /opt/planck
 COPY --from=libetpanBuilder /opt/planck /opt/planck
 COPY --from=asn1cBuilder /opt/planck /opt/planck
 COPY --from=libPlanckTransportBuilder /opt/planck /opt/planck
 COPY --from=libPlanckCxxBuilder /opt/planck /opt/planck
+COPY --from=planckCoreBuilder /opt/planck /opt/planck
+COPY --from=libWrapperBuilder /opt/planck /opt/planck
 COPY --from=pyWrapperBuilder /opt/planck /opt/planck
 COPY --from=pyWrapperBuilder /root/planckPythonWrapper/dist /opt/planck/dist
 ENV LD_LIBRARY_PATH=/opt/planck/lib
 ENV DYLD_LIBRARY_PATH=/opt/planck/lib
-RUN ln -s /usr/lib/libboost_python311.so /usr/lib/libboost_python3.so
 RUN pip install /opt/planck/dist/pEp-3.2.1-cp39-cp39-linux_x86_64.whl
-
-# Copy the proxy files
-COPY ./src/* /opt/planck-proxy/
+COPY --from=proxyBuilder /root/proxy/dist /opt/planck/dist
+RUN pip install /opt/planck/dist/planck_proxy-3.0.1-py3-none-any.whl
 
 # Copy the postfix configuration files
 COPY ./docker/postfix/* /etc/postfix/
