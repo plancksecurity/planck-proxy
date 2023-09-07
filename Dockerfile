@@ -1,7 +1,6 @@
 # Alpine Docker build
 # SEQUOIA_BRANCH=giulio/time_t (v1.1.0)
 # YML2_BRANCH=v2.7.5
-# BOTAN_BRANCH=3.0.0
 # LIBETPAN_BRANCH=v3.3.1
 # ASN1C_BRANCH=v0.9.28
 # LIBPLANCKTRANSPORT_BRANCH=v1.0.0
@@ -10,11 +9,14 @@
 # LIBPLANCKWRAPPER_BRANCH=david/alpine_compat (v3.2.0)
 # PYTHONWRAPPER_BRANCH=v3.2.1
 
+FROM alpine:3.18.3 as alpine-gcc
+RUN apk update && apk add gcc git make autoconf automake libtool build-base
+
 ### building SequoiaBackend
 FROM rust:alpine3.18 as sequoiaBuilder
 # ENV SEQUOIA_BRANCH=v1.1.0
 ENV SEQUOIA_BRANCH=giulio/time_t
-RUN apk update && apk add git pkgconf openssl-dev make bzip2-dev sqlite-dev musl-dev
+RUN apk update && apk add git pkgconf openssl-dev make bzip2-dev sqlite-dev musl-dev botan-libs
 WORKDIR /root/
 RUN git clone --depth=1 --branch=$SEQUOIA_BRANCH https://git.planck.security/foundation/planckCoreSequoiaBackend.git
 WORKDIR /root/planckCoreSequoiaBackend
@@ -30,19 +32,6 @@ RUN apk update && apk add git build-base
 RUN git clone --depth=1 --branch=$YML2_BRANCH https://git.planck.security/foundation/yml2.git
 WORKDIR /root/yml2
 RUN make dist
-
-FROM alpine:3.18.3 as alpine-gcc
-RUN apk update && apk add gcc git make autoconf automake libtool build-base
-
-### building botan
-FROM alpine-gcc as botanBuilder
-ENV BOTAN_BRANCH=3.0.0
-RUN apk update && apk add python3
-WORKDIR /root/
-RUN git clone --depth=1 --branch=$BOTAN_BRANCH https://github.com/randombit/botan.git
-WORKDIR /root/botan
-RUN ./configure.py --prefix=/opt/planck
-RUN make install
 
 ### building libetpan
 FROM alpine-gcc as libetpanBuilder
@@ -93,7 +82,7 @@ ENV PLANCKCORE_BRANCH=v3.2.1
 ENV LIBPLANCKWRAPPER_BRANCH=v3.2.0
 ENV PYTHONWRAPPER_BRANCH=v3.2.1
 
-RUN apk update && apk add git build-base util-linux-dev sqlite-dev boost-dev boost-python3
+RUN apk update && apk add git build-base util-linux-dev sqlite-dev boost-dev boost-python3 botan-libs botan-dev
 WORKDIR /root/
 COPY --from=sequoiaBuilder /opt/planck /opt/planck
 COPY --from=yml2Builder /root/yml2/dist/yml2-2.7.4.tar.gz /root/
@@ -126,11 +115,10 @@ RUN make dist-whl
 
 ### build runner
 FROM python:3.9-alpine as runner
-RUN apk update && apk add python3 py3-pip postfix boost-dev boost-python3
+RUN apk update && apk add python3 py3-pip postfix boost-dev boost-python3 botan-libs botan-dev
 WORKDIR /root/
 COPY --from=sequoiaBuilder /opt/planck /opt/planck
 COPY --from=libetpanBuilder /opt/planck /opt/planck
-COPY --from=botanBuilder /opt/planck /opt/planck
 COPY --from=asn1cBuilder /opt/planck /opt/planck
 COPY --from=libPlanckTransportBuilder /opt/planck /opt/planck
 COPY --from=libPlanckCxxBuilder /opt/planck /opt/planck
