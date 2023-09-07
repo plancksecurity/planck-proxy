@@ -176,4 +176,4 @@ postlog   unix-dgram n  -       n       -       1       postlogd
   -o smtpd_relay_restrictions=permit_mynetworks,permit_sasl_authenticated,reject
   -o smtpd_recipient_restrictions=permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination
 planckproxy unix - n n - 1 pipe
-  flags=DRhu user=proxy argv=/opt/planck-proxy/src/proxy/planckProxy.py decrypt /home/proxy/settings.json
+  flags=DRhu user=proxy argv=/usr/local/lib/python3.9/site-packages/proxy/planckProxy.py decrypt /home/proxy/settings.json
