@@ -7,7 +7,7 @@
 # LIBPLANCKCXX_BRANCH=v3.2.0
 # PLANCKCORE_BRANCH=v3.2.1
 # LIBPLANCKWRAPPER_BRANCH=david/alpine_compat (v3.2.0)
-# PYTHONWRAPPER_BRANCH=2.1.10
+# PYTHONWRAPPER_BRANCH=v3.2.1
 
 ### building SequoiaBackend
 FROM rust:alpine3.18 as sequoiaBuilder
@@ -80,9 +80,9 @@ RUN make install
 FROM python:3.9-alpine as pyWrapperBuilder
 ENV PLANCKCORE_BRANCH=v3.2.1
 ENV LIBPLANCKWRAPPER_BRANCH=v3.2.0
-ENV PYTHONWRAPPER_BRANCH=2.1.10
+ENV PYTHONWRAPPER_BRANCH=v3.2.1
 
-RUN apk update && apk add git build-base util-linux-dev sqlite-dev boost-dev
+RUN apk update && apk add git build-base util-linux-dev sqlite-dev boost-dev boost-python3
 WORKDIR /root/
 COPY --from=sequoiaBuilder /opt/planck /opt/planck
 COPY --from=yml2Builder /root/yml2/dist/yml2-2.7.4.tar.gz /root/
@@ -110,7 +110,7 @@ RUN make install
 WORKDIR /root/planckPythonWrapper/
 RUN git clone --depth=1 --branch=$PYTHONWRAPPER_BRANCH https://git.planck.security/foundation/planckPythonWrapper.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
-RUN make dist-whl
+# RUN make dist-whl
 
 
 
