@@ -52,7 +52,6 @@ RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtua
 
 ### building libPlanckCxx
 FROM alpine-gcc as libPlanckCxxBuilder
-# ENV LIBPLANCKCXX_BRANCH=v3.2.0
 ENV LIBPLANCKCXX_BRANCH=david/alpine_compat_v3.3.0-RC8
 WORKDIR /root/libPlanckCxx11
 RUN git clone --depth=1 --branch=$LIBPLANCKCXX_BRANCH https://git.planck.security/foundation/libPlanckCxx11.git .
@@ -79,7 +78,7 @@ COPY ./docker/planckCore.conf local.conf
 ENV LD_LIBRARY_PATH=/opt/planck/lib
 ENV DYLD_LIBRARY_PATH=/opt/planck/lib
 RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtualenv/bin" && \
-    export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make && make install
+    export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make && make install && make dbinstall
 
 ### build libplanck adapter
 FROM alpine-gcc as libWrapperBuilder
