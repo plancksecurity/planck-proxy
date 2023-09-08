@@ -14,7 +14,7 @@ RUN make install
 
 ### building yml2
 FROM python:3.9-alpine as yml2Builder
-ENV YML2_BRANCH=v2.7.5
+ENV YML2_BRANCH=v2.7.6
 RUN apk update && apk add git build-base
 WORKDIR /root/yml2
 RUN git clone --depth=1 --branch=$YML2_BRANCH https://git.planck.security/foundation/yml2.git .
@@ -39,7 +39,7 @@ RUN make install
 
 ### building libPlanckTransport
 FROM alpine-gcc as libPlanckTransportBuilder
-ENV LIBPLANCKTRANSPORT_BRANCH=v1.0.0
+ENV LIBPLANCKTRANSPORT_BRANCH=v3.3.0-RC9
 RUN apk update && apk add python3 py3-pip
 COPY --from=yml2Builder /root/yml2/dist/yml2-2.7.4.tar.gz /root/
 RUN python3 -m venv /opt/tools/virtualenv
@@ -53,7 +53,7 @@ RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtua
 ### building libPlanckCxx
 FROM alpine-gcc as libPlanckCxxBuilder
 # ENV LIBPLANCKCXX_BRANCH=v3.2.0
-ENV LIBPLANCKCXX_BRANCH=david/alpine_compat
+ENV LIBPLANCKCXX_BRANCH=david/alpine_compat_v3.3.0-RC8
 WORKDIR /root/libPlanckCxx11
 RUN git clone --depth=1 --branch=$LIBPLANCKCXX_BRANCH https://git.planck.security/foundation/libPlanckCxx11.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
@@ -61,7 +61,7 @@ RUN make install
 
 ### build core
 FROM python:3.9-alpine as planckCoreBuilder
-ENV PLANCKCORE_BRANCH=v3.2.1
+ENV PLANCKCORE_BRANCH=v3.3.2
 RUN apk update && apk add git build-base util-linux-dev sqlite-dev boost-dev boost-python3 botan-libs botan-dev
 COPY --from=sequoiaBuilder /opt/planck /opt/planck
 COPY --from=yml2Builder /root/yml2/dist/yml2-2.7.4.tar.gz /root/
@@ -83,7 +83,7 @@ RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtua
 
 ### build libplanck adapter
 FROM alpine-gcc as libWrapperBuilder
-ENV LIBPLANCKWRAPPER_BRANCH=v3.2.0
+ENV LIBPLANCKWRAPPER_BRANCH=v3.3.0-RC9
 RUN apk update && apk add python3 py3-pip e2fsprogs-dev
 WORKDIR /root/libPlanckWrapper/
 COPY --from=planckCoreBuilder /opt/planck /opt/planck
@@ -93,7 +93,7 @@ RUN make install
 
 ### build pywrapper
 FROM python:3.9-alpine as pyWrapperBuilder
-ENV PYTHONWRAPPER_BRANCH=v3.2.1
+ENV PYTHONWRAPPER_BRANCH=v3.3.0-RC8
 RUN apk update && apk add git boost-dev make gcc build-base e2fsprogs-dev
 COPY --from=sequoiaBuilder /opt/planck /opt/planck
 COPY --from=libetpanBuilder /opt/planck /opt/planck
