@@ -80,6 +80,14 @@ def main():
         "settings_file",
         help=('Route for the "settings.json" file.'),
     )
+
+    parser.add_argument(
+        "-f",
+        "--file",
+        default=False,
+        help=("Route for the file to analyze."),
+    )
+
     parser.add_argument(
         "--DEBUG",
         action="store_true",

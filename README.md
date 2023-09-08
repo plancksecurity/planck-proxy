@@ -65,8 +65,9 @@ positional arguments:
   settings_file  Route for the "settings.json" file.
 
 optional arguments:
-  -h, --help     show this help message and exit
-  --DEBUG        Set DEBUG mode, default is False
+  -h, --help            show this help message and exit
+  -f FILE, --file FILE  Route for the file to analyze.
+  --DEBUG               Set DEBUG mode, default is False
 ```
 ### settings_file
 This file provides the settings for the planck proxy. This is an example for the settings:
