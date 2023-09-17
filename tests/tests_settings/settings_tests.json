@@ -2,7 +2,7 @@
 
     "work_dir":         "work",
 
-    "keys_dir":         "keys",
+    "keys_dir":         "tests/test_keys",
 
     "logfile":          "debug.log",
 

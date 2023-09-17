@@ -15,20 +15,20 @@ def decrypt_msg(msg, key, home_dir, debug):
     Returns:
         None
     """
-    # Change to pEp home
+    # Change to core home
     home = os.environ.get("HOME")
     if not os.path.isdir(home_dir):
         print(f"planck directory created at {home_dir}")
         os.makedirs(home_dir)
 
     os.environ["HOME"] = home_dir
-    import pEp
+    import planck_core as core
 
     # Import key
     if key:
         with open(key, "r") as f:
             key_data = f.read()
-        pEp.import_key(key_data)
+        core.import_key(key_data)
         print(f"key at {key} successfuly imported")
 
     # Decrypt message
@@ -40,7 +40,7 @@ def decrypt_msg(msg, key, home_dir, debug):
         print("=================")
         print(msg)
 
-    msg = pEp.Message(msg)
+    msg = core.Message(msg)
     msg, keys, rating, flags = msg.decrypt()
 
     if debug:
