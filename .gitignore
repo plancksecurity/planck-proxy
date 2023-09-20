@@ -6,6 +6,7 @@ keys/*.asc
 work/**
 tests/work/**
 tests/keys/
+cert.bundle.crt
 
 # Python artifacts
 /build/
