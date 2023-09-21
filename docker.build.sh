@@ -1,1 +1,1 @@
-docker build --tag=planckproxy.azurecr.io/proxy:andy $* .
+docker build --tag=planckproxy.azurecr.io/proxy $* .

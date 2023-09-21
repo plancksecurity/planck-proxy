@@ -1,1 +1,1 @@
-docker push planckproxy.azurecr.io/proxy:andy
+docker push planckproxy.azurecr.io/proxy

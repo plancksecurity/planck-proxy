@@ -21,12 +21,15 @@ def install(d):
 			replace = set(re.findall(r"\{\{(\w+)\}\}", data))
 			for k in replace:
 				try:
-					os.environ[k]
+					if "_escaped" in k:
+						rep = os.environ[k.replace("_escaped", "")].replace(".", "\.")
+					else:
+						rep = os.environ[k]
 				except:
 					print("  + " + c("ERROR", 1) + ": Env variable " + k + " not set!")
 					continue
-				print("  + Replacing " + c("{{" + k + "}}", 2) + " with " + c(os.environ[k], 3))
-				data = re.sub(r"\{\{" + k + "\}\}", os.environ[k], data)
+				print("  + Replacing " + c("{{" + k + "}}", 2) + " with " + c(rep, 3))
+				data = re.sub(r"\{\{" + k + "\}\}", rep, data)
 
 			open("/" + fshort, "w").write(data)
 
