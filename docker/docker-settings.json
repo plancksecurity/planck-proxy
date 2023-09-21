@@ -1,5 +1,8 @@
 {
     "home": "/home/proxy/",
+    "work_dir": "work",
+    "keys_dir": "keys",
+    "logfile": "debug.log",
     "SMTP_HOST": "127.0.0.1",
     "SMTP_PORT": "10587",
     "sq_bin": "/usr/local/bin/sq",
