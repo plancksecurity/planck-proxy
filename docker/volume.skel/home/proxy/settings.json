@@ -6,8 +6,8 @@
     "SMTP_HOST": "127.0.0.1",
     "SMTP_PORT": "10587",
     "sq_bin": "/usr/local/bin/sq",
-    "admin_addr": "someone@yourcompany.tld",
-    "dts_domains": [ "yourcompany.tld" ],
-    "DEBUG": false,
+    "admin_addr": "{{admin_addr}}",
+    "dts_domains": [ "{{relay_domain}}" ],
+    "DEBUG": true,
     "scan_pipes": []
 }

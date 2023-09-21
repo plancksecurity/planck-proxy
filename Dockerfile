@@ -10,7 +10,7 @@ WORKDIR /root/planckCoreSequoiaBackend
 RUN git clone --depth=1 --branch=$SEQUOIA_BRANCH https://git.planck.security/foundation/planckCoreSequoiaBackend.git .
 COPY ./docker/planckCoreSequoiaBackend.conf local.conf
 COPY ./docker/planckCoreSequoiaBackendMakefile Makefile
-RUN make install
+RUN make install -j $(nproc --ignore=2)
 
 ### building yml2
 FROM python:3.9-alpine as yml2Builder
@@ -18,7 +18,7 @@ ENV YML2_BRANCH=v2.7.6
 RUN apk update && apk add git build-base
 WORKDIR /root/yml2
 RUN git clone --depth=1 --branch=$YML2_BRANCH https://git.planck.security/foundation/yml2.git .
-RUN make dist
+RUN make dist -j $(nproc --ignore=2)
 
 ### building libetpan
 FROM alpine-gcc as libetpanBuilder
@@ -26,7 +26,7 @@ ENV LIBETPAN_BRANCH=v3.3.1
 WORKDIR /root/libetpan
 RUN git clone --depth=1 --branch=$LIBETPAN_BRANCH https://git.planck.security/foundation/libetpan.git .
 RUN ./autogen.sh --prefix=/opt/planck
-RUN make install
+RUN make install -j $(nproc --ignore=2)
 
 ### building ASN1C
 FROM alpine-gcc as asn1cBuilder
@@ -35,7 +35,7 @@ WORKDIR /root/asn1c
 RUN git clone --depth=1 --branch=$ASN1C_BRANCH https://github.com/vlm/asn1c.git .
 RUN autoreconf -iv
 RUN ./configure --prefix=/opt/planck
-RUN make install
+RUN make install -j $(nproc --ignore=2)
 
 ### building libPlanckTransport
 FROM alpine-gcc as libPlanckTransportBuilder
@@ -48,7 +48,7 @@ WORKDIR /root/libPlanckTransport
 RUN git clone --depth=1 --branch=$LIBPLANCKTRANSPORT_BRANCH https://git.planck.security/foundation/libPlanckTransport.git .
 COPY ./docker/libPlanckTransport.conf local.conf
 RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtualenv/bin" && \
-    export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make && make install
+    export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make -j $(nproc --ignore=2) && make install
 
 ### building libPlanckCxx
 FROM alpine-gcc as libPlanckCxxBuilder
@@ -56,7 +56,7 @@ ENV LIBPLANCKCXX_BRANCH=david/alpine_compat_v3.3.0-RC8
 WORKDIR /root/libPlanckCxx11
 RUN git clone --depth=1 --branch=$LIBPLANCKCXX_BRANCH https://git.planck.security/foundation/libPlanckCxx11.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
-RUN make install
+RUN make install -j $(nproc --ignore=2)
 
 ### build core
 FROM python:3.9-alpine as planckCoreBuilder
@@ -78,7 +78,7 @@ COPY ./docker/planckCore.conf local.conf
 ENV LD_LIBRARY_PATH=/opt/planck/lib
 ENV DYLD_LIBRARY_PATH=/opt/planck/lib
 RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtualenv/bin" && \
-    export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make && make install && make dbinstall
+    export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make -j $(nproc --ignore=2) && make install && make dbinstall
 
 ### build libplanck adapter
 FROM alpine-gcc as libWrapperBuilder
@@ -88,7 +88,7 @@ WORKDIR /root/libPlanckWrapper/
 COPY --from=planckCoreBuilder /opt/planck /opt/planck
 RUN git clone --depth=1 --branch=$LIBPLANCKWRAPPER_BRANCH https://git.planck.security/foundation/libPlanckWrapper.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
-RUN make install
+RUN make install -j $(nproc --ignore=2)
 
 ### build pywrapper
 FROM python:3.9-alpine as pyWrapperBuilder
@@ -107,7 +107,7 @@ WORKDIR /root/planckPythonWrapper/
 RUN git clone --depth=1 --branch=$PYTHONWRAPPER_BRANCH https://git.planck.security/foundation/planckPythonWrapper.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN ln -s /usr/lib/libboost_python311.so /usr/lib/libboost_python3.so
-RUN make dist-whl
+RUN make dist-whl -j $(nproc --ignore=2)
 
 ### build proxy
 FROM python:3.9-alpine as proxyBuilder
@@ -119,7 +119,11 @@ RUN python -m build
 
 ### build runner
 FROM python:3.9-alpine as runner
-RUN apk update && apk add python3 py3-pip postfix boost-dev boost-python3 botan-libs botan-dev sqlite
+RUN apk update && apk search postfix btree
+RUN apk update && apk add python3 py3-pip postfix boost-dev boost-python3 botan-libs botan-dev sqlite rsyslog mailx
+RUN apk add bash inetutils-telnet nano mailx bind-tools # dev/debug tools
+RUN echo 'alias l="ls -la --color=yes"' >> /etc/bash/bashrc
+RUN echo 'alias pico="nano"' >> /etc/bash/bashrc
 WORKDIR /root/
 RUN ln -s /usr/lib/libboost_python311.so /usr/lib/libboost_python3.so
 ENV LD_LIBRARY_PATH=/opt/planck/lib
@@ -134,20 +138,25 @@ COPY --from=libWrapperBuilder /opt/planck /opt/planck
 COPY --from=pyWrapperBuilder /opt/planck /opt/planck
 COPY --from=pyWrapperBuilder /root/planckPythonWrapper/dist /opt/planck/dist/wrapper
 COPY --from=proxyBuilder /root/proxy/dist/ /opt/planck/dist/proxy
-RUN pip install /opt/planck/dist/wrapper/*.whl
-RUN pip install /opt/planck/dist/proxy/*.whl
+RUN pip install /opt/planck/dist/wrapper/?*.whl
+RUN pip install /opt/planck/dist/proxy/?*.whl
+RUN cp -pravi /opt/planck/lib/?* /lib # silly workaround for "missing" libraries - using the /opt prefix and venvs inside a Docker is annoyingly pointless
 RUN rm -rf /opt/planck/dist
 
-# Copy the postfix configuration files
-COPY ./docker/postfix/* /etc/postfix/
-RUN postmap /etc/postfix/transport
-RUN postmap /etc/postfix/transport-proxy
-
-# Add the "proxy" user without a password
+# Add the "proxy" user without a password, create the work dir and bind-mounted Docker volume
 RUN adduser --disabled-password proxy
-
-# Create the workdir and set permissions
 RUN mkdir /home/proxy/work
+RUN mkdir /volume
+COPY ./docker/volume.skel /volume
+
+# Copy the init script
+COPY ./docker/planck.init.sh /planck.init.sh
+COPY ./docker/env2config.py /env2config.py
+COPY ./docker/rsyslog.conf /etc/rsyslog.conf
+
+EXPOSE 25/tcp
+EXPOSE 587/tcp
+EXPOSE 588/tcp
 WORKDIR /home/proxy
 RUN chown proxy:proxy . -R
 
@@ -162,4 +171,4 @@ RUN chown proxy:proxy . -R
 # ENTRYPOINT [ "planckproxy", "decrypt", "settings.json", "-f", "/home/proxy/basic.enc.eml", "--DEBUG" ]
 
 ## PRODUCTION ENTRY POINT
-ENTRYPOINT ["postfix", "start-fg"]
+ENTRYPOINT [ "/planck.init.sh" ]
