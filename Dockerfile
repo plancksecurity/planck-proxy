@@ -151,11 +151,15 @@ RUN mkdir /home/proxy/work
 WORKDIR /home/proxy
 RUN chown proxy:proxy . -R
 
-# Copy the settings file
-COPY ./docker/docker-settings.json /home/proxy/settings.json
+## TEST ENTRY POINT
+# # Copy the settings file
+# COPY ./docker/docker-settings.json /home/proxy/settings.json
 
-# Proxy basic test
-COPY ./tests/emails/basic.enc.eml /home/proxy/basic.enc.eml
-COPY ./tests/test_keys/3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3.sec.asc /home/proxy/keys/
+# # Proxy basic test
+# COPY ./tests/emails/basic.enc.eml /home/proxy/basic.enc.eml
+# COPY ./tests/test_keys/3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3.sec.asc /home/proxy/keys/
 
-ENTRYPOINT [ "planckproxy", "decrypt", "settings.json", "-f", "/home/proxy/basic.enc.eml", "--DEBUG" ]
+# ENTRYPOINT [ "planckproxy", "decrypt", "settings.json", "-f", "/home/proxy/basic.enc.eml", "--DEBUG" ]
+
+## PRODUCTION ENTRY POINT
+ENTRYPOINT ["postfix", "start-fg"]
