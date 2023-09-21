@@ -6,4 +6,4 @@ docker run -d --rm -it -p 25:25 -p 587:587 -p 588:588 \
 	-e nexthopip="1.2.3.4" \
 	--mount type=bind,source="$(pwd)"/docker/volume,target=/volume \
 	--name planckproxy \
-	planckproxy.azurecr.io/proxy
+	plancksec.azurecr.io/proxy
