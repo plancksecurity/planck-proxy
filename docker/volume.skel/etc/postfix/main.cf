@@ -19,7 +19,7 @@ mynetworks = 127.0.0.0/8 {{mynetworks}}
 
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
 
-relay_domains = {{relay_domains}}
+relay_domains = {{relay_domain}}
 
 alias_maps = lmdb:/etc/aliases
 alias_database = lmdb:/etc/aliases
