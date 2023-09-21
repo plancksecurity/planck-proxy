@@ -41,6 +41,7 @@ __version__.py
 .idea
 .spyproject
 *.code-workspace
+.vscode
 
 # platform artifacts
 .DS_store
