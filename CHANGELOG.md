@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Removed most of the commands of the CLI. Since settings.json is required is less confusing just haveing everything there
+- Removed helper scripts which are linked to specific core versions. No need to maintain those
 
 ## [v3.0.0] - 17-5-23
 ### Added

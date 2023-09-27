@@ -346,59 +346,6 @@ To run the tests simply run the `pytest` command.
 
 There are some utility scrips in the `scripts` folder that can be used externally for debugging
 
-### Decrypt
-
-Decrypts a message using planck
-
-```
-usage: decrypt.py [-h] [--key KEY] [--m M] msg
-
-positional arguments:
-  msg                  Path to the email to decrypt
-
-optional arguments:
-  -h, --help           show this help message and exit
-  --key KEY            key to decrypt
-  --m M, --home_dir M  Location of the home folder
-```
-
-### Encrypt
-
-Encrypts a message using planck
-
-```
-usage: encrypt.py [-h] [--e E] [--m M] [--debug] msg our_key dest_key
-
-Encrypts an email message using planck
-
-positional arguments:
-  msg                   Path to the email to encrypt
-  our_key               path to the private key of the message sender
-  dest_key              path to the pub key of the message recipient
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --e E, --extra_key E  path to the public extra key
-  --m M, --home_dir M   Location of the temporary home folder
-  --debug               Keep the home folder and output debug info
-```
-
-### Delete keys from keyring
-
-Delete a user key from another user's Database
-
-```
-usage: deletekeyfromkeyring.py [-h] [--WORK_DIR WORK_DIR] keyring address
-
-positional arguments:
-  keyring              Email of user whose DB to delete from
-  address              Email of user whose key to delete
-
-optional arguments:
-  -h, --help           show this help message and exit
-  --WORK_DIR WORK_DIR  Location of the work folder
-```
-
 ### Messages cleanup
 
 Deletes all files in subfolders of a specified directory that were created more than a specified number of days ago. If a subfolder in the directory is empty after deleting .eml and .log files, it is also deleted.
