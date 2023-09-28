@@ -2,8 +2,8 @@ docker run -d --rm -it -p 25:25 -p 587:587 -p 588:588 \
 	-e admin_addr="admin@company.tld" \
 	-e hostname="planckproxy.company.tld" \
 	-e relay_domain="company.tld" \
+	-e nexthop="1.2.3.4 or mx.host.name" \
 	-e mynetworks="192.168.178.0/24" \
-	-e nexthopip="1.2.3.4" \
 	--mount type=bind,source="$(pwd)"/docker/volume,target=/volume \
 	--name planckproxy \
 	plancksec.azurecr.io/proxy
