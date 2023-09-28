@@ -26,9 +26,7 @@ from proxy.proxy_settings import settings
 
 def is_sq_installed(sq_bin):
     try:
-        subprocess.run(
-            [sq_bin, "-h"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
-        )
+        subprocess.run([sq_bin, "-h"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
         return True
     except Exception:
         return False
@@ -51,9 +49,7 @@ def keys_from_keyring(userid=None):
     if is_sq_installed(sq_bin):
         run_sq = True
 
-    db = sqlite3.connect(
-        os.path.join(os.environ["HOME"], settings["database_folder"], "keys.db")
-    )
+    db = sqlite3.connect(os.path.join(os.environ["HOME"], settings["database_folder"], "keys.db"))
 
     if userid is not None:
         dbg("Looking up key of " + c(userid, 5) + " from keyring...")
@@ -84,34 +80,21 @@ def keys_from_keyring(userid=None):
         q3 = db.execute("SELECT tpk, secret FROM keys WHERE primary_key = ?;", (r1[1],))
         if run_sq:
             for r3 in q3:
-                sqkeyfile = (
-                    ("sec" if r3[1] is True else "pub")
-                    + "."
-                    + r1[0]
-                    + "."
-                    + r1[1]
-                    + ".key"
-                )
+                sqkeyfile = ("sec" if r3[1] is True else "pub") + "." + r1[0] + "." + r1[1] + ".key"
                 open(sqkeyfile, "wb").write(r3[0])
                 cmd = [sq_bin, "enarmor", sqkeyfile, "-o", sqkeyfile + ".asc"]
-                p = Popen(
-                    cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE
-                )  # stderr=STDOUT for debugging
+                p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)  # stderr=STDOUT for debugging
                 ret = p.wait()
 
                 cmd = [sq_bin, "inspect", "--certifications", sqkeyfile]
-                p = Popen(
-                    cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE
-                )  # stderr=STDOUT for debugging
+                p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)  # stderr=STDOUT for debugging
                 ret = p.wait()
 
                 if ret == 0:
                     inspected = {}
                     inspected["is_private"] = r3[1]
                     inspected["sq_inspect"] = []
-                    for line in io.TextIOWrapper(
-                        p.stdout, encoding="utf-8", errors="strict"
-                    ):
+                    for line in io.TextIOWrapper(p.stdout, encoding="utf-8", errors="strict"):
                         line = line.strip()
                         inspected["sq_inspect"] += [line]
 
@@ -126,9 +109,7 @@ def keys_from_keyring(userid=None):
                     for upr in usernameparseregexes:
                         try:
                             patt = re.compile(upr, re.MULTILINE | re.DOTALL)
-                            inspected["username"] = patt.findall(
-                                "\n".join(inspected["sq_inspect"])
-                            )[0]
+                            inspected["username"] = patt.findall("\n".join(inspected["sq_inspect"]))[0]
                             if len(inspected["username"]) > 0:
                                 break
                         except Exception:
@@ -151,61 +132,3 @@ def keys_from_keyring(userid=None):
         return allkeys
     else:
         return False
-
-
-def decryptusingsq(inmail, secretkeyglob):
-    """
-    Decrypts an encrypted message using the sq CLI tool.
-
-    Args:
-        inmail (str): The encrypted message to decrypt.
-        secretkeyglob (str): A file glob pattern matching the secret key(s) to use for decryption.
-
-    Returns:
-        List[Union[str, List[str]]]: A list containing two elements:
-            - A string representing the decrypted message(s) without the 'X-pEp-Wrapped-Message-Info: INNER' tag.
-            - A list containing the key ID(s) used for decryption.
-    """
-    sq_bin = settings["sq_bin"]
-    ret = ""
-    patt = re.compile(
-        r"-----BEGIN PGP MESSAGE-----.*?-----END PGP MESSAGE-----",
-        re.MULTILINE | re.DOTALL,
-    )
-    pgpparts = patt.findall(inmail)
-    keyused = None
-
-    dbg(c("[!] Fallback-decrypting via sq CLI tool", 1))
-
-    if len(pgpparts) == 0:
-        return c("No -----BEGIN PGP MESSAGE----- found in original message", 3)
-
-    for p in pgpparts:
-        if "=0A=" in p:
-            import quopri
-
-            p = quopri.decodestring(p).decode("utf-8")
-
-        dbg("PGP part: " + c(p, 5))
-        tmppath = tempfile.NamedTemporaryFile(mode="w")
-        tmppath.write(str(p))
-
-        for secretkey in glob(secretkeyglob):
-            dbg(c("Trying secret key file " + secretkey, 3))
-            cmd = [sq_bin, "decrypt", "--recipient-key", secretkey, "--", tmppath.name]
-            dbg("CMD: " + " ".join(cmd), pub=False)
-            p = Popen(cmd, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-            stdout, stderr = p.communicate()
-            rc = p.returncode
-
-            if rc == 0:
-                keyused = [re.search(r"[0-9a-zA-Z]{40}", secretkey)[0]]
-                break
-
-        if len(stdout) > 0:
-            ret += stdout.decode("utf8")
-            # patt = re.compile(r"Message-ID:.*?^$", re.MULTILINE | re.DOTALL)
-            # pepparts = patt.findall(stdout.decode("utf8"))
-            # ret += "\n".join(pepparts)
-
-    return [ret.replace("X-pEp-Wrapped-Message-Info: INNER\r\n", ""), keyused]
