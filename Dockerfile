@@ -87,7 +87,7 @@ RUN apk update && apk add python3 py3-pip e2fsprogs-dev
 WORKDIR /root/libPlanckWrapper/
 COPY --from=planckCoreBuilder /opt/planck /opt/planck
 RUN git clone --depth=1 --branch=$LIBPLANCKWRAPPER_BRANCH https://git.planck.security/foundation/libPlanckWrapper.git .
-RUN echo 'PREFIX=/opt/planck' > local.conf
+COPY ./docker/libPlanckWrapper.conf local.conf
 RUN make install -j $(nproc --ignore=2)
 
 ### build pywrapper
@@ -161,14 +161,14 @@ WORKDIR /home/proxy
 RUN chown proxy:proxy . -R
 
 ## TEST ENTRY POINT
-# # Copy the settings file
-# COPY ./docker/docker-settings.json /home/proxy/settings.json
 
-# # Proxy basic test
-# COPY ./tests/emails/basic.enc.eml /home/proxy/basic.enc.eml
-# COPY ./tests/test_keys/3F8B5F3DA55B39F1DF6DE37B6E9B9F4A3035FCE3.sec.asc /home/proxy/keys/
+COPY . /home/proxy/
+RUN pip install -r requirements_dev.txt
+ENV PEP_LOG_ADAPTER=1
+ENV PEP_MULTITHREAD=1
+ENTRYPOINT [ "pytest" ]
 
-# ENTRYPOINT [ "planckproxy", "decrypt", "settings.json", "-f", "/home/proxy/basic.enc.eml", "--DEBUG" ]
+## END TEST ENTRY POINT
 
-## PRODUCTION ENTRY POINT
-ENTRYPOINT [ "/planck.init.sh" ]
+# ## PRODUCTION ENTRY POINT
+# ENTRYPOINT [ "/planck.init.sh" ]
