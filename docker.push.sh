@@ -1,1 +1,1 @@
-docker push plancksec.azurecr.io/proxy
+docker push dockerreg.planck.security/planckproxy
