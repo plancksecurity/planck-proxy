@@ -17,9 +17,6 @@
   -o smtpd_reject_unlisted_recipient=no
   -o smtpd_recipient_restrictions=
   -o smtpd_client_restrictions=permit_mynetworks,reject
-  -o smtpd_relay_restrictions=permit_mynetworks,reject
-# -o content_filter=planckproxy
-# -o transport_maps=regexp:/etc/postfix/transport-proxy
 
 588       inet  n       -       n       -       -       smtpd
   -o syslog_name=postfix/smtp-588
@@ -27,15 +24,12 @@
   -o smtpd_reject_unlisted_recipient=no
   -o smtpd_recipient_restrictions=
   -o smtpd_client_restrictions=permit_mynetworks,reject
-  -o smtpd_relay_restrictions=permit_mynetworks,reject
   -o content_filter=planckproxy
   -o transport_maps=regexp:/etc/postfix/transport-proxy
 
 # Planck Proxy reinjection port
 10587     inet  n       -       n       -       -       smtpd
   -o syslog_name=postfix/smtp-10587
-  -o smtpd_relay_restrictions=permit_mynetworks,permit_sasl_authenticated,reject
-  -o smtpd_recipient_restrictions=permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination
 
 planckproxy unix - n n - 1 pipe
   flags=DRhu user=proxy argv=/usr/local/bin/planckproxy decrypt /home/proxy/settings.json

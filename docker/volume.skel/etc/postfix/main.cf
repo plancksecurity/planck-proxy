@@ -11,13 +11,14 @@ smtp_tls_session_cache_database = lmdb:${data_directory}/smtp_scache
 
 smtpd_tls_chain_files = /volume/cert.bundle.crt
 smtpd_tls_security_level = may
+smtpd_tls_loglevel = 2
 
 myorigin = {{hostname}}
 myhostname = {{hostname}}
 mydestination = $myhostname, localhost
-mynetworks = 127.0.0.0/8 {{mynetworks}}
+mynetworks = {{mynetworks}} {{nexthop}}
 
-smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+smtpd_relay_restrictions = permit_mynetworks,reject
 
 relay_domains = {{relay_domain}}
 

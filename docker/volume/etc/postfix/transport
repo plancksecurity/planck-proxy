@@ -1,3 +1,0 @@
-/^root@.*/							local:
-/.*@{{relay_domain_escaped}}/		smtp:[{{nexthop}}]
-/.*@.*/								smtp:

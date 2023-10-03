@@ -4,6 +4,7 @@ settings_OTHER.json
 pytestdebug.log
 docker.run.sh
 **/keys/*.asc
+docker/volume
 work/**
 tests/work/**
 tests/keys/
