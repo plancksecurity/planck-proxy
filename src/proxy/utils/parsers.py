@@ -47,22 +47,28 @@ def get_contact_info(inmail, reinjection=False):
                 break
     # Figure out the recipient (rely on the Delivered-To header, rewrite if is a key in aliases map and if
     # any of it's values is part of To/CC/BCC)
-    msgto = ""
-    for hdr in ["To", "Delivered-To"] if reinjection else ["Delivered-To"]:
-        try:
-            for mpr in mailparseregexes:
-                msgto = "-".join(get_mail_headers(inmail, hdr))
-                msgto = "-".join(re.findall(re.compile(mpr), msgto))
-                if len(msgto) > 0:
-                    break
-            if len(msgto) > 0:
-                break  # we need one for each for-loop
-        except Exception:
-            pass
 
-    if msgto.count("@") != 1:
-        dbg(c("No clue how we've been contacted. Giving up...", 1))
-        exit(3)
+    if settings["recipients"] == False:
+
+        msgto = ""
+        for hdr in ["To", "Delivered-To"] if reinjection else ["Delivered-To"]:
+            try:
+                for mpr in mailparseregexes:
+                    msgto = "-".join(get_mail_headers(inmail, hdr))
+                    msgto = "-".join(re.findall(re.compile(mpr), msgto))
+                    if len(msgto) > 0:
+                        break
+                if len(msgto) > 0:
+                    break  # we need one for each for-loop
+            except Exception:
+                pass
+
+        if msgto.count("@") != 1:
+            dbg(c("No clue how we've been contacted. Giving up...", 1))
+            exit(3)
+
+    else:
+        msgto = settings["recipients"]
 
     msgfrom = msgfrom.lower()
     msgto = msgto.lower()
