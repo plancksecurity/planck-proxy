@@ -1,11 +1,14 @@
+/settings.json
 debug.log
-settings.json
 settings_OTHER.json
 pytestdebug.log
-keys/*.asc
+docker.run.sh
+**/keys/*.asc
+docker/volume
 work/**
 tests/work/**
 tests/keys/
+cert.bundle.crt
 
 # Python artifacts
 /build/
@@ -39,6 +42,7 @@ __version__.py
 .idea
 .spyproject
 *.code-workspace
+.vscode
 
 # platform artifacts
 .DS_store

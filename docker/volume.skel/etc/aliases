@@ -1,0 +1,14 @@
+postmaster: root
+mailer-daemon: root
+nobody: root
+hostmaster: root
+usenet: root
+news: root
+webmaster: root
+www: root
+www-data: root
+ftp: root
+abuse: root
+noc: root
+security: root
+root: {{admin_addr}}
