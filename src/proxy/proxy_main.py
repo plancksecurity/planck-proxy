@@ -229,20 +229,6 @@ def init_workdir(message):
         os.makedirs(settings['home'])
 
 
-# ## Check if Sequoia-DB already exists, if not import keys later using planck ########################
-
-
-def check_initial_import():
-    """
-    Check if keys.db already exists, if not import keys later using planck
-    """
-
-    keys_db_path = os.path.join(
-        os.environ["HOME"], settings["database_folder"], "keys.db"
-    )
-    return not os.path.exists(keys_db_path)
-
-
 # ### Load planck ######################################################################################
 
 
