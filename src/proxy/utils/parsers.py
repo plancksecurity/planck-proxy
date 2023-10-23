@@ -2,6 +2,7 @@ import re
 import email
 import sys
 import traceback
+from proxy.proxy_settings import settings
 
 
 from .printers import dbg, c
