@@ -59,11 +59,8 @@ def print_summary_info(message):
         None
     """
 
-    from proxy.proxy_main import check_initial_import
-
     dbg("       Message from: " + c(str(message.msgfrom), 5))
     dbg("         Message to: " + c(str(message.msgto), 5))
-    dbg("    Initital import: " + ("Yes" if check_initial_import() else "No"))
 
 
 def print_keys_and_headers(message):

@@ -18,7 +18,6 @@ from proxy.proxy_main import (
     set_addresses,
     enable_dts,
     init_workdir,
-    check_initial_import,
     load_planck,
     import_keys,
     create_planck_message,
@@ -54,12 +53,10 @@ def run_proxy(cli_args):
     init_workdir(message)
 
     # Handle keys and decrypt
-    import_needed = check_initial_import()
     print_summary_info(message)
     init_logging(message)
     planck = load_planck()
-    if import_needed:
-        import_keys(planck)
+    import_keys(planck)
     print_keys_and_headers(message)
     create_planck_message(planck, message)
     process_message(planck, message)
