@@ -229,20 +229,6 @@ def init_workdir(message):
         os.makedirs(settings['home'])
 
 
-# ## Check if Sequoia-DB already exists, if not import keys later using planck ########################
-
-
-def check_initial_import():
-    """
-    Check if keys.db already exists, if not import keys later using planck
-    """
-
-    keys_db_path = os.path.join(
-        os.environ["HOME"], settings["database_folder"], "keys.db"
-    )
-    return not os.path.exists(keys_db_path)
-
-
 # ### Load planck ######################################################################################
 
 
@@ -255,7 +241,7 @@ def load_planck():
         planck (module): The planck core module.
     """
 
-    planck = importlib.import_module("pEp")
+    planck = importlib.import_module("planck_core")
     planck.set_debug_log_enabled(True)  # TODO
     planck.message_to_send = messageToSend
     planck.notify_handshake = notifyHandshake
@@ -568,25 +554,25 @@ def deliver_mail(message):
         None
 
     """
+    from_username = message.inmail_parsed.from_.username
+    from_address = message.inmail_parsed.from_.address
+
+    from_username_part = (
+        c(from_username, 2) if from_username and len(from_username) > 0 else ""
+    )
+    from_address_part = c(" <" + from_address + ">", 3)
+
+    to_username = message.inmail_parsed.to[0].username
+    to_address = message.inmail_parsed.to[0].address
+
+    to_username_part = (
+        c(to_username, 2) if to_username and len(to_username) > 0 else ""
+    )
+    to_address_part = c(" <" + to_address + ">", 3)
+
     dbg("Sending mail")
-    dbg(
-        "From: "
-        + (
-            (c(message.inmail_parsed.from_.username, 2))
-            if len(message.inmail_parsed.from_.username) > 0
-            else ""
-        )
-        + c(" <" + message.inmail_parsed.from_.address + ">", 3)
-    )
-    dbg(
-        "  To: "
-        + (
-            (c(message.inmail_parsed.to[0].username, 2))
-            if len(message.inmail_parsed.to[0].username) > 0
-            else ""
-        )
-        + c(" <" + message.inmail_parsed.to[0].address + ">", 3)
-    )
+    dbg(f"From: {from_username_part}{from_address_part}")
+    dbg(f"  To: {to_username_part}{to_address_part}")
 
     if settings["DEBUG"] and "discard" in message.inmail_parsed.to[0].address:
         dbg("Keyword discard found in recipient address, skipping call to sendmail")
