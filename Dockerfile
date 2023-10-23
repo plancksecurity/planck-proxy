@@ -143,11 +143,12 @@ RUN pip install /opt/planck/dist/proxy/?*.whl
 RUN cp -pravi /opt/planck/lib/?* /lib # silly workaround for "missing" libraries - using the /opt prefix and venvs inside a Docker is annoyingly pointless
 RUN rm -rf /opt/planck/dist
 
-# Add the "proxy" user without a password, create the work dir and bind-mounted Docker volume
+# Add the "proxy" user without a password, create the work dir and config volume
 RUN adduser --disabled-password proxy
 RUN mkdir /home/proxy/work
 RUN mkdir /volume
-COPY ./docker/volume.skel /volume
+RUN mkdir /volume.skel
+COPY ./docker/volume.skel /volume.skel
 
 # Copy the init script
 COPY ./docker/planck.init.sh /planck.init.sh

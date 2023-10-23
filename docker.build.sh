@@ -1,1 +1,1 @@
-docker build --tag=plancksec.azurecr.io/proxy $* .
+docker build --tag=dockerreg.planck.security/planckproxy $* .
