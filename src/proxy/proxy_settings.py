@@ -9,6 +9,7 @@ settings = {
     "work_dir": "work",
     "keys_dir": "keys",
     "home": "",
+    "recipients": False,
 }
 
 
