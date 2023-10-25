@@ -49,7 +49,7 @@ def get_contact_info(inmail, reinjection=False):
     # Figure out the recipient (rely on the Delivered-To header, rewrite if is a key in aliases map and if
     # any of it's values is part of To/CC/BCC)
 
-    if settings["recipients"] == False:
+    if not settings["recipients"]:
 
         msgto = ""
         for hdr in ["To", "Delivered-To"] if reinjection else ["Delivered-To"]:
