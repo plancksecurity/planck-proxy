@@ -8,7 +8,10 @@ from proxy.utils.parsers import get_contact_info, get_mail_headers
     "collect_email, expected",
     [
         ("basic.eml", ("alice@pep.security", "bob@pep.security")),
-        ("multi_headers.eml", ("service@planck-security.net", "andy@planck-security.net")),
+        (
+            "multi_headers.eml",
+            ("service@planck-security.net", "andy@planck-security.net"),
+        ),
     ],
     indirect=["collect_email"],
 )
@@ -17,7 +20,9 @@ def test_get_contact_pass(collect_email, expected):
     assert get_contact_info(email) == expected
 
 
-@pytest.mark.parametrize("collect_email", ["missing_delivered_header.eml"], indirect=True)
+@pytest.mark.parametrize(
+    "collect_email", ["missing_delivered_header.eml"], indirect=True
+)
 def test_get_contact_fail(set_settings, collect_email):
     """
     When we cannot determine who contacted us, ensure that the method fails
@@ -27,6 +32,28 @@ def test_get_contact_fail(set_settings, collect_email):
         get_contact_info(email)
     assert pytest_wrapped_e.type == SystemExit
     assert pytest_wrapped_e.value.code == 3
+
+
+@pytest.mark.parametrize(
+    "collect_email, expected",
+    [
+        ("basic.eml", ("alice@pep.security", "myrecipient@test.com")),
+        (
+            "missing_delivered_header.eml",
+            ("support@planck-security.net", "myrecipient@test.com"),
+        ),
+    ],
+    indirect=["collect_email"],
+)
+def test_get_recipients(set_settings, collect_email, expected):
+    """
+    We use the recipient in the settings ignoring the to or delivered-to
+    """
+    email = collect_email.decode()
+    settings = set_settings
+    settings["recipients"] = "myrecipient@test.com"
+    assert get_contact_info(email) == expected
+    settings["recipients"] = False
 
 
 @pytest.mark.parametrize(
