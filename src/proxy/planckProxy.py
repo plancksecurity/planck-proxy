@@ -92,7 +92,13 @@ def main():
         "--DEBUG",
         action="store_true",
         default=False,
-        help="Set DEBUG mode, default is False",
+        help="Set DEBUG mode, default is False.",
+    )
+
+    parser.add_argument(
+        "--recipients",
+        default=False,
+        help=("Write down the recipients of the message if Delivered-To header can't be found within the email."),
     )
 
     # Update the settings dict with the parsed arguments
