@@ -139,7 +139,9 @@ COPY --from=pyWrapperBuilder /opt/planck /opt/planck
 COPY --from=pyWrapperBuilder /root/planckPythonWrapper/dist /opt/planck/dist/wrapper
 COPY --from=proxyBuilder /root/proxy/dist/ /opt/planck/dist/proxy
 RUN pip install /opt/planck/dist/wrapper/?*.whl
-RUN pip install /opt/planck/dist/proxy/?*.whl
+COPY . /home/proxy/
+RUN pip install pytest
+RUN pip install -e /home/proxy/
 RUN cp -pravi /opt/planck/lib/?* /lib # silly workaround for "missing" libraries - using the /opt prefix and venvs inside a Docker is annoyingly pointless
 RUN rm -rf /opt/planck/dist
 
