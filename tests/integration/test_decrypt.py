@@ -64,16 +64,15 @@ def test_decrypt_message(
         decrypted_data = decrypted_email.read()
     assert "Hello encrypted world!" in decrypted_data
 
+
 @pytest.mark.parametrize("collect_email", ["basic_no_delivered-to.eml"], indirect=True)
 def test_decrypt_message_no_delivered_to(
     set_settings,
     settings_file,
     test_dirs,
     collect_email,
-    extra_keypair,
     test_settings_dict,
 ):
-    email = collect_email.decode()
     test_email_from = "alice@pep.security"
     test_email_to = "bob@pep.security"
     settings_file = override_settings(test_dirs, settings_file, test_settings_dict)
@@ -81,8 +80,32 @@ def test_decrypt_message_no_delivered_to(
     command = f"planckproxy decrypt {settings_file} --recipients {test_email_from}"
     p = subprocess.run([command], shell=True, capture_output=True, input=collect_email)
 
-    ##assert p.stderr == b""
-    ##assert p.returncode == 0
+    assert p.stderr == b""
+    assert p.returncode == 0
+
+    sender_folder = test_dirs["work"] / test_email_to / test_email_from
+
+    assert Path(sender_folder).exists
+
+
+@pytest.mark.parametrize("collect_email", ["multiple_to.eml"], indirect=True)
+def test_multiple_to(
+    set_settings,
+    settings_file,
+    test_dirs,
+    collect_email,
+    test_settings_dict,
+):
+    email = collect_email.decode()
+    test_email_from = "devalice@planck.security"
+    test_email_to = "test@proxy.planck.dev"  # This is the delivered-to address
+    settings_file = override_settings(test_dirs, settings_file, test_settings_dict)
+
+    command = f"planckproxy decrypt {settings_file}"
+    p = subprocess.run([command], shell=True, capture_output=True, input=collect_email)
+
+    assert p.stderr == b""
+    assert p.returncode == 0
 
     sender_folder = test_dirs["work"] / test_email_to / test_email_from
 
