@@ -335,8 +335,10 @@ def create_planck_message(planck, message):
         from_username_part = c(from_username, 2) if from_username and len(from_username) > 0 else ""
         from_address_part = c(" <" + from_address + ">", 3)
 
-        to_username = inmail_parsed.to[0].username
-        to_address = inmail_parsed.to[0].address
+        for recipient_to in inmail_parsed.to:
+            if recipient_to.address == message.msgto:
+                to_username = recipient_to.username
+                to_address = recipient_to.address
 
         to_username_part = c(to_username, 2) if to_username and len(to_username) > 0 else ""
         to_address_part = c(" <" + to_address + ">", 3)
@@ -526,16 +528,24 @@ def deliver_mail(message):
 
     """
     dbg("Sending mail")
-    dbg(
-        "From: "
-        + ((c(message.inmail_parsed.from_.username, 2)) if len(message.inmail_parsed.from_.username) > 0 else "")
-        + c(" <" + message.inmail_parsed.from_.address + ">", 3)
-    )
-    dbg(
-        "  To: "
-        + ((c(message.inmail_parsed.to[0].username, 2)) if len(message.inmail_parsed.to[0].username) > 0 else "")
-        + c(" <" + message.inmail_parsed.to[0].address + ">", 3)
-    )
+
+    from_username = message.inmail_parsed.from_.username
+    from_address = message.inmail_parsed.from_.address
+
+    from_username_part = c(from_username, 2) if from_username and len(from_username) > 0 else ""
+    from_address_part = c(" <" + from_address + ">", 3)
+
+    for recipient_to in message.inmail_parsed.to:
+        if recipient_to.address == message.msgto:
+            to_username = recipient_to.username
+            to_address = recipient_to.address
+
+    to_username_part = c(to_username, 2) if to_username and len(to_username) > 0 else ""
+    to_address_part = c(" <" + to_address + ">", 3)
+
+    dbg("Sending mail")
+    dbg(f"From: {from_username_part}{from_address_part}")
+    dbg(f"  To: {to_username_part}{to_address_part}")
 
     if settings["DEBUG"] and "discard" in message.inmail_parsed.to[0].address:
         dbg("Keyword discard found in recipient address, skipping call to sendmail")
