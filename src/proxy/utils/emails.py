@@ -10,12 +10,14 @@ from .parsers import get_contact_info
 from proxy.proxy_settings import settings
 
 
-def sendmail(msg):
+def sendmail(msg, recipient=None):
     """
     Send an email message using the settings STMP_HOST and STMP_PORT
 
     Args:
         msg (str): The message to be sent.
+        recipient (str): Email address where the mail should be sent to, it will override the addresses
+            present on the email headers. Default is None (meaning there's no override)
 
     Returns:
         None
@@ -33,6 +35,9 @@ def sendmail(msg):
 
     dbg(f"Sending message:\n{msg}")
     try:
+        if recipient is not None:
+            settings["recipients"] = recipient
+
         msgfrom, msgto = get_contact_info(msg, True)
         with smtplib.SMTP(settings["SMTP_HOST"], settings["SMTP_PORT"]) as server:
             server.sendmail(msgfrom, msgto, msg.encode("utf8"))
@@ -76,7 +81,7 @@ def dbgmail(
     Args:
         msg (str): The body of the mail
         rcpt (str): The recipient of the mail. If None, uses the email address in the settings.
-        subject (str): The subject of the mail. Defaults to '[FATAL] pEp Gate @ ' + socket.getfqdn() + ' crashed!'
+        subject (str): The subject of the mail. Defaults to '[FATAL] planck proxy @ ' + socket.getfqdn() + ' crashed!'
         attachments (list): A list of strings, paths to files that should be attached to the mail
 
     Returns:
@@ -108,9 +113,7 @@ def dbgmail(
     mailcontent += ".console { font-family: Courier New; font-size: 13px; line-height: 14px; width: 100%; }"
     mailcontent += "</style></head>"
     mailcontent += '<body topmargin="0" leftmargin="0" marginwidth="0" marginheight="0"><table class="console"><tr><td>'
-    mailcontent += (
-        msg + "<br>" + ("=" * 80) + "<br><br>" if len(msg) > 0 else ""
-    ) + settings["htmllog"]
+    mailcontent += (msg + "<br>" + ("=" * 80) + "<br><br>" if len(msg) > 0 else "") + settings["htmllog"]
     mailcontent += "</td></tr></table></body></html>"
 
     if len(attachments) > 0:
@@ -118,16 +121,8 @@ def dbgmail(
             dbg("Attaching " + att)
 
             mailcontent += "\n\n--pEpMIME\n"
-            mailcontent += (
-                'Content-Type: application/octet-stream; name="'
-                + os.path.basename(att)
-                + '"\n'
-            )
-            mailcontent += (
-                'Content-Disposition: attachment; filename="'
-                + os.path.basename(att)
-                + '"\n'
-            )
+            mailcontent += 'Content-Type: application/octet-stream; name="' + os.path.basename(att) + '"\n'
+            mailcontent += 'Content-Disposition: attachment; filename="' + os.path.basename(att) + '"\n'
             mailcontent += "Content-Transfer-Encoding: base64\n\n"
 
             with open(att, "rb") as f:
