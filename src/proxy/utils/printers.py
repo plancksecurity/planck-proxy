@@ -7,7 +7,11 @@ from datetime import datetime
 from collections import OrderedDict
 
 from proxy.proxy_settings import settings
+import logging
+import logging.config
 
+logging.config.fileConfig('logging.conf')
+logger = logging.getLogger('mainlogger')
 
 def print_init_info(args):
     """
@@ -122,10 +126,7 @@ def dbg(text, printtiming=False, pub=True):
         return took
 
     text = (
-        c(thisactiontime.strftime("%d.%m.%Y %H:%M:%S.%f"), 3)
-        + " "
-        + str(text)
-        + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
+        str(text) + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
     )
 
     # Unconditionally write to the global logfile
@@ -133,14 +134,16 @@ def dbg(text, printtiming=False, pub=True):
         d.write(c(str(os.getpid()), 5) + " | " + text + "\n")
     d.close()
 
-    if sys.stdout.isatty():
-        print(text)
+    # if sys.stdout.isatty():
+    #     print(text)
 
     settings["adminlog"] += toplain(text) + "\n"
     settings["textlog"] += text + "\n"
 
     if pub:
         settings["htmllog"] += tohtml(text) + "<br>\n"
+
+    logger.debug(text)
 
     return took
 
