@@ -16,6 +16,7 @@ from proxy.utils.parsers import get_contact_info, get_mail_headers
 from proxy.utils.emails import dbgmail, sendmail, messageToSend, notifyHandshake
 from proxy.utils.cryptography import decryptusingsq
 from proxy.utils.hooks import cleanup
+from proxy.utils.sanitizer import sanitize_email_address
 
 
 def init_lockfile():
@@ -155,8 +156,8 @@ def set_addresses(message):
 
     msgfrom, msgto = get_contact_info(message.inmail)
 
-    message.msgfrom = msgfrom
-    message.msgto = msgto
+    message.msgfrom = sanitize_email_address(msgfrom)
+    message.msgto = sanitize_email_address(msgto)
 
 
 def enable_dts(message):
