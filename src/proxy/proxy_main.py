@@ -241,7 +241,7 @@ def load_planck():
         planck (module): The planck core module.
     """
 
-    planck = importlib.import_module("planck_core")
+    planck = importlib.import_module("planck_core_python")
     planck.set_debug_log_enabled(True)  # TODO
     planck.message_to_send = messageToSend
     planck.notify_handshake = notifyHandshake
