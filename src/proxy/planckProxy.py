@@ -8,7 +8,8 @@ import logging
 import logging.config
 
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('mainlogger')
+console_logger = logging.getLogger('consoleLogger')
+file_logger = logging.getLogger('fileLogger')
 
 from proxy.utils.message import Message
 from proxy.utils.hooks import cleanup, except_hook
@@ -119,7 +120,7 @@ def main():
     numeric_level = getattr(logging, cli_args.loglevel.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % cli_args.loglevel)
-    logger.setLevel(level=numeric_level)
+    console_logger.setLevel(level=numeric_level)
 
 
     for key, val in vars(cli_args).items():

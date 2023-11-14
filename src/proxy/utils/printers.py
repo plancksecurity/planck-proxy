@@ -8,7 +8,7 @@ from datetime import datetime
 from collections import OrderedDict
 
 from proxy.proxy_settings import settings
-from proxy.planckProxy import logger
+from proxy.planckProxy import console_logger, file_logger
 
 def get_numeric_log_level(log_level_str):
     """
@@ -152,7 +152,8 @@ def dbg(text, printtiming=False, pub=True, log_level="DEBUG"):
         settings["htmllog"] += tohtml(ts_text) + "<br>\n"
 
 
-    logger.log(get_numeric_log_level(log_level), text)
+    console_logger.log(get_numeric_log_level(log_level), text)
+    file_logger.log(get_numeric_log_level(log_level), text)
 
     return took
 
