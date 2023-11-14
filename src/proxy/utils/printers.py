@@ -143,7 +143,7 @@ def dbg(text, printtiming=False, pub=True, log_level="DEBUG"):
         return took
 
     text = str(text) + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
-    ts_text = c(thisactiontime.strftime("%d.%m.%Y %H:%M:%S.%f"), 3)  + " " + text
+    ts_text = c(thisactiontime.strftime("%d.%m.%Y %H:%M:%S.%f"), 3)  + " - " + log_level + " - " + text
 
     settings["adminlog"] += toplain(ts_text) + "\n"
     settings["textlog"] += toplain(ts_text) + "\n"
@@ -225,7 +225,7 @@ def tohtml(text):
     return ret
 
 
-def prettytable(thing, colwidth=26):
+def prettytable(thing, colwidth=31):
     """
     Returns a pretty-printed table of the given data.
 
