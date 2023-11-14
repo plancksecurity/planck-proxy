@@ -208,8 +208,7 @@ def init_workdir(message):
     os.chdir(workdirpath)
 
     settings["work_dir"] = workdirpath
-    if settings["DEBUG"]:
-        dbg(f"init workdir to {settings['work_dir']}")
+    dbg(f"init workdir to {settings['work_dir']}")
 
     if os.name != "posix":
         # On windows, set the local app data folder to be the same as the workdir so the databases can be created correctly

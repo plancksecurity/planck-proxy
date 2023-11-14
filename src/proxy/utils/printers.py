@@ -61,12 +61,12 @@ def print_init_info(args):
         + c(gid, 7)
         + " ====="
     , log_level="INFO")
-    if settings["DEBUG"]:
-        dbg(c("┌ Parameters", 5) + "\n" + prettytable(args.__dict__))
-        cur_settings = settings.copy()
-        for setting in ["adminlog", "textlog", "htmllog"]:
-            cur_settings.pop(setting)
-        dbg(c("┌ Settings (except logs)", 5) + "\n" + prettytable(cur_settings))
+
+    dbg(c("┌ Parameters", 5) + "\n" + prettytable(args.__dict__))
+    cur_settings = settings.copy()
+    for setting in ["adminlog", "textlog", "htmllog"]:
+        cur_settings.pop(setting)
+    dbg(c("┌ Settings (except logs)", 5) + "\n" + prettytable(cur_settings))
 
 
 def print_summary_info(message):

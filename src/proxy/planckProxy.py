@@ -94,13 +94,6 @@ def main():
     )
 
     parser.add_argument(
-        "--DEBUG",
-        action="store_true",
-        default=False,
-        help="Set DEBUG mode, default is False.",
-    )
-
-    parser.add_argument(
         "-l",
         "--loglevel",
         default="INFO",
@@ -132,9 +125,6 @@ def main():
 
     for setting, value in filesettings.items():
         settings[setting] = value
-
-    if cli_args.DEBUG:
-        settings["DEBUG"] = True
 
     init_settings()
     dbg(f"SETTINGS IMPORTED with 'HOME' as {settings['home']}")
