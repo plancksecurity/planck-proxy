@@ -9,6 +9,7 @@ from .printers import dbg, c
 from .emails import dbgmail
 
 from proxy.proxy_settings import settings
+from proxy.planckProxy import console_logger, file_logger
 
 
 # ## Exception / post-execution handling #####################################
@@ -66,3 +67,20 @@ def cleanup():
             dbg("Lockfile " + c(lockfilepath, 6) + " removed", pub=False)
         except Exception:
             dbg("Can't remove Lockfile " + c(lockfilepath, 6), pub=False)
+
+    logpath = settings["logpath"]
+    if console_logger.getEffectiveLevel() == 10: #DEBUG
+        dbg(
+            f"Debug mode, will keep the logged output messages and emails in the work_dir {c(logpath, 6)}",
+            pub=False,
+        )
+    else:
+        try:
+            for root, dirs, files in os.walk(logpath):
+                for file in files:
+                    if any(file.lower().endswith(ext) for ext in ['.html', '.eml', '.log']):
+                        file_path = os.path.join(root, file)
+                        os.remove(file_path)
+            dbg("Log folder " + c(logpath, 6) + " removed", pub=False)
+        except Exception as e:
+            dbg("Can't remove log folder " + c(logpath, 6) + str(e), pub=False)

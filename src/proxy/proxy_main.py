@@ -439,7 +439,7 @@ def process_message(planck, message):
 
     # Log processed message
     logfilename = os.path.join(settings["logpath"], "in." + settings["mode"] + ".processed.eml")
-    dbg("planck-processed message: " + c(logfilename, 6) + "\n" + str(inmail_decrypted)[0:1337])
+    dbg("planck-processed message: " + c(logfilename, 6))
     logfile = codecs.open(logfilename, "w", "utf-8")
     logfile.write(str(inmail_decrypted))
     logfile.close()
