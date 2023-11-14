@@ -1,6 +1,5 @@
 import os
 import codecs
-import shutil
 
 from datetime import datetime
 
@@ -52,15 +51,14 @@ def init_logging(message):
         logfile.write(message.inmail)
         logfile.close()
 
-        if settings["DEBUG"]:
-            dbg(f"init logpath to {settings['logpath']}")
+        dbg(f"init logpath to {settings['logpath']}")
 
     except PermissionError:
         msg = (
             "Not enough permissions to create the logfile, please make sure that the process executing the proxy"
             + f'has permission to write in {settings["logpath"]}'
         )
-        dbg(msg)
+        dbg(msg, log_level="ERROR")
         dbgmail(msg=msg, subject="planck Proxy permission failure")
         exit(8)
 
@@ -76,13 +74,12 @@ def log_session():
         None
     """
     try:
-
-        logfilename = os.path.join(settings["logpath"], "debug.log")
+        logfilename = os.path.join(settings["logpath"], "planckproxy.log")
         logfile = codecs.open(logfilename, "w", "utf-8")
         logfile.write(getlog("textlog"))
         logfile.close()
 
-        logfilename = os.path.join(settings["logpath"], "debug.html")
+        logfilename = os.path.join(settings["logpath"], "planckproxy.html")
         logfile = codecs.open(logfilename, "w", "utf-8")
         logfile.write(getlog("htmllog"))
         logfile.close()
@@ -92,6 +89,6 @@ def log_session():
             "Not enough permissions to create the logfile, please make sure that the process executing the proxy"
             + f'has permission to write in {settings["logpath"]}'
         )
-        dbg(msg)
+        dbg(msg, log_level="ERROR")
         dbgmail(msg=msg, subject="planck Proxy permission failure")
         exit(8)

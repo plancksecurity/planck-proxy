@@ -122,7 +122,7 @@ def get_message(message):
             inmail += str(line)
     except Exception:
         try:
-            dbg(c("Can't decode input message as utf-8, trying latin-1", 1))
+            dbg(c("Can't decode input message as utf-8, trying latin-1", 1), log_level="WARNING")
             for line in inbuf.decode(encoding="latin-1", errors="strict"):
                 inmail += str(line)
         except Exception:
@@ -130,13 +130,13 @@ def get_message(message):
                 c(
                     "Can't decode input message as latin-1 either, doing utf-8 again but ignoring all errors",
                     1,
-                )
+                ), log_level="WARNING"
             )
             for line in inbuf.decode(encoding="utf-8", errors="ignore"):
                 inmail += str(line)
 
     if len(inmail) == 0:
-        dbg(c("No message was passed to me. Aborting.", 1), pub=False)
+        dbg(c("No message was passed to me. Aborting.", 1), pub=False, log_level="ERROR")
         exit(2)
 
     # message.msg["inmail"] = inmail
@@ -183,7 +183,7 @@ def enable_dts(message):
             dbg(c("Domain " + c(dts, 5) + " is allowed to request a debug log", 2))
             settings["dts"] = addr
         else:
-            dbg(c("Domain is not allowed to request a debug log", 1))
+            dbg(c("Domain is not allowed to request a debug log", 1), log_level="WARNING")
 
 
 # ### Create & set working directory ################################################################
@@ -209,8 +209,7 @@ def init_workdir(message):
     os.chdir(workdirpath)
 
     settings["work_dir"] = workdirpath
-    if settings["DEBUG"]:
-        dbg(f"init workdir to {settings['work_dir']}")
+    dbg(f"init workdir to {settings['work_dir']}")
 
     if os.name != "posix":
         # On windows, set the local app data folder to be the same as the workdir so the databases can be created correctly
@@ -238,13 +237,9 @@ def init_exportdir(message):
     if not os.path.exists(exportdirpath):
         os.makedirs(exportdirpath)
 
-    #os.environ["EXPORT"] = exportdirpath
-    #os.chdir(workdirpath)
-    #Make sure emails are stored from absolute route in the export path
 
     settings["export_dir"] = exportdirpath
-    if settings["DEBUG"]:
-        dbg(f"init exportdir to {settings['export_dir']}")
+    dbg(f"init exportdir to {settings['export_dir']}")
 
 
 # ## Check if Sequoia-DB already exists, if not import keys later using planck ########################
@@ -352,7 +347,7 @@ def create_planck_message(planck, message):
         errmsg += "Traceback:\n" + prettytable(
             [line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])]
         )
-        dbg(errmsg)
+        dbg(errmsg, log_level="ERROR")
         dbgmail(errmsg)
         exit(4)
 
@@ -371,7 +366,7 @@ def create_planck_message(planck, message):
         to_username_part = c(to_username, 2) if to_username and len(to_username) > 0 else ""
         to_address_part = c(" <" + to_address + ">", 3)
 
-        dbg(f"Processing message from {from_username_part}{from_address_part} to {to_username_part}{to_address_part}")
+        dbg(f"Processing message from {from_username_part}{from_address_part} to {to_username_part}{to_address_part}", log_level="INFO")
 
     except Exception:
         e = sys.exc_info()
@@ -380,7 +375,7 @@ def create_planck_message(planck, message):
         errmsg += "Traceback:\n" + prettytable(
             [line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])]
         )
-        dbg(errmsg)
+        dbg(errmsg, log_level="ERROR")
         dbgmail(errmsg)
         exit(5)
 
@@ -413,7 +408,7 @@ def process_message(planck, message):
             #  fallback to sq, then forward as-is
             planckfails = False
             if not planckfails:
-                dbg(c("Decrypting message via planck...", 2))
+                dbg(c("Decrypting message via planck...", 2), log_level="INFO")
                 inmail_decrypted, keys, rating, flags = message.inmail_parsed.decrypt()
                 dbg(c("Decrypted in", 2), True)
             else:
@@ -439,14 +434,14 @@ def process_message(planck, message):
                         + c(keys_path, 5)
                         + " folder. It will be sent encrypted to the scanner",
                         1,
-                    )
+                    ), log_level="WARNING"
                 )
                 # exit(7)
             else:
                 if keys is None or len(keys) == 0:
-                    dbg(c("Original message was NOT encrypted", 1))
+                    dbg(c("Original message was NOT encrypted", 1), log_level="INFO")
                 else:
-                    dbg(c("Original message was encrypted to these keys", 2) + ":\n" + prettytable(list(set(keys))))
+                    dbg(c("Original message was encrypted to these keys", 2) + ":\n" + prettytable(list(set(keys))), log_level="INFO")
 
         # Workaround for engine converting plaintext-only messages into a msg.txt inline-attachment
         # dst = str(dst).replace(' filename="msg.txt"', "")
@@ -457,7 +452,7 @@ def process_message(planck, message):
         errmsg += "Traceback:\n" + prettytable(
             [line.strip().replace("\n    ", " ") for line in traceback.format_tb(e[2])]
         )
-        dbg(errmsg)
+        dbg(errmsg, log_level="ERROR")
         dbgmail(errmsg)
         exit(7)
         # Alternatively: fall back to forwarding the message as-is
@@ -468,14 +463,14 @@ def process_message(planck, message):
 
     # Log processed message
     logfilename = os.path.join(settings["logpath"], "in." + settings["mode"] + ".processed.eml")
-    dbg("Log planck-processed message: " + c(logfilename, 6) + "\n" + str(inmail_decrypted)[0:1337])
+    dbg("Log planck-processed message: " + c(logfilename, 6) + "\n" + str(inmail_decrypted)[0:1337], pub=False)
     logfile = codecs.open(logfilename, "w", "utf-8")
     logfile.write(str(inmail_decrypted))
     logfile.close()
 
     #Export processed message
     exportfilename = os.path.join(settings["exportpath"], "in." + settings["mode"] + ".processed.eml")
-    dbg("Export planck-processed message: " + c(exportfilename, 6) + "\n" + str(inmail_decrypted)[0:1337])
+    dbg("Export planck-processed message: " + c(exportfilename, 6))
     exportfile = codecs.open(exportfilename, "w", "utf-8")
     exportfile.write(str(inmail_decrypted))
     exportfile.close()
@@ -519,31 +514,30 @@ def filter_message(message):
             rc = p.returncode
         except Exception:
             rc = 1
-            dbg(f"Scanner {name} not available: {rc}")
+            dbg(f"Scanner {name} not available: {rc}", log_level="ERROR")
 
         if rc in desc.keys():
             scanresults[name] = rc
             dbg("Result: " + c(desc[rc], cols[rc]))
         else:
-            dbg("Unknown return code for scanner " + name + ": " + rc)
+            dbg("Unknown return code for scanner " + name + ": " + rc, log_level="ERROR")
 
         if rc == 2:
-            dbg(f"Error detected with scanner {name}")
+            dbg(f"Error detected with scanner {name}", log_level="ERROR")
             exit(11)
 
-        if settings["DEBUG"]:
-            if stdout and len(stdout) > 0:
-                dbg(c("STDOUT:\n", 2) + prettytable(stdout.decode("utf8").strip().split("\n")))
-            if stderr and len(stderr) > 0:
-                dbg(c("STDERR:\n", 1) + prettytable(stderr.decode("utf8").strip().split("\n")))
+        if stdout and len(stdout) > 0:
+            dbg(c("STDOUT:\n", 2) + prettytable(stdout.decode("utf8").strip().split("\n")))
+        if stderr and len(stderr) > 0:
+            dbg(c("STDERR:\n", 1) + prettytable(stderr.decode("utf8").strip().split("\n")))
             # dbg("Return code: " + c(str(rc), 3));
 
     dbg("Combined scan results:\n" + prettytable(scanresults))
 
     if sum(scanresults.values()) == 0:
-        dbg("All scans " + c("PASSED", 2) + ", relaying message", 2)
+        dbg("All scans " + c("PASSED", 2) + ", relaying message", 2, log_level="INFO")
     else:
-        dbg("Some scans " + c("FAILED", 1) + ", not relaying message (keeping it in the Postfix queue for now)")
+        dbg("Some scans " + c("FAILED", 1) + ", not relaying message (keeping it in the Postfix queue for now)", log_level="WARNING")
         admin_msg = f"A message from {message.msgfrom} and to {message.msgto} failed some of the scans."
         dbgmail(msg=admin_msg, subject="planck Proxy Scan failure")
         # sender_msg = f"Your message could not be delivered to {message.msg['msgto']}
@@ -563,8 +557,6 @@ def deliver_mail(message):
         None
 
     """
-    dbg("Sending mail")
-
     from_username = message.inmail_parsed.from_.username
     from_address = message.inmail_parsed.from_.address
 
@@ -583,9 +575,7 @@ def deliver_mail(message):
     dbg(f"From: {from_username_part}{from_address_part}")
     dbg(f"  To: {to_username_part}{to_address_part}")
 
-    if settings["DEBUG"] and "discard" in message.inmail_parsed.to[0].address:
-        dbg("Keyword discard found in recipient address, skipping call to sendmail")
-    else:
-        sendmail(message.inmail, recipient=message.msgto)
 
-    dbg("===== " + c("planck Proxy ended", 1) + " =====")
+    sendmail(message.inmail, recipient=message.msgto)
+
+    dbg("===== " + c("planck Proxy ended", 2) + " =====", log_level="INFO")

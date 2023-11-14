@@ -63,7 +63,7 @@ def get_contact_info(inmail, reinjection=False):
                 pass
 
         if msgto.count("@") != 1:
-            dbg(c("No clue how we've been contacted. Giving up...", 1))
+            dbg(c("No clue how we've been contacted. Giving up...", 1), log_level="ERROR")
             exit(3)
 
     else:
@@ -104,7 +104,7 @@ def get_mail_headers(inmsg, headername=None):
                 headers += [{k: "\n".join(vclean)}]
         return headers
     except Exception as e:
-        dbg("Can't pre-parse e-mail. Aborting!")
-        dbg("ERROR 21 - {}: {}".format(type(e).__name__, e))
-        dbg("Traceback: " + str(traceback.format_tb(sys.exc_info()[2])))
+        dbg("Can't pre-parse e-mail. Aborting!", log_level="ERROR")
+        dbg("ERROR 21 - {}: {}".format(type(e).__name__, e), log_level="ERROR")
+        dbg("Traceback: " + str(traceback.format_tb(sys.exc_info()[2])), log_level="ERROR")
         return False

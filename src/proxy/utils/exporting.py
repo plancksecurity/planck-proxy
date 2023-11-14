@@ -26,15 +26,14 @@ def init_exporting(message):
         global settings
         exportpath = os.path.join(
             settings["export_dir"],
-            datetime.now().strftime("%Y.%m.%d-%H.%M.%S.%f"),            
+            datetime.now().strftime("%Y.%m.%d-%H.%M.%S.%f"),
         )
         settings["exportpath"] = exportpath
         dbg("Export path is: " + exportpath)
         if not os.path.exists(exportpath):
             os.makedirs(exportpath)
 
-        if settings["DEBUG"]:
-            dbg(f"init exportpath to {settings['exportpath']}")
+        dbg(f"init exportpath to {settings['exportpath']}")
 
     except PermissionError:
         msg = (
@@ -58,8 +57,8 @@ def export_session():
     """
     try:
 
-        logfilename = os.path.join(settings["logpath"], "debug.log")
-        exportfilename = os.path.join(settings["exportpath"], "debug.log")
+        logfilename = os.path.join(settings["logpath"], "planckproxy.log")
+        exportfilename = os.path.join(settings["exportpath"], "planckproxy.log")
         exportfile = codecs.open(exportfilename, "w", "utf-8")
         exportfile.write(getlog("textlog"))
         exportfile.close()

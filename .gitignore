@@ -1,5 +1,6 @@
 /settings.json
 debug.log
+planckproxy.log
 settings_OTHER.json
 pytestdebug.log
 docker.run.sh

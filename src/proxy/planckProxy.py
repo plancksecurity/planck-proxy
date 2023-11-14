@@ -4,7 +4,12 @@ import argparse
 import atexit
 import json
 import sys
+import logging
+import logging.config
 
+logging.config.fileConfig('logging.conf')
+console_logger = logging.getLogger('consoleLogger')
+file_logger = logging.getLogger('fileLogger')
 
 from proxy.utils.message import Message
 from proxy.utils.hooks import cleanup, except_hook
@@ -75,7 +80,7 @@ def run_proxy(cli_args):
     deliver_mail(message)
     log_session()
     export_session()
-    
+
 
 
 def main():
@@ -95,10 +100,10 @@ def main():
     )
 
     parser.add_argument(
-        "--DEBUG",
-        action="store_true",
-        default=False,
-        help="Set DEBUG mode, default is False.",
+        "-l",
+        "--loglevel",
+        default="INFO",
+        help="Set log legvel, default is INFO.",
     )
 
     parser.add_argument(
@@ -110,6 +115,14 @@ def main():
     # Update the settings dict with the parsed arguments
     cli_args = parser.parse_args()
 
+    # Update the logger object with the level in the arguments
+    numeric_level = getattr(logging, cli_args.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % cli_args.loglevel)
+    console_logger.setLevel(level=numeric_level)
+    file_logger.setLevel(level=numeric_level)
+
+
     for key, val in vars(cli_args).items():
         settings[key] = val
 
@@ -119,9 +132,6 @@ def main():
 
     for setting, value in filesettings.items():
         settings[setting] = value
-
-    if cli_args.DEBUG:
-        settings["DEBUG"] = True
 
     init_settings()
     dbg(f"SETTINGS IMPORTED with 'HOME' as {settings['home']}")
