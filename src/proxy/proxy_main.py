@@ -220,6 +220,33 @@ def init_workdir(message):
         os.makedirs(settings["home"])
 
 
+# ## Create & set export directory
+
+def init_exportdir(message):
+    """
+    Create export for the message sender, and set it to the current $HOME.
+
+    Args:
+        message (Message): an instance of the Message class.
+
+    Returns:
+        None
+    """
+
+    global settings
+    exportdirpath = os.path.join(settings["home"], settings["export_dir"], sanitize_email_address(message.msgfrom))
+    if not os.path.exists(exportdirpath):
+        os.makedirs(exportdirpath)
+
+    #os.environ["EXPORT"] = exportdirpath
+    #os.chdir(workdirpath)
+    #Make sure emails are stored from absolute route in the export path
+
+    settings["export_dir"] = exportdirpath
+    if settings["DEBUG"]:
+        dbg(f"init exportdir to {settings['export_dir']}")
+
+
 # ## Check if Sequoia-DB already exists, if not import keys later using planck ########################
 
 
@@ -445,6 +472,14 @@ def process_message(planck, message):
     logfile = codecs.open(logfilename, "w", "utf-8")
     logfile.write(str(inmail_decrypted))
     logfile.close()
+
+    #Export processed message
+    exportfilename = os.path.join(settings["exportpath"], "in." + settings["mode"] + ".processed.eml")
+    dbg("planck-processed message: " + c(exportfilename, 6) + "\n" + str(inmail_decrypted)[0:1337])
+    exportfile = codecs.open(logfilename, "w", "utf-8")
+    exportfile.write(str(inmail_decrypted))
+    exportfile.close()
+
 
 
 # ### Scan pipeline #################################################################################

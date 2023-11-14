@@ -3,6 +3,8 @@
 
     "work_dir":         "work",
 
+    "export_dir":       "export",
+
     "keys_dir":         "keys",
 
     "logfile":          "debug.log",
