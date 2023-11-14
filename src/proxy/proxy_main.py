@@ -16,6 +16,7 @@ from proxy.utils.parsers import get_contact_info, get_mail_headers
 from proxy.utils.emails import dbgmail, sendmail, messageToSend, notifyHandshake
 from proxy.utils.cryptography import decryptusingsq
 from proxy.utils.hooks import cleanup
+from proxy.utils.sanitizer import sanitize_email_address
 
 
 def init_lockfile():
@@ -200,7 +201,7 @@ def init_workdir(message):
     """
 
     global settings
-    workdirpath = os.path.join(settings["home"], settings["work_dir"], message.msgto)
+    workdirpath = os.path.join(settings["home"], settings["work_dir"], sanitize_email_address(message.msgto))
     if not os.path.exists(workdirpath):
         os.makedirs(workdirpath)
 
