@@ -42,10 +42,10 @@ def sendmail(msg, recipient=None):
         with smtplib.SMTP(settings["SMTP_HOST"], settings["SMTP_PORT"]) as server:
             server.sendmail(msgfrom, msgto, msg.encode("utf8"))
     except Exception as e:
-        dbg(c(f"ERROR 6 - Mail could not be sent, return code: {e}", 6))
+        dbg(c(f"ERROR 6 - Mail could not be sent, return code: {e}", 6), log_level="ERROR")
         exit(6)
     else:
-        dbg("Mail successfully sent")
+        dbg("Outbound mail successfully queued")
 
 
 def failurescanmail(msg, rcpt, subject="planck Proxy Scan failure"):

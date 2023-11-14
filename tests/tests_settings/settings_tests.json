@@ -16,8 +16,6 @@
 
     "dts_domains":      [ "yourcompany.tld" ],
 
-    "DEBUG":            true,
-
     "test-nomails":     true,
 
     "scan_pipes": [

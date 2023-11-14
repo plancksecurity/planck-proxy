@@ -20,9 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated some outdated information in the README
 - Added fallback system in case management or keys.db are not present
 - Fixed colored output
+- Fixed handling multiple "to" recipients
 
 ### Removed
 - Removed most of the commands of the CLI. Since settings.json is required is less confusing just haveing everything there
+- Removed the DEBUG parameter. Log level is managed with the -l parameter.
 
 ## [v3.0.0] - 17-5-23
 ### Added

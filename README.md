@@ -67,7 +67,8 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -f FILE, --file FILE  Route for the file to analyze.
-  --DEBUG               Set DEBUG mode, default is False
+  -l LOGLEVEL, --loglevel LOGLEVEL
+                        Set log legvel, default is INFO.
 ```
 ### settings_file
 This file provides the settings for the planck proxy. This is an example for the settings:
@@ -80,7 +81,7 @@ This file provides the settings for the planck proxy. This is an example for the
 
     "keys_dir":         "keys",
 
-    "logfile":          "debug.log",
+    "export_dir":       "export",
 
     "SMTP_HOST":        "127.0.0.1",
     "SMTP_PORT":        "10587",
@@ -91,8 +92,6 @@ This file provides the settings for the planck proxy. This is an example for the
 
     "dts_domains":      [ "yourcompany.tld" ],
 
-    "DEBUG":            false,
-
     "scan_pipes": [
         {"name": "SpamAssassin", "cmd": "spamc --check -"},
         {"name": "ClamAV", "cmd": "clamdscan --verbose -z -"}
@@ -100,7 +99,7 @@ This file provides the settings for the planck proxy. This is an example for the
 }
 ```
 #### home
-Home directory for the proxy execution. `work_dir` and `keys_dir` are exepcted to be there or will be created there otherwise.
+Home directory for the proxy execution. `work_dir`, `keys_dir` and `export_dir` are exepcted to be there or will be created there otherwise.
 
 #### work_dir
 
@@ -136,10 +135,6 @@ Working directory, will be populated with a structure like this:
 To import the extra key into the planck Proxy, the keypair must be placed into the `keys_dir` defined in the `settings.py` file.
 By default this directory is set to the `keys` folder inside the `home`directory.
 
-#### logfile
-
-Name for the logfile
-
 
 #### SMTP HOST and PORT
 
@@ -157,9 +152,6 @@ Address for the sysadmin. This address will recieve email notifications if any e
 
 This is a debug feature. If the sender of a message enabled "Return receipt" on its email client and the sender address is part of the dts_domains list, an email with the proxy log output will be sent back to the sender.
 
-#### Debug
-
-Enables sone debug testing features. If DEBUG is True, then the logs and the emails are kept in the `work_dir` folder after the script finishes running. The default value is False and it's not intended to be True on production usage.
 
 #### scan_pipes
 
@@ -199,8 +191,6 @@ We also need to define a `home` setting. The planckproxy command will be execute
     "admin_addr":       "someone@yourcompany.tld",
 
     "dts_domains":      [ "yourcompany.tld" ],
-
-    "DEBUG":            false,
 
     "scan_pipes": [
         {"name": "SpamAssassin", "cmd": "spamc --check -"},

@@ -2,12 +2,33 @@ import os
 import codecs
 import sys
 import html
+import logging
 
 from datetime import datetime
 from collections import OrderedDict
 
 from proxy.proxy_settings import settings
+from proxy.planckProxy import console_logger, file_logger
 
+def get_numeric_log_level(log_level_str):
+    """
+    Convert a string representation of a log level to its numeric value.
+
+    Args:
+        log_level_str (str): The string representation of the log level (case-insensitive).
+
+    Returns:
+        int: The numeric value of the log level.
+
+    Raises:
+        ValueError: If the provided log level string is invalid.
+    """
+
+    log_level = getattr(logging, log_level_str.upper(), None)
+    if log_level is not None and isinstance(log_level, int):
+        return log_level
+    else:
+        raise ValueError(f"Invalid log level: {log_level_str}")
 
 def print_init_info(args):
     """
@@ -39,13 +60,13 @@ def print_init_info(args):
         + " | GID "
         + c(gid, 7)
         + " ====="
-    )
-    if settings["DEBUG"]:
-        dbg(c("┌ Parameters", 5) + "\n" + prettytable(args.__dict__))
-        cur_settings = settings.copy()
-        for setting in ["adminlog", "textlog", "htmllog"]:
-            cur_settings.pop(setting)
-        dbg(c("┌ Settings (except logs)", 5) + "\n" + prettytable(cur_settings))
+    , log_level="INFO")
+
+    dbg(c("┌ Parameters", 5) + "\n" + prettytable(args.__dict__))
+    cur_settings = settings.copy()
+    for setting in ["adminlog", "textlog", "htmllog"]:
+        cur_settings.pop(setting)
+    dbg(c("┌ Settings (except logs)", 5) + "\n" + prettytable(cur_settings))
 
 
 def print_summary_info(message):
@@ -99,7 +120,7 @@ def print_keys_and_headers(message):
 # Debug and logging
 
 
-def dbg(text, printtiming=False, pub=True):
+def dbg(text, printtiming=False, pub=True, log_level="DEBUG"):
     """
     Logs the given text with a timestamp and writes it to a log file.
 
@@ -108,6 +129,7 @@ def dbg(text, printtiming=False, pub=True):
         printtiming (bool, optional): If True, the time taken since the last log message is printed along
             with the message. Defaults to False.
         pub (bool, optional): If True, the message is added to the HTML logfile. Defaults to True.
+        log_level (str): the log level of the message, defaults to DEBUG
 
     Returns:
         float: The time taken since the last log message was printed.
@@ -121,26 +143,16 @@ def dbg(text, printtiming=False, pub=True):
     if len(text) == 0:  # don't output anything, only time the next event
         return took
 
-    text = (
-        c(thisactiontime.strftime("%d.%m.%Y %H:%M:%S.%f"), 3)
-        + " "
-        + str(text)
-        + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
-    )
+    text = str(text) + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
+    ts_text = c(thisactiontime.strftime("%d.%m.%Y %H:%M:%S.%f"), 3)  + " - " + log_level + " - " + text
 
-    # Unconditionally write to the global logfile
-    with codecs.open(settings["logfile"], "a+", "utf-8") as d:
-        d.write(c(str(os.getpid()), 5) + " | " + text + "\n")
-    d.close()
+    if pub is True and (get_numeric_log_level(log_level) >= console_logger.getEffectiveLevel()):
+        settings["adminlog"] += toplain(ts_text) + "\n"
+        settings["textlog"] += toplain(ts_text) + "\n"
+        settings["htmllog"] += tohtml(ts_text) + "<br>\n"
 
-    if sys.stdout.isatty():
-        print(text)
-
-    settings["adminlog"] += toplain(text) + "\n"
-    settings["textlog"] += text + "\n"
-
-    if pub:
-        settings["htmllog"] += tohtml(text) + "<br>\n"
+    console_logger.log(get_numeric_log_level(log_level), text)
+    file_logger.log(get_numeric_log_level(log_level), text)
 
     return took
 
@@ -213,7 +225,7 @@ def tohtml(text):
     return ret
 
 
-def prettytable(thing, colwidth=26):
+def prettytable(thing, colwidth=33):
     """
     Returns a pretty-printed table of the given data.
 
