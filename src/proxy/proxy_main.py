@@ -156,8 +156,8 @@ def set_addresses(message):
 
     msgfrom, msgto = get_contact_info(message.inmail)
 
-    message.msgfrom = sanitize_email_address(msgfrom)
-    message.msgto = sanitize_email_address(msgto)
+    message.msgfrom = msgfrom
+    message.msgto = msgto
 
 
 def enable_dts(message):
@@ -201,7 +201,7 @@ def init_workdir(message):
     """
 
     global settings
-    workdirpath = os.path.join(settings["home"], settings["work_dir"], message.msgto)
+    workdirpath = os.path.join(settings["home"], settings["work_dir"], sanitize_email_address(message.msgto))
     if not os.path.exists(workdirpath):
         os.makedirs(workdirpath)
 
