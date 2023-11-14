@@ -81,7 +81,7 @@ This file provides the settings for the planck proxy. This is an example for the
 
     "keys_dir":         "keys",
 
-    "logfile":          "debug.log",
+    "export_dir":       "export",
 
     "SMTP_HOST":        "127.0.0.1",
     "SMTP_PORT":        "10587",
@@ -99,7 +99,7 @@ This file provides the settings for the planck proxy. This is an example for the
 }
 ```
 #### home
-Home directory for the proxy execution. `work_dir` and `keys_dir` are exepcted to be there or will be created there otherwise.
+Home directory for the proxy execution. `work_dir`, `keys_dir` and `export_dir` are exepcted to be there or will be created there otherwise.
 
 #### work_dir
 
@@ -134,10 +134,6 @@ Working directory, will be populated with a structure like this:
 
 To import the extra key into the planck Proxy, the keypair must be placed into the `keys_dir` defined in the `settings.py` file.
 By default this directory is set to the `keys` folder inside the `home`directory.
-
-#### logfile
-
-Name for the logfile
 
 
 #### SMTP HOST and PORT

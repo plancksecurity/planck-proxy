@@ -7,8 +7,6 @@
 
     "keys_dir":         "keys",
 
-    "logfile":          "debug.log",
-
     "SMTP_HOST":        "127.0.0.1",
     "SMTP_PORT":        "25",
 
@@ -18,7 +16,7 @@
 
     "dts_domains":      [ "yourcompany.tld" ],
 
-    "DEBUG":            false,
+    "export_loglevel":  "DEBUG",
 
     "scan_pipes": [
         {"name": "SpamAssassin", "cmd": "spamc --check -"},

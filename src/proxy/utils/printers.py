@@ -129,6 +129,7 @@ def dbg(text, printtiming=False, pub=True, log_level="DEBUG"):
         printtiming (bool, optional): If True, the time taken since the last log message is printed along
             with the message. Defaults to False.
         pub (bool, optional): If True, the message is added to the HTML logfile. Defaults to True.
+        log_level (str): the log level of the message, defaults to DEBUG
 
     Returns:
         float: The time taken since the last log message was printed.
@@ -145,12 +146,10 @@ def dbg(text, printtiming=False, pub=True, log_level="DEBUG"):
     text = str(text) + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
     ts_text = c(thisactiontime.strftime("%d.%m.%Y %H:%M:%S.%f"), 3)  + " - " + log_level + " - " + text
 
-    settings["adminlog"] += toplain(ts_text) + "\n"
-    settings["textlog"] += toplain(ts_text) + "\n"
-
-    if pub:
+    if pub is True and (get_numeric_log_level(log_level) >= console_logger.getEffectiveLevel()):
+        settings["adminlog"] += toplain(ts_text) + "\n"
+        settings["textlog"] += toplain(ts_text) + "\n"
         settings["htmllog"] += tohtml(ts_text) + "<br>\n"
-
 
     console_logger.log(get_numeric_log_level(log_level), text)
     file_logger.log(get_numeric_log_level(log_level), text)
@@ -226,7 +225,7 @@ def tohtml(text):
     return ret
 
 
-def prettytable(thing, colwidth=31):
+def prettytable(thing, colwidth=33):
     """
     Returns a pretty-printed table of the given data.
 

@@ -7,6 +7,7 @@ from datetime import datetime
 settings = {
     "work_dir": "work",
     "keys_dir": "keys",
+    "export_dir": "export",
     "home": "",
     "recipients": False,
 }

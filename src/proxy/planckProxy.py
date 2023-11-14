@@ -80,7 +80,7 @@ def run_proxy(cli_args):
     deliver_mail(message)
     log_session()
     export_session()
-    
+
 
 
 def main():
@@ -120,6 +120,7 @@ def main():
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % cli_args.loglevel)
     console_logger.setLevel(level=numeric_level)
+    file_logger.setLevel(level=numeric_level)
 
 
     for key, val in vars(cli_args).items():

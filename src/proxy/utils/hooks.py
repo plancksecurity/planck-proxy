@@ -69,7 +69,7 @@ def cleanup():
             dbg("Can't remove Lockfile " + c(lockfilepath, 6), pub=False, log_level="ERROR")
 
     logpath = settings["logpath"]
-    if console_logger.getEffectiveLevel() == 10: #DEBUG
+    if console_logger.getEffectiveLevel() <= 10: #DEBUG
         dbg(
             f"Debug mode, will keep the logged output messages and emails in the work_dir {c(logpath, 6)}",
             pub=False,
