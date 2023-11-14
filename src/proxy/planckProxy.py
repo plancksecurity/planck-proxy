@@ -75,6 +75,7 @@ def run_proxy(cli_args):
     deliver_mail(message)
     log_session()
     export_session()
+    
 
 
 def main():

@@ -1,5 +1,6 @@
 import os
 import codecs
+import shutil
 
 from datetime import datetime
 
@@ -75,6 +76,7 @@ def log_session():
         None
     """
     try:
+
         logfilename = os.path.join(settings["logpath"], "debug.log")
         logfile = codecs.open(logfilename, "w", "utf-8")
         logfile.write(getlog("textlog"))

@@ -468,15 +468,15 @@ def process_message(planck, message):
 
     # Log processed message
     logfilename = os.path.join(settings["logpath"], "in." + settings["mode"] + ".processed.eml")
-    dbg("planck-processed message: " + c(logfilename, 6) + "\n" + str(inmail_decrypted)[0:1337])
+    dbg("Log planck-processed message: " + c(logfilename, 6) + "\n" + str(inmail_decrypted)[0:1337])
     logfile = codecs.open(logfilename, "w", "utf-8")
     logfile.write(str(inmail_decrypted))
     logfile.close()
 
     #Export processed message
     exportfilename = os.path.join(settings["exportpath"], "in." + settings["mode"] + ".processed.eml")
-    dbg("planck-processed message: " + c(exportfilename, 6) + "\n" + str(inmail_decrypted)[0:1337])
-    exportfile = codecs.open(logfilename, "w", "utf-8")
+    dbg("Export planck-processed message: " + c(exportfilename, 6) + "\n" + str(inmail_decrypted)[0:1337])
+    exportfile = codecs.open(exportfilename, "w", "utf-8")
     exportfile.write(str(inmail_decrypted))
     exportfile.close()
 

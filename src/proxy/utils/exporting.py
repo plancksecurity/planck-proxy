@@ -26,10 +26,10 @@ def init_exporting(message):
         global settings
         exportpath = os.path.join(
             settings["export_dir"],
-            sanitize_email_address(message.msgfrom),
-            datetime.now().strftime("%Y.%m.%d-%H.%M.%S.%f"),
+            datetime.now().strftime("%Y.%m.%d-%H.%M.%S.%f"),            
         )
         settings["exportpath"] = exportpath
+        dbg("Export path is: " + exportpath)
         if not os.path.exists(exportpath):
             os.makedirs(exportpath)
 
@@ -57,6 +57,8 @@ def export_session():
         None
     """
     try:
+
+        logfilename = os.path.join(settings["logpath"], "debug.log")
         exportfilename = os.path.join(settings["exportpath"], "debug.log")
         exportfile = codecs.open(exportfilename, "w", "utf-8")
         exportfile.write(getlog("textlog"))
