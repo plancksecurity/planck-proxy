@@ -13,6 +13,26 @@ import logging.config
 logging.config.fileConfig('logging.conf')
 logger = logging.getLogger('mainlogger')
 
+def get_numeric_log_level(log_level_str):
+    """
+    Convert a string representation of a log level to its numeric value.
+
+    Args:
+        log_level_str (str): The string representation of the log level (case-insensitive).
+
+    Returns:
+        int: The numeric value of the log level.
+
+    Raises:
+        ValueError: If the provided log level string is invalid.
+    """
+
+    log_level = getattr(logging, log_level_str.upper(), None)
+    if log_level is not None and isinstance(log_level, int):
+        return log_level
+    else:
+        raise ValueError(f"Invalid log level: {log_level_str}")
+
 def print_init_info(args):
     """
     Print initialization information.
@@ -43,7 +63,7 @@ def print_init_info(args):
         + " | GID "
         + c(gid, 7)
         + " ====="
-    )
+    , log_level="INFO")
     if settings["DEBUG"]:
         dbg(c("┌ Parameters", 5) + "\n" + prettytable(args.__dict__))
         cur_settings = settings.copy()
@@ -103,7 +123,7 @@ def print_keys_and_headers(message):
 # Debug and logging
 
 
-def dbg(text, printtiming=False, pub=True):
+def dbg(text, printtiming=False, pub=True, log_level="DEBUG"):
     """
     Logs the given text with a timestamp and writes it to a log file.
 
@@ -143,7 +163,8 @@ def dbg(text, printtiming=False, pub=True):
     if pub:
         settings["htmllog"] += tohtml(text) + "<br>\n"
 
-    logger.debug(text)
+
+    logger.log(get_numeric_log_level(log_level), text)
 
     return took
 

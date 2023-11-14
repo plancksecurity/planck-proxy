@@ -26,10 +26,10 @@ def except_hook(type, value, tback):
     Returns:
         None
     """
-    dbg(c("!!! planck proxy - Unhandled exception !!!", 1))
+    dbg(c("!!! planck proxy - Unhandled exception !!!", 1), log_level="ERROR")
     mailcontent = ""
     for line in traceback.format_exception(type, value, tback):
-        dbg(line.strip())
+        dbg(line.strip(), log_level="ERROR")
         mailcontent += line
     dbgmail(mailcontent)
     exit(31)
@@ -67,22 +67,22 @@ def cleanup():
         except Exception:
             dbg("Can't remove Lockfile " + c(lockfilepath, 6), pub=False)
 
-    logpath = settings["logpath"]
-    if settings["DEBUG"]:
-        dbg(
-            f"Debug mode, will keep the logged output messages in the work_dir {c(logpath, 6)}",
-            pub=False,
-        )
-    else:
-        try:
-            shutil.rmtree(logpath)
-            dbg("Log folder " + c(logpath, 6) + " removed", pub=False)
-        except Exception as e:
-            dbg("Can't remove log folder " + c(logpath, 6) + str(e), pub=False)
-        try:
-            main_log = os.path.join(settings["home"], "debug.log")
-            os.remove(main_log)
-            # We use a print so we don't create a new log :)
-            print("Main log " + c(main_log, 6) + " removed")
-        except Exception as e:
-            dbg("Can't remove main log " + c(main_log, 6) + str(e), pub=False)
+    # logpath = settings["logpath"]
+    # if settings["DEBUG"]:
+    #     dbg(
+    #         f"Debug mode, will keep the logged output messages in the work_dir {c(logpath, 6)}",
+    #         pub=False,
+    #     )
+    # else:
+    #     try:
+    #         shutil.rmtree(logpath)
+    #         dbg("Log folder " + c(logpath, 6) + " removed", pub=False)
+    #     except Exception as e:
+    #         dbg("Can't remove log folder " + c(logpath, 6) + str(e), pub=False)
+    #     try:
+    #         main_log = os.path.join(settings["home"], "debug.log")
+    #         os.remove(main_log)
+    #         # We use a print so we don't create a new log :)
+    #         print("Main log " + c(main_log, 6) + " removed")
+    #     except Exception as e:
+    #         dbg("Can't remove main log " + c(main_log, 6) + str(e), pub=False)
