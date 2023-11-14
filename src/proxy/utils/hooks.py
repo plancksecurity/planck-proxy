@@ -66,7 +66,7 @@ def cleanup():
             os.remove(lockfilepath)
             dbg("Lockfile " + c(lockfilepath, 6) + " removed", pub=False)
         except Exception:
-            dbg("Can't remove Lockfile " + c(lockfilepath, 6), pub=False)
+            dbg("Can't remove Lockfile " + c(lockfilepath, 6), pub=False, log_level="ERROR")
 
     logpath = settings["logpath"]
     if console_logger.getEffectiveLevel() == 10: #DEBUG
@@ -76,11 +76,7 @@ def cleanup():
         )
     else:
         try:
-            for root, dirs, files in os.walk(logpath):
-                for file in files:
-                    if any(file.lower().endswith(ext) for ext in ['.html', '.eml', '.log']):
-                        file_path = os.path.join(root, file)
-                        os.remove(file_path)
+            shutil.rmtree(logpath)
             dbg("Log folder " + c(logpath, 6) + " removed", pub=False)
         except Exception as e:
-            dbg("Can't remove log folder " + c(logpath, 6) + str(e), pub=False)
+            dbg("Can't remove log folder " + c(logpath, 6) + str(e), pub=False, log_level="ERROR")
