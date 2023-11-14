@@ -73,12 +73,12 @@ def log_session():
         None
     """
     try:
-        logfilename = os.path.join(settings["logpath"], "debug.log")
+        logfilename = os.path.join(settings["logpath"], "planckproxy.log")
         logfile = codecs.open(logfilename, "w", "utf-8")
         logfile.write(getlog("textlog"))
         logfile.close()
 
-        logfilename = os.path.join(settings["logpath"], "debug.html")
+        logfilename = os.path.join(settings["logpath"], "planckproxy.html")
         logfile = codecs.open(logfilename, "w", "utf-8")
         logfile.write(getlog("htmllog"))
         logfile.close()

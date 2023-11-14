@@ -142,16 +142,14 @@ def dbg(text, printtiming=False, pub=True, log_level="DEBUG"):
     if len(text) == 0:  # don't output anything, only time the next event
         return took
 
-    text = (
-        str(text) + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
-    )
+    text = str(text) + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
+    ts_text = c(thisactiontime.strftime("%d.%m.%Y %H:%M:%S.%f"), 3)  + " " + text
 
-
-    settings["adminlog"] += toplain(text) + "\n"
-    settings["textlog"] += text + "\n"
+    settings["adminlog"] += toplain(ts_text) + "\n"
+    settings["textlog"] += toplain(ts_text) + "\n"
 
     if pub:
-        settings["htmllog"] += tohtml(text) + "<br>\n"
+        settings["htmllog"] += tohtml(ts_text) + "<br>\n"
 
 
     logger.log(get_numeric_log_level(log_level), text)
