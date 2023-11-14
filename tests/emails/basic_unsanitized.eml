@@ -1,0 +1,8 @@
+From: "Alice" <alice"test"@planck.secuirty>
+Delivered-To: bob@planck.security
+To: "Bob" <bob@planck.security>
+Subject: Hello world!
+Date: Mon, 30 Jan 2023 09:00:00 +0200
+Message-ID: <1fZtkf-2oQ-00@planck.security>
+
+Hello encrypted world!
