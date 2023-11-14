@@ -2,16 +2,13 @@ import os
 import codecs
 import sys
 import html
+import logging
 
 from datetime import datetime
 from collections import OrderedDict
 
 from proxy.proxy_settings import settings
-import logging
-import logging.config
-
-logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('mainlogger')
+from proxy.planckProxy import logger
 
 def get_numeric_log_level(log_level_str):
     """

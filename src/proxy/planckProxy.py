@@ -4,7 +4,11 @@ import argparse
 import atexit
 import json
 import sys
+import logging
+import logging.config
 
+logging.config.fileConfig('logging.conf')
+logger = logging.getLogger('mainlogger')
 
 from proxy.utils.message import Message
 from proxy.utils.hooks import cleanup, except_hook
@@ -96,6 +100,13 @@ def main():
     )
 
     parser.add_argument(
+        "-l",
+        "--loglevel",
+        default="INFO",
+        help="Set log legvel, default is INFO.",
+    )
+
+    parser.add_argument(
         "--recipients",
         default=False,
         help=("Write down the recipients of the message if Delivered-To header can't be found within the email."),
@@ -103,6 +114,13 @@ def main():
 
     # Update the settings dict with the parsed arguments
     cli_args = parser.parse_args()
+
+    numeric_level = getattr(logging, loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+    logger.setLevel(level=numeric_level)
+
+
 
     for key, val in vars(cli_args).items():
         settings[key] = val
