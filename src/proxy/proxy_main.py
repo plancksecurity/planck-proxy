@@ -385,7 +385,7 @@ def process_message(planck, message):
             #  fallback to sq, then forward as-is
             planckfails = False
             if not planckfails:
-                dbg(c("Decrypting message via planck...", 2))
+                dbg(c("Decrypting message via planck...", 2), log_level="INFO")
                 inmail_decrypted, keys, rating, flags = message.inmail_parsed.decrypt()
                 dbg(c("Decrypted in", 2), True)
             else:
@@ -416,9 +416,9 @@ def process_message(planck, message):
                 # exit(7)
             else:
                 if keys is None or len(keys) == 0:
-                    dbg(c("Original message was NOT encrypted", 1))
+                    dbg(c("Original message was NOT encrypted", 1), log_level="INFO")
                 else:
-                    dbg(c("Original message was encrypted to these keys", 2) + ":\n" + prettytable(list(set(keys))))
+                    dbg(c("Original message was encrypted to these keys", 2) + ":\n" + prettytable(list(set(keys))), log_level="INFO")
 
         # Workaround for engine converting plaintext-only messages into a msg.txt inline-attachment
         # dst = str(dst).replace(' filename="msg.txt"', "")
@@ -547,4 +547,4 @@ def deliver_mail(message):
 
     sendmail(message.inmail, recipient=message.msgto)
 
-    dbg("===== " + c("planck Proxy ended", 1) + " =====")
+    dbg("===== " + c("planck Proxy ended", 2) + " =====", log_level="INFO")

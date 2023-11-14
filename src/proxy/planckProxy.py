@@ -115,11 +115,11 @@ def main():
     # Update the settings dict with the parsed arguments
     cli_args = parser.parse_args()
 
-    numeric_level = getattr(logging, loglevel.upper(), None)
+    # Update the logger object with the level in the arguments
+    numeric_level = getattr(logging, cli_args.loglevel.upper(), None)
     if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % loglevel)
+        raise ValueError('Invalid log level: %s' % cli_args.loglevel)
     logger.setLevel(level=numeric_level)
-
 
 
     for key, val in vars(cli_args).items():

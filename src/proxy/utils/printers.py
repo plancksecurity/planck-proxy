@@ -146,13 +146,6 @@ def dbg(text, printtiming=False, pub=True, log_level="DEBUG"):
         str(text) + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
     )
 
-    # Unconditionally write to the global logfile
-    with codecs.open(settings["logfile"], "a+", "utf-8") as d:
-        d.write(c(str(os.getpid()), 5) + " | " + text + "\n")
-    d.close()
-
-    # if sys.stdout.isatty():
-    #     print(text)
 
     settings["adminlog"] += toplain(text) + "\n"
     settings["textlog"] += text + "\n"
