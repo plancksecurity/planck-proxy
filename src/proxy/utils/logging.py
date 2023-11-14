@@ -1,6 +1,5 @@
 import os
 import codecs
-import logging
 
 from datetime import datetime
 
@@ -8,6 +7,7 @@ from .printers import dbg, c
 from .emails import dbgmail
 
 from proxy.proxy_settings import settings
+from proxy.utils.sanitizer import sanitize_email_address
 
 
 def getlog(type):
@@ -38,7 +38,7 @@ def init_logging(message):
         global settings
         logpath = os.path.join(
             settings["work_dir"],
-            message.msgfrom,
+            sanitize_email_address(message.msgfrom),
             datetime.now().strftime("%Y.%m.%d-%H.%M.%S.%f"),
         )
         settings["logpath"] = logpath

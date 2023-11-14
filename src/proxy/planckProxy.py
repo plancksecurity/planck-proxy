@@ -15,6 +15,7 @@ from proxy.utils.message import Message
 from proxy.utils.hooks import cleanup, except_hook
 from proxy.utils.printers import dbg, print_init_info, print_summary_info, print_keys_and_headers
 from proxy.utils.logging import init_logging, log_session
+from proxy.utils.exporting import init_exporting, export_session
 
 from proxy.proxy_settings import settings, init_settings
 from proxy.proxy_main import (
@@ -23,6 +24,7 @@ from proxy.proxy_main import (
     set_addresses,
     enable_dts,
     init_workdir,
+    init_exportdir,
     check_initial_import,
     load_planck,
     import_keys,
@@ -57,11 +59,13 @@ def run_proxy(cli_args):
     enable_dts(message)
     # addr_domain_rewrite(message)
     init_workdir(message)
+    init_exportdir(message)
 
     # Handle keys and decrypt
     import_needed = check_initial_import()
     print_summary_info(message)
     init_logging(message)
+    init_exporting(message)
     planck = load_planck()
     if import_needed:
         import_keys(planck)
@@ -75,6 +79,8 @@ def run_proxy(cli_args):
     # Finish processing and deliver
     deliver_mail(message)
     log_session()
+    export_session()
+    
 
 
 def main():

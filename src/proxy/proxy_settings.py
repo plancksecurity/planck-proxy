@@ -43,6 +43,7 @@ def init_settings(settings_file=None):
     settings["textlog"] = ""
     settings["htmllog"] = ""
     settings["logpath"] = None
+    settings["exportpath"] = None
     settings["dts"] = None
     settings["lockfilepath"] = os.path.join(settings["home"], "proxy.lock")
     settings["project_root"] = Path(os.path.dirname(__file__))

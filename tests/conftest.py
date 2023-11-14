@@ -32,6 +32,7 @@ def test_dirs(tmp_path):
         "keys": tmp_path / "keys",
         "test_keys": Path(os.environ["TEST_ROOT"]) / "test_keys",
         "work": tmp_path / "work",
+        "export": tmp_path / "export",
         "emails": Path(os.environ["TEST_ROOT"]) / "emails",
     }
 
@@ -108,6 +109,7 @@ def test_settings_dict(test_dirs):
     """
     test_settings = {
         "work_dir": str(test_dirs["work"]),
+        "export_dir": str(test_dirs["export"]),
         "keys_dir": str(test_dirs["keys"]),
         "test-nomails": True,
         "DEBUG": True,
