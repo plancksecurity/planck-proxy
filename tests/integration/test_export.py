@@ -23,5 +23,5 @@ def test_export(
     assert p.stderr == b""
     assert p.returncode == 0
 
-    decrypt_out_path = test_dirs["export"] / test_email_to / test_email_from
+    decrypt_out_path = test_dirs["export"] / test_email_from
     assert os.listdir(decrypt_out_path)
