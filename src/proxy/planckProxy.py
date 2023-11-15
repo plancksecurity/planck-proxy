@@ -4,41 +4,17 @@ import argparse
 import atexit
 import json
 import sys
-
-## Set man logging
 import logging
+import os
 
 # Create loggers
 console_logger = logging.getLogger('consoleLogger')
 file_logger = logging.getLogger('fileLogger')
 
-# Set log levels
-console_logger.setLevel(logging.DEBUG)
-file_logger.setLevel(logging.DEBUG)
-
-# Create handlers
-file_handler = logging.FileHandler('planckproxy.log')
-console_handler = logging.StreamHandler(sys.stdout)
-
-# Set handler levels
-file_handler.setLevel(logging.DEBUG)
-console_handler.setLevel(logging.DEBUG)
-
-# Create formatter
-simple_formatter = logging.Formatter('%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s', datefmt='%d.%m.%Y %H:%M:%S')
-
-# Set formatter for handlers
-file_handler.setFormatter(simple_formatter)
-console_handler.setFormatter(simple_formatter)
-
-# Add handlers to loggers
-console_logger.addHandler(console_handler)
-file_logger.addHandler(file_handler)
-
 from proxy.utils.message import Message
 from proxy.utils.hooks import cleanup, except_hook
 from proxy.utils.printers import dbg, print_init_info, print_summary_info, print_keys_and_headers
-from proxy.utils.logging import init_logging, log_session
+from proxy.utils.logging import init_logging, log_session, init_logfile
 from proxy.utils.exporting import init_exporting, export_session
 
 from proxy.proxy_settings import settings, init_settings
@@ -139,14 +115,6 @@ def main():
     # Update the settings dict with the parsed arguments
     cli_args = parser.parse_args()
 
-    # Update the logger object with the level in the arguments
-    numeric_level = getattr(logging, cli_args.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % cli_args.loglevel)
-    console_logger.setLevel(level=numeric_level)
-    file_logger.setLevel(level=numeric_level)
-
-
     for key, val in vars(cli_args).items():
         settings[key] = val
 
@@ -158,6 +126,8 @@ def main():
         settings[setting] = value
 
     init_settings()
+    init_logfile(cli_args.loglevel, console_logger, file_logger)
+
     dbg(f"SETTINGS IMPORTED with 'HOME' as {settings['home']}")
     run_proxy(cli_args)
 
