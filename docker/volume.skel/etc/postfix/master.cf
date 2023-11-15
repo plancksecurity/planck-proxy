@@ -32,7 +32,7 @@
   -o syslog_name=postfix/smtp-10587
 
 planckproxy unix - n n - 1 pipe
-  flags=DRhu user=proxy argv=/usr/local/bin/planckproxy decrypt /home/proxy/settings.json
+  flags=DRhu user=proxy argv=/usr/local/bin/planckproxy decrypt /home/proxy/settings.json -l {{loglevel}}
 
 smtp      unix  -       -       n       -       -       smtp
 pickup    unix  n       -       n       60      1       pickup
