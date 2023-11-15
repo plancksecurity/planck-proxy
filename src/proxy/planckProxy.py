@@ -4,12 +4,36 @@ import argparse
 import atexit
 import json
 import sys
-import logging
-import logging.config
 
-logging.config.fileConfig('config/logging.conf')
+## Set man logging
+import logging
+
+# Create loggers
 console_logger = logging.getLogger('consoleLogger')
 file_logger = logging.getLogger('fileLogger')
+
+# Set log levels
+console_logger.setLevel(logging.DEBUG)
+file_logger.setLevel(logging.DEBUG)
+
+# Create handlers
+file_handler = logging.FileHandler('planckproxy.log')
+console_handler = logging.StreamHandler(sys.stdout)
+
+# Set handler levels
+file_handler.setLevel(logging.DEBUG)
+console_handler.setLevel(logging.DEBUG)
+
+# Create formatter
+simple_formatter = logging.Formatter('%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s', datefmt='%d.%m.%Y %H:%M:%S')
+
+# Set formatter for handlers
+file_handler.setFormatter(simple_formatter)
+console_handler.setFormatter(simple_formatter)
+
+# Add handlers to loggers
+console_logger.addHandler(console_handler)
+file_logger.addHandler(file_handler)
 
 from proxy.utils.message import Message
 from proxy.utils.hooks import cleanup, except_hook
