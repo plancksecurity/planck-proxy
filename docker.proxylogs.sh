@@ -1,1 +1,2 @@
-docker exec -it planckproxy tail -F /var/log/mail.log /home/proxy/debug.log
+docker exec -it planckproxy tail -F /var/log/mail.log /home/proxy/work/planckproxy.log
+
