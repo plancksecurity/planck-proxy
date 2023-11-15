@@ -7,7 +7,7 @@ import sys
 import logging
 import logging.config
 
-logging.config.fileConfig('logging.conf')
+logging.config.fileConfig('config/logging.conf')
 console_logger = logging.getLogger('consoleLogger')
 file_logger = logging.getLogger('fileLogger')
 

@@ -1,1 +1,3 @@
 include src/proxy/data/*.db
+include config/*.*
+include README.md
