@@ -135,9 +135,9 @@ def init_logfile(level_name, console_logger, file_logger):
     file_logger.setLevel(level=numeric_level)
 
     # Create handlers
-    log_folder = os.path.join(settings['home'], settings['work_dir'])
+    log_folder = settings['home']
     os.makedirs(log_folder, exist_ok=True)
-    log_file = os.path.join(log_folder, 'planckproxy.log')
+    log_file = os.path.join(settings['home'], 'planckproxy.log')
     file_handler = logging.FileHandler(log_file)
     console_handler = logging.StreamHandler(sys.stdout)
 
