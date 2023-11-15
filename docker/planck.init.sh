@@ -9,6 +9,7 @@ ln -s /volume/debug.log /home/proxy/debug.log
 
 # Generate config files from templates in /volume/
 cp -pravin /volume.skel/* /volume/
+cp -pravin /volume.skel/home/proxy/* /volume/home/proxy/
 /env2config.py || true
 chown proxy:proxy /home/proxy /volume/debug.log -R
 
