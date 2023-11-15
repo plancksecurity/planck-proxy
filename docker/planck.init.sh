@@ -4,14 +4,14 @@ set -xe
 
 # Logging
 rsyslogd
-echo -e "\n\n=== $(date) Planck Proxy started ===\n" >> /volume/debug.log
-ln -s /volume/debug.log /home/proxy/debug.log
+echo -e "\n\n=== $(date) Planck Proxy started ===\n" >> /volume/planckproxy.log
+ln -s /volume/planckproxy.log /home/proxy/planckproxy.log
 
 # Generate config files from templates in /volume/
 cp -pravin /volume.skel/* /volume/
 cp -pravin /volume.skel/home/proxy/* /volume/home/proxy/
 /env2config.py || true
-chown proxy:proxy /home/proxy /volume/debug.log -R
+chown proxy:proxy /home/proxy /volume/planckproxy.log -R
 
 # TODO?: Symlink /var/spool/postfix into /volume (to retain undeliverable mails across container restarts)
 # TODO?: OpenDKIM + keys
@@ -26,5 +26,5 @@ postfix start
 
 env
 
-# Our main loop consists of tail'ing the logs 
-tail -F /var/log/mail.log /home/proxy/debug.log
+# Our main loop consists of tail'ing the logs
+tail -F /var/log/mail.log /home/proxy/planckproxy.log
