@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 ### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [v3.1.0] - 14-11-23
+### Added
 - pyproject.toml for packaging
 - "home" setting on settings.json. This lets define the execution home and meets the requirements to be able to work with Postfix.
 - Added exception handling for writing permissions.
