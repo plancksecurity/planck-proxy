@@ -6,6 +6,7 @@ set -xe
 rsyslogd
 echo -e "\n\n=== $(date) Planck Proxy started ===\n" >> /volume/planckproxy.log
 ln -s /volume/planckproxy.log /home/proxy/planckproxy.log
+mkdir -p /home/proxy/export
 ln -s /volume/export/ /home/proxy/export/
 
 # Generate config files from templates in /volume/
