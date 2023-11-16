@@ -139,7 +139,13 @@ def init_logfile(level_name, console_logger, file_logger):
     os.makedirs(log_folder, exist_ok=True)
     log_file = os.path.join(settings['home'], 'planckproxy.log')
     file_handler = logging.FileHandler(log_file)
-    console_handler = logging.StreamHandler(sys.stdout)
+
+    # If the command is called by postfix we don't want to ptint to the terminal, otherwise the
+    # process will crash with exit code 120.
+    if sys.stdout.isatty():
+        console_handler = logging.StreamHandler(sys.stdout)
+    else:
+        console_handler = logging.NullHandler()
 
     # Set handler levels
     file_handler.setLevel(logging.DEBUG)
