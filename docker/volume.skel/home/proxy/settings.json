@@ -2,6 +2,7 @@
     "home": "/home/proxy/",
     "work_dir": "work",
     "export_dir": "/volume/export/",
+    "export_log_level":  "DEBUG",
     "keys_dir": "keys",
     "SMTP_HOST": "127.0.0.1",
     "SMTP_PORT": "10587",
