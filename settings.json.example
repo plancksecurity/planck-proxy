@@ -3,7 +3,7 @@
 
     "work_dir":         "work",
 
-    "export_dir":       "export",
+    "export_dir":       "/home/proxy/export",
 
     "keys_dir":         "keys",
 

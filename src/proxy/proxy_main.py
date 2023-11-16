@@ -233,7 +233,7 @@ def init_exportdir(message):
     """
 
     global settings
-    exportdirpath = os.path.join(settings["home"], settings["export_dir"], sanitize_email_address(message.msgfrom))
+    exportdirpath = os.path.join(settings["export_dir"], sanitize_email_address(message.msgfrom))
     if not os.path.exists(exportdirpath):
         os.makedirs(exportdirpath)
 
