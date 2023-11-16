@@ -12,6 +12,8 @@ ln -s /volume/export/ /home/proxy/export/
 # Generate config files from templates in /volume/
 cp -pravin /volume.skel/* /volume/
 cp -pravin /volume.skel/home/proxy/* /volume/home/proxy/
+cp -pravin /volume.skel/etc/* /volume/etc/
+cp -pravin /volume.skel/etc/postfix/* /volume/etc/postfix/
 /env2config.py || true
 chown proxy:proxy /home/proxy /volume/planckproxy.log -R
 
