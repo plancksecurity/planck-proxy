@@ -81,9 +81,12 @@ This file provides the settings for the planck proxy. This is an example for the
 
     "keys_dir":         "keys",
 
-    "export_dir":       "export",
+    "export_dir":       "/home/proxy/export",
+
+    "export_log_level":  "DEBUG",
 
     "SMTP_HOST":        "127.0.0.1",
+
     "SMTP_PORT":        "10587",
 
     "sq_bin":           "/usr/local/bin/sq",
@@ -107,14 +110,15 @@ It's the folder where the `planckproxy` command will output the results. By defa
 Working directory, will be populated with a structure like this:
 
 ```
+work
 ├── <Recipient address>
 │   ├── <Sender address>
 │   │   ├── <Date/Time>
-│   │   │   ├── debug.html
-│   │   │   ├── debug.log
-│   │   │   ├── in.{decrypt|encrypt}.original.eml
-│   │   │   ├── in.{decrypt|encrypt}.parsed.eml
-│   │   │   └── in.{decrypt|encrypt}.processed.eml
+│   │   │   ├── planckproxy.html
+│   │   │   ├── planckproxy.log
+│   │   │   ├── in.decrypt.original.eml
+│   │   │   ├── in.decrypt.parsed.eml
+│   │   │   └── in.decrypt.processed.eml
 │   │   ├── <Another Date/Time>
 │   │   │   ├── [...]
 │   ├── <Another Sender address>
@@ -135,6 +139,24 @@ Working directory, will be populated with a structure like this:
 To import the extra key into the planck Proxy, the keypair must be placed into the `keys_dir` defined in the `settings.py` file.
 By default this directory is set to the `keys` folder inside the `home`directory.
 
+#### export_dir
+
+Processed messages and logs will be exported to the folder `export_dir`. This should be an absolute path. The export folder layaout is:
+
+```
+export
+├── <Sender address>
+│   ├── <Date/Time>
+│   │   ├── planckproxy.log
+│   │   └── in.decrypt.processed.eml
+│   ├── <Another Date/Time>
+│   │   ├── planckproxy.log
+│   │   └── in.decrypt.processed.eml
+│   ├── <Another Date/Time>
+│   │   ├── [...]
+```
+
+Each `planckproxy.log` file contains the log for the session corresponding to the processed message at the Date/Time. Those logs contain all the info at DEBUG level, but this can be modified with the key `export_log_level` in `settings.json`
 
 #### SMTP HOST and PORT
 
@@ -183,7 +205,16 @@ We also need to define a `home` setting. The planckproxy command will be execute
 {
     "home":             "/home/proxy/",
 
+    "work_dir":         "work",
+
+    "keys_dir":         "keys",
+
+    "export_dir":       "/home/proxy/export",
+
+    "export_log_level":  "DEBUG",
+
     "SMTP_HOST":        "127.0.0.1",
+
     "SMTP_PORT":        "10587",
 
     "sq_bin":           "/usr/local/bin/sq",
@@ -194,6 +225,7 @@ We also need to define a `home` setting. The planckproxy command will be execute
 
     "scan_pipes": [
         {"name": "SpamAssassin", "cmd": "spamc --check -"},
+        {"name": "ClamAV", "cmd": "clamdscan --verbose -z -"}
     ]
 }
 ```
@@ -335,43 +367,6 @@ To run the tests simply run the `pytest` command.
 ## Helper scripts
 
 There are some utility scrips in the `scripts` folder that can be used externally for debugging
-
-### Decrypt
-
-Decrypts a message using planck
-
-```
-usage: decrypt.py [-h] [--key KEY] [--m M] msg
-
-positional arguments:
-  msg                  Path to the email to decrypt
-
-optional arguments:
-  -h, --help           show this help message and exit
-  --key KEY            key to decrypt
-  --m M, --home_dir M  Location of the home folder
-```
-
-### Encrypt
-
-Encrypts a message using planck
-
-```
-usage: encrypt.py [-h] [--e E] [--m M] [--debug] msg our_key dest_key
-
-Encrypts an email message using planck
-
-positional arguments:
-  msg                   Path to the email to encrypt
-  our_key               path to the private key of the message sender
-  dest_key              path to the pub key of the message recipient
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --e E, --extra_key E  path to the public extra key
-  --m M, --home_dir M   Location of the temporary home folder
-  --debug               Keep the home folder and output debug info
-```
 
 ### Delete keys from keyring
 
