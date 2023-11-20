@@ -363,27 +363,6 @@ To run the test suite [pytest](https://docs.pytest.org/) must be installed. This
 
 To run the tests simply run the `pytest` command.
 
-
-## Helper scripts
-
-There are some utility scrips in the `scripts` folder that can be used externally for debugging
-
-### Delete keys from keyring
-
-Delete a user key from another user's Database
-
-```
-usage: deletekeyfromkeyring.py [-h] [--WORK_DIR WORK_DIR] keyring address
-
-positional arguments:
-  keyring              Email of user whose DB to delete from
-  address              Email of user whose key to delete
-
-optional arguments:
-  -h, --help           show this help message and exit
-  --WORK_DIR WORK_DIR  Location of the work folder
-```
-
 ### Messages cleanup
 
 Deletes all files in subfolders of a specified directory that were created more than a specified number of days ago. If a subfolder in the directory is empty after deleting .eml and .log files, it is also deleted.
