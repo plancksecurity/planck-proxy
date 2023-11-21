@@ -1,6 +1,3 @@
-ARG GH_USER
-ARG GH_TOKEN
-
 FROM alpine:3.18.3 as alpine-gcc
 RUN apk update && apk add gcc git make autoconf automake libtool build-base
 
@@ -8,6 +5,9 @@ RUN apk update && apk add gcc git make autoconf automake libtool build-base
 FROM rust:alpine3.18 as sequoiaBuilder
 # ENV SEQUOIA_BRANCH=v1.1.0
 ENV SEQUOIA_BRANCH=giulio/time_t
+ARG GH_USER
+ARG GH_TOKEN
+
 RUN apk update && apk add git pkgconf openssl-dev make bzip2-dev sqlite-dev musl-dev botan-libs
 WORKDIR /root/planckCoreSequoiaBackend
 RUN git clone --depth=1 --branch=$SEQUOIA_BRANCH https://${GH_USER}:${GH_TOKEN}@github.com/plancksecurity/foundation-planckCoreSequoiaBackend.git .
