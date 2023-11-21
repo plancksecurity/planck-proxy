@@ -4,6 +4,7 @@ import logging
 import sys
 
 from datetime import datetime, timezone
+import time
 
 from .printers import dbg, c
 from .emails import dbgmail
@@ -152,12 +153,30 @@ def init_logfile(level_name, console_logger, file_logger):
     console_handler.setLevel(logging.DEBUG)
 
     # Create formatter
-    simple_formatter = logging.Formatter('%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s',
-                                         datefmt='%d.%m.%Y %H:%M:%S')
+    class UTCFormatter(logging.Formatter):
+        """
+        A custom logging formatter that outputs log records with timestamps in UTC.
+
+        This formatter inherits from logging.Formatter and overrides the formatTime
+        method to use UTC time for the timestamps.
+        """
+        converter = time.gmtime
+
+        def formatTime(self, record, datefmt=None):
+            dt = self.converter(record.created)
+            if datefmt:
+                s = time.strftime(datefmt, dt)
+            else:
+                t = time.strftime(self.default_time_format, dt)
+                s = self.default_msec_format % (t, record.msecs)
+            return s
+
+    formatter = UTCFormatter('%(asctime)s.%(msecs)03dZ - %(levelname)s - %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
+
 
     # Set formatter for handlers
-    file_handler.setFormatter(simple_formatter)
-    console_handler.setFormatter(simple_formatter)
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
 
     # Add handlers to loggers
     console_logger.addHandler(console_handler)
