@@ -163,6 +163,9 @@ EXPOSE 588/tcp
 WORKDIR /home/proxy
 RUN chown proxy:proxy . -R
 
+ENV PEP_LOG_ADAPTER=1
+ENV PEP_MULTITHREAD=1
+
 ## TEST ENTRY POINT
 # # Copy the settings file
 # COPY ./docker/docker-settings.json /home/proxy/settings.json
