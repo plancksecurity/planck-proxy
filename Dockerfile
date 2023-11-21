@@ -7,7 +7,7 @@ FROM rust:alpine3.18 as sequoiaBuilder
 ENV SEQUOIA_BRANCH=giulio/time_t
 RUN apk update && apk add git pkgconf openssl-dev make bzip2-dev sqlite-dev musl-dev botan-libs
 WORKDIR /root/planckCoreSequoiaBackend
-RUN git clone --depth=1 --branch=$SEQUOIA_BRANCH https://$GH_USER:$GH_TOKEN@github.com/plancksecurity/foundation-planckCoreSequoiaBackend.git .
+RUN git clone --depth=1 --branch=$SEQUOIA_BRANCH https://${GH_USER}:${GH_TOKEN}@github.com/plancksecurity/foundation-planckCoreSequoiaBackend.git .
 COPY ./docker/planckCoreSequoiaBackend.conf local.conf
 COPY ./docker/planckCoreSequoiaBackendMakefile Makefile
 RUN make install -j $(nproc --ignore=2)
