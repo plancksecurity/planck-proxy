@@ -32,4 +32,4 @@ inet_protocols = all
 
 transport_maps = regexp:/etc/postfix/transport
 planckproxy_destination_recipient_limit = 1
-planckproxy_destination_concurrency_limit = 4
+planckproxy_destination_concurrency_limit = 1

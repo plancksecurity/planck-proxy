@@ -358,15 +358,9 @@ def create_planck_message(planck, message):
         from_username_part = c(from_username, 2) if from_username and len(from_username) > 0 else ""
         from_address_part = c(" <" + from_address + ">", 3)
 
-        for recipient_to in inmail_parsed.to:
-            if recipient_to.address == message.msgto:
-                to_username = recipient_to.username
-                to_address = recipient_to.address
+        to_address_part = c(" <" + message.msgto + ">", 3)
 
-        to_username_part = c(to_username, 2) if to_username and len(to_username) > 0 else ""
-        to_address_part = c(" <" + to_address + ">", 3)
-
-        dbg(f"Processing message from {from_username_part}{from_address_part} to {to_username_part}{to_address_part}", log_level="INFO")
+        dbg(f"Processing message from {from_username_part}{from_address_part} to {to_address_part}", log_level="INFO")
 
     except Exception:
         e = sys.exc_info()
@@ -563,17 +557,11 @@ def deliver_mail(message):
     from_username_part = c(from_username, 2) if from_username and len(from_username) > 0 else ""
     from_address_part = c(" <" + from_address + ">", 3)
 
-    for recipient_to in message.inmail_parsed.to:
-        if recipient_to.address == message.msgto:
-            to_username = recipient_to.username
-            to_address = recipient_to.address
-
-    to_username_part = c(to_username, 2) if to_username and len(to_username) > 0 else ""
-    to_address_part = c(" <" + to_address + ">", 3)
+    to_address_part = c(" <" + message.msgto + ">", 3)
 
     dbg("Sending mail")
     dbg(f"From: {from_username_part}{from_address_part}")
-    dbg(f"  To: {to_username_part}{to_address_part}")
+    dbg(f"  To: {to_address_part}")
 
 
     sendmail(message.inmail, recipient=message.msgto)
