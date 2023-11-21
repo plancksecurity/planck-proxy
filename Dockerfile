@@ -138,7 +138,7 @@ RUN python -m build
 ### build runner
 FROM python:3.9-alpine as runner
 RUN apk update && apk search postfix btree
-RUN apk update && apk add python3 py3-pip postfix boost-dev boost-python3 botan-libs botan-dev sqlite rsyslog mailx
+RUN apk update && apk add python3 py3-pip postfix boost-dev boost-python3 botan-libs botan-dev sqlite rsyslog mailx vim
 RUN apk add bash inetutils-telnet nano mailx bind-tools # dev/debug tools
 RUN echo 'alias l="ls -la --color=yes"' >> /etc/bash/bashrc
 RUN echo 'alias pico="nano"' >> /etc/bash/bashrc
