@@ -1,1 +1,2 @@
 # pEp <-- not included in pip, watch README for installation instructions
+tzlocal==5.2

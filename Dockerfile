@@ -115,6 +115,7 @@ RUN apk update && apk add python3 py3-pip
 WORKDIR /root/proxy/
 COPY . /root/proxy/
 RUN pip install build
+RUN pip install -r requirements.txt
 RUN python -m build
 
 ### build runner
