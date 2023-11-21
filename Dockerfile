@@ -1,3 +1,6 @@
+ARG GH_USER
+ARG GH_TOKEN
+
 FROM alpine:3.18.3 as alpine-gcc
 RUN apk update && apk add gcc git make autoconf automake libtool build-base
 
