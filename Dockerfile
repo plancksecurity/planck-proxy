@@ -7,7 +7,7 @@ FROM rust:alpine3.18 as sequoiaBuilder
 ENV SEQUOIA_BRANCH=giulio/time_t
 RUN apk update && apk add git pkgconf openssl-dev make bzip2-dev sqlite-dev musl-dev botan-libs
 WORKDIR /root/planckCoreSequoiaBackend
-RUN git clone --depth=1 --branch=$SEQUOIA_BRANCH https://git.planck.security/foundation/planckCoreSequoiaBackend.git .
+RUN git clone --depth=1 --branch=$SEQUOIA_BRANCH https://github.com/plancksecurity/foundation-planckCoreSequoiaBackend.git .
 COPY ./docker/planckCoreSequoiaBackend.conf local.conf
 COPY ./docker/planckCoreSequoiaBackendMakefile Makefile
 RUN make install -j $(nproc --ignore=2)
@@ -17,14 +17,14 @@ FROM python:3.9-alpine as yml2Builder
 ENV YML2_BRANCH=v2.7.6
 RUN apk update && apk add git build-base
 WORKDIR /root/yml2
-RUN git clone --depth=1 --branch=$YML2_BRANCH https://git.planck.security/foundation/yml2.git .
+RUN git clone --depth=1 --branch=$YML2_BRANCH https://github.com/plancksecurity/foundation-yml2.git .
 RUN make dist -j $(nproc --ignore=2)
 
 ### building libetpan
 FROM alpine-gcc as libetpanBuilder
 ENV LIBETPAN_BRANCH=v3.3.1
 WORKDIR /root/libetpan
-RUN git clone --depth=1 --branch=$LIBETPAN_BRANCH https://git.planck.security/foundation/libetpan.git .
+RUN git clone --depth=1 --branch=$LIBETPAN_BRANCH https://github.com/plancksecurity/foundation-libetpan.git .
 RUN ./autogen.sh --prefix=/opt/planck
 RUN make install -j $(nproc --ignore=2)
 
@@ -45,7 +45,7 @@ COPY --from=yml2Builder /root/yml2/dist/yml2-2.7.4.tar.gz /root/
 RUN python3 -m venv /opt/tools/virtualenv
 RUN . /opt/tools/virtualenv/bin/activate && pip install /root/yml2-2.7.4.tar.gz
 WORKDIR /root/libPlanckTransport
-RUN git clone --depth=1 --branch=$LIBPLANCKTRANSPORT_BRANCH https://git.planck.security/foundation/libPlanckTransport.git .
+RUN git clone --depth=1 --branch=$LIBPLANCKTRANSPORT_BRANCH https://github.com/plancksecurity/foundation-libPlanckTransport.git .
 COPY ./docker/libPlanckTransport.conf local.conf
 RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtualenv/bin" && \
     export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make -j $(nproc --ignore=2) && make install
@@ -54,7 +54,7 @@ RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtua
 FROM alpine-gcc as libPlanckCxxBuilder
 ENV LIBPLANCKCXX_BRANCH=david/alpine_compat_v3.3.0-RC8
 WORKDIR /root/libPlanckCxx11
-RUN git clone --depth=1 --branch=$LIBPLANCKCXX_BRANCH https://git.planck.security/foundation/libPlanckCxx11.git .
+RUN git clone --depth=1 --branch=$LIBPLANCKCXX_BRANCH https://github.com/plancksecurity/foundation-libPlanckCxx11.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN make install -j $(nproc --ignore=2)
 
@@ -73,7 +73,7 @@ COPY --from=libPlanckTransportBuilder /opt/planck /opt/planck
 COPY --from=libPlanckCxxBuilder /opt/planck /opt/planck
 
 WORKDIR /root/planckCore/
-RUN git clone --depth=1 --branch=$PLANCKCORE_BRANCH https://git.planck.security/foundation/planckCoreV3.git .
+RUN git clone --depth=1 --branch=$PLANCKCORE_BRANCH https://github.com/plancksecurity/foundation-planckCoreV3.git .
 COPY ./docker/planckCore.conf local.conf
 ENV LD_LIBRARY_PATH=/opt/planck/lib
 ENV DYLD_LIBRARY_PATH=/opt/planck/lib
@@ -86,7 +86,7 @@ ENV LIBPLANCKWRAPPER_BRANCH=v3.3.0-RC9
 RUN apk update && apk add python3 py3-pip e2fsprogs-dev
 WORKDIR /root/libPlanckWrapper/
 COPY --from=planckCoreBuilder /opt/planck /opt/planck
-RUN git clone --depth=1 --branch=$LIBPLANCKWRAPPER_BRANCH https://git.planck.security/foundation/libPlanckWrapper.git .
+RUN git clone --depth=1 --branch=$LIBPLANCKWRAPPER_BRANCH https://github.com/plancksecurity/foundation-libPlanckWrapper.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN make install -j $(nproc --ignore=2)
 
@@ -104,7 +104,7 @@ COPY --from=libWrapperBuilder /opt/planck /opt/planck
 ENV LD_LIBRARY_PATH=/opt/planck/lib
 ENV DYLD_LIBRARY_PATH=/opt/planck/lib
 WORKDIR /root/planckPythonWrapper/
-RUN git clone --depth=1 --branch=$PYTHONWRAPPER_BRANCH https://git.planck.security/foundation/planckPythonWrapper.git .
+RUN git clone --depth=1 --branch=$PYTHONWRAPPER_BRANCH https://github.com/plancksecurity/foundation-planckPythonWrapper.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN ln -s /usr/lib/libboost_python311.so /usr/lib/libboost_python3.so
 RUN make dist-whl -j $(nproc --ignore=2)
