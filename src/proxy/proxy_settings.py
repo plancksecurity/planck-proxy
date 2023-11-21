@@ -2,8 +2,7 @@ import os
 import json
 
 from pathlib import Path
-from datetime import datetime
-from tzlocal import get_localzone
+from datetime import datetime, timezone
 
 settings = {
     "work_dir": "work",
@@ -40,7 +39,7 @@ def init_settings(settings_file=None):
             os.makedirs(settings["home"])
 
     settings["locktimeout"] = 60
-    settings["lastactiontime"] = datetime.now(get_localzone())
+    settings["lastactiontime"] = datetime.now(timezone.utc)
     settings["adminlog"] = ""
     settings["textlog"] = ""
     settings["htmllog"] = ""

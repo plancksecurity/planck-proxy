@@ -3,7 +3,7 @@ import codecs
 import logging
 import sys
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .printers import dbg, c
 from .emails import dbgmail
@@ -41,7 +41,7 @@ def init_logging(message):
         logpath = os.path.join(
             settings["work_dir"],
             sanitize_email_address(message.msgfrom),
-            datetime.now().strftime("%Y.%m.%d-%H.%M.%S.%f"),
+            datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         )
         settings["logpath"] = logpath
         if not os.path.exists(logpath):

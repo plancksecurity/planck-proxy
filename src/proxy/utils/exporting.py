@@ -1,13 +1,12 @@
 import os
 import codecs
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .printers import dbg, c
 from .emails import dbgmail
 
 from proxy.proxy_settings import settings
-from proxy.utils.sanitizer import sanitize_email_address
 from proxy.utils.logging import getlog
 
 
@@ -26,7 +25,7 @@ def init_exporting(message):
         global settings
         exportpath = os.path.join(
             settings["export_dir"],
-            datetime.now().strftime("%Y.%m.%d-%H.%M.%S.%f"),
+            datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         )
         settings["exportpath"] = exportpath
         dbg("Export path is: " + exportpath)
@@ -57,7 +56,6 @@ def export_session():
     """
     try:
 
-        logfilename = os.path.join(settings["logpath"], "planckproxy.log")
         exportfilename = os.path.join(settings["exportpath"], "planckproxy.log")
         exportfile = codecs.open(exportfilename, "w", "utf-8")
         exportfile.write(getlog("textlog"))
