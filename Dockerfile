@@ -182,6 +182,15 @@ RUN chown proxy:proxy . -R
 ENV PEP_LOG_ADAPTER=1
 ENV PEP_MULTITHREAD=1
 
+## DEBUG
+# Install necessary packages
+RUN apk add --no-cache gdb
+# Create a directory for core dumps
+RUN mkdir /var/coredumps && chmod 1777 /var/coredumps
+# Set up the shell profile to enable core dumps
+RUN echo "echo '/var/coredumps/core.%e.%p' > /proc/sys/kernel/core_pattern" >> /etc/profile
+
+
 ## TEST ENTRY POINT
 # # Copy the settings file
 # COPY ./docker/docker-settings.json /home/proxy/settings.json
