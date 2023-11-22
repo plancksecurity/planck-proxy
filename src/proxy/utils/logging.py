@@ -133,6 +133,8 @@ def init_logfile(level_name, console_logger, file_logger):
 
     numeric_level = get_log_level(level_name)
     console_logger.setLevel(level=numeric_level)
+
+    numeric_level = get_log_level(settings['export_log_level'])
     file_logger.setLevel(level=numeric_level)
 
     # Create handlers
