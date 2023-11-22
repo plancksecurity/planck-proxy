@@ -33,7 +33,7 @@ def sendmail(msg, recipient=None):
     # The next hop might think it's part of a mail loop when it sees it's own hostname "again"
     msg = re.sub("^Delivered-To:.*\n", "", msg, flags=re.M)
 
-    dbg(f"Sending message:\n{msg}")
+    dbg(f"Sending message:\n{msg}", pub=False)
     try:
         if recipient is not None:
             settings["recipients"] = recipient
