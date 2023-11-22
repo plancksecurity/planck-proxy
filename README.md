@@ -83,7 +83,10 @@ This file provides the settings for the planck proxy. This is an example for the
 
     "export_dir":       "export",
 
+    "export_log_level": "DEBUG",
+
     "SMTP_HOST":        "127.0.0.1",
+
     "SMTP_PORT":        "10587",
 
     "sq_bin":           "/usr/local/bin/sq",
@@ -103,18 +106,18 @@ Home directory for the proxy execution. `work_dir`, `keys_dir` and `export_dir` 
 
 #### work_dir
 
-It's the folder where the `planckproxy` command will output the results. By default this directory is set to the `work` folder in the current working directory.
+It's the folder where the `planckproxy` command will use to store the databaes and working files. By default this directory is set to the `work` folder in the current working directory.
 Working directory, will be populated with a structure like this:
 
 ```
 ├── <Recipient address>
 │   ├── <Sender address>
 │   │   ├── <Date/Time>
-│   │   │   ├── debug.html
-│   │   │   ├── debug.log
-│   │   │   ├── in.{decrypt|encrypt}.original.eml
-│   │   │   ├── in.{decrypt|encrypt}.parsed.eml
-│   │   │   └── in.{decrypt|encrypt}.processed.eml
+│   │   │   ├── planckproxy.html
+│   │   │   ├── planckproxy.log
+│   │   │   ├── in.decrypt.original.eml
+│   │   │   ├── in.decrypt.parsed.eml
+│   │   │   └── in.decrypt.processed.eml
 │   │   ├── <Another Date/Time>
 │   │   │   ├── [...]
 │   ├── <Another Sender address>
@@ -135,6 +138,24 @@ Working directory, will be populated with a structure like this:
 To import the extra key into the planck Proxy, the keypair must be placed into the `keys_dir` defined in the `settings.py` file.
 By default this directory is set to the `keys` folder inside the `home`directory.
 
+#### export_dir
+
+It's the folder where the `planckproxy` command will output the results. It will be populated with a structure like this:
+
+```
+├── <Sender address>
+│   ├── <Date/Time>
+│   │   ├── planckproxy.log
+│   │   └── in.decrypt.processed.eml
+│   ├── <Another Date/Time>
+│   │   ├── planckproxy.log
+│   │   └── in.decrypt.processed.eml
+│   [...]
+├── <Another Sender address>
+│   ├── <Date/Time>
+│   │   ├── [...]
+│   [...]
+```
 
 #### SMTP HOST and PORT
 
@@ -183,7 +204,10 @@ We also need to define a `home` setting. The planckproxy command will be execute
 {
     "home":             "/home/proxy/",
 
+    "export_dir":       "/home/proxy/export",
+
     "SMTP_HOST":        "127.0.0.1",
+
     "SMTP_PORT":        "10587",
 
     "sq_bin":           "/usr/local/bin/sq",
