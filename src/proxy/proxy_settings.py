@@ -8,6 +8,7 @@ settings = {
     "work_dir": "work",
     "keys_dir": "keys",
     "export_dir": "export",
+    "export_log_level": "DEBUG",
     "home": "",
     "recipients": False,
 }
