@@ -145,7 +145,7 @@ def dbg(text, printtiming=False, pub=True, log_level="DEBUG"):
     text = str(text) + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
     ts_text = c(thisactiontime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"), 3)  + " - " + log_level + " - " + text
 
-    if pub is True and (get_numeric_log_level(log_level) >= console_logger.getEffectiveLevel()):
+    if pub is True and (get_numeric_log_level(log_level) >= file_logger.getEffectiveLevel()):
         settings["adminlog"] += toplain(ts_text) + "\n"
         settings["textlog"] += toplain(ts_text) + "\n"
         settings["htmllog"] += tohtml(ts_text) + "<br>\n"
