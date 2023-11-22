@@ -162,7 +162,7 @@ RUN cp -pravi /opt/planck/lib/?* /lib # silly workaround for "missing" libraries
 RUN rm -rf /opt/planck/dist
 
 # Add the "proxy" user without a password, create the work dir and config volume
-RUN adduser --disabled-password proxy
+RUN adduser --disabled-password --shell /bin/bash proxy
 RUN mkdir /home/proxy/work
 RUN mkdir /volume
 RUN mkdir /volume.skel
