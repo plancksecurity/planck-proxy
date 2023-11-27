@@ -72,7 +72,8 @@ RUN make install -j $(nproc --ignore=2)
 
 ### build core
 FROM python:3.9-alpine as planckCoreBuilder
-ENV PLANCKCORE_BRANCH=v3.3.2
+# ENV PLANCKCORE_BRANCH=v3.3.2
+ENV PLANCKCORE_BRANCH=CORE-226
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add git build-base util-linux-dev sqlite-dev boost-dev boost-python3 botan-libs botan-dev
@@ -108,7 +109,8 @@ RUN make install -j $(nproc --ignore=2)
 
 ### build pywrapper
 FROM python:3.9-alpine as pyWrapperBuilder
-ENV PYTHONWRAPPER_BRANCH=v3.3.0-RC8
+# ENV PYTHONWRAPPER_BRANCH=v3.3.0-RC8
+ENV PYTHONWRAPPER_BRANCH=v3.3.16
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add git boost-dev make gcc build-base e2fsprogs-dev
@@ -125,6 +127,7 @@ WORKDIR /root/planckPythonWrapper/
 RUN git clone --depth=1 --branch=$PYTHONWRAPPER_BRANCH https://${GH_USER}:${GH_TOKEN}@github.com/plancksecurity/foundation-planckPythonWrapper.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN ln -s /usr/lib/libboost_python311.so /usr/lib/libboost_python3.so
+RUN pip install --upgrade setuptools==61.0.0
 RUN make dist-whl -j $(nproc --ignore=2)
 
 ### build proxy
