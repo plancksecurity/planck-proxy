@@ -3,7 +3,6 @@ RUN apk update && apk add gcc git make autoconf automake libtool build-base
 
 ### building SequoiaBackend # TODO!!
 FROM rust:alpine3.18 as sequoiaBuilder
-# ENV SEQUOIA_BRANCH=v1.1.0
 ENV SEQUOIA_BRANCH=david/time_t
 ARG GH_USER
 ARG GH_TOKEN
@@ -14,7 +13,7 @@ COPY ./docker/planckCoreSequoiaBackend.conf local.conf
 COPY ./docker/planckCoreSequoiaBackendMakefile Makefile
 RUN make install -j $(nproc --ignore=2)
 
-### building yml2 ## UPDATED
+### building ym
 FROM python:3.9-alpine as yml2Builder
 ENV YML2_BRANCH=v2.7.6
 ARG GH_USER
@@ -24,7 +23,7 @@ WORKDIR /root/yml2
 RUN git clone --depth=1 --branch=$YML2_BRANCH https://${GH_USER}:${GH_TOKEN}@github.com/plancksecurity/foundation-yml2.git .
 RUN make dist -j $(nproc --ignore=2)
 
-### building libetpan ## UPDATED
+### building libetp
 FROM alpine-gcc as libetpanBuilder
 ENV LIBETPAN_BRANCH=v3.3.16
 ARG GH_USER
@@ -34,7 +33,7 @@ RUN git clone --depth=1 --branch=$LIBETPAN_BRANCH https://${GH_USER}:${GH_TOKEN}
 RUN ./autogen.sh --prefix=/opt/planck
 RUN make install -j $(nproc --ignore=2)
 
-### building ASN1C ## UPDATED
+### building ASN
 FROM alpine-gcc as asn1cBuilder
 ENV ASN1C_BRANCH=v0.9.28
 ARG GH_USER
@@ -45,7 +44,7 @@ RUN autoreconf -iv
 RUN ./configure --prefix=/opt/planck
 RUN make install -j $(nproc --ignore=2)
 
-### building libPlanckTransport ## UPDATED
+### building libPlanckTranspo
 FROM alpine-gcc as libPlanckTransportBuilder
 ENV LIBPLANCKTRANSPORT_BRANCH=v3.3.16
 ARG GH_USER
@@ -60,7 +59,7 @@ COPY ./docker/libPlanckTransport.conf local.conf
 RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtualenv/bin" && \
     export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make -j $(nproc --ignore=2) && make install
 
-### building libPlanckCxx #TODO / ## UPDATED
+### building libPlanckCxx #TODO
 FROM alpine-gcc as libPlanckCxxBuilder
 ENV LIBPLANCKCXX_BRANCH=david/alpine-compat-3.3.16
 ARG GH_USER
@@ -72,7 +71,6 @@ RUN make install -j $(nproc --ignore=2)
 
 ### build core
 FROM python:3.9-alpine as planckCoreBuilder
-# ENV PLANCKCORE_BRANCH=v3.3.2
 ENV PLANCKCORE_BRANCH=CORE-226
 ARG GH_USER
 ARG GH_TOKEN
@@ -95,7 +93,7 @@ ENV DYLD_LIBRARY_PATH=/opt/planck/lib
 RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtualenv/bin" && \
     export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make -j $(nproc --ignore=2) && make install && make dbinstall
 
-### build libplanck adapter ## UPDATED
+### build libplanck adapt
 FROM alpine-gcc as libWrapperBuilder
 ENV LIBPLANCKWRAPPER_BRANCH=v3.3.16
 ARG GH_USER
@@ -107,7 +105,7 @@ RUN git clone --depth=1 --branch=$LIBPLANCKWRAPPER_BRANCH https://${GH_USER}:${G
 RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN make install -j $(nproc --ignore=2)
 
-### build pywrapper ## UPDATED
+### build pywrapp
 FROM python:3.9-alpine as pyWrapperBuilder
 ENV PYTHONWRAPPER_BRANCH=v3.3.16
 ARG GH_USER
