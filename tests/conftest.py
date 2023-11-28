@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from proxy.proxy_settings import settings, init_settings
-from proxy.utils.hooks import cleanup
+
 
 
 @dataclass
@@ -125,4 +125,5 @@ def run_before_and_after_tests(tmp_path, set_settings):
 
     yield  # this is where the testing happens
 
+    from proxy.utils.hooks import cleanup
     cleanup()

@@ -2,7 +2,6 @@ import subprocess
 import os
 import pytest
 from pathlib import Path
-from proxy.utils.parsers import get_contact_info
 from compare_mails import get_email_body
 from override_settings import override_settings
 
@@ -17,6 +16,7 @@ def test_decrypt_message_no_key(
     test_settings_dict,
 ):
     email = collect_email.decode()
+    from proxy.utils.parsers import get_contact_info
     test_email_from, test_email_to = get_contact_info(email)
 
     settings_file = override_settings(test_dirs, settings_file, test_settings_dict)
@@ -48,6 +48,7 @@ def test_decrypt_message(
     test_settings_dict,
 ):
     email = collect_email.decode()
+    from proxy.utils.parsers import get_contact_info
     test_email_from, test_email_to = get_contact_info(email)
     settings_file = override_settings(test_dirs, settings_file, test_settings_dict)
 

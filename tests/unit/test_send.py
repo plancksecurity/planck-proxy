@@ -1,4 +1,3 @@
-from proxy.utils.emails import sendmail
 import pytest
 import sys
 
@@ -12,4 +11,5 @@ import sys
 def test_send(collect_email, mailbot_address):
     email = collect_email.decode()
     test_msg = email.replace("[[TO_ADDR]]", mailbot_address)
+    from proxy.utils.emails import sendmail
     sendmail(test_msg)

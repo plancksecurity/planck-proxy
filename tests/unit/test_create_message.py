@@ -1,6 +1,4 @@
 import pytest
-from proxy.utils.message import Message
-from proxy.proxy_main import create_planck_message
 from proxy.proxy_settings import settings
 from unittest.mock import patch
 
@@ -12,6 +10,8 @@ class MockIdentity:
 
 
 def test_create_planck_message(capfd):
+    from proxy.proxy_main import create_planck_message
+    from proxy.utils.message import Message
     class MockPlanck:
         class Message:
             def __init__(self, inmail):
@@ -37,6 +37,8 @@ def test_create_planck_message(capfd):
 
 
 def test_create_planck_message_no_username(capfd):
+    from proxy.proxy_main import create_planck_message
+    from proxy.utils.message import Message
     class MockPlanck:
         class Message:
             def __init__(self, inmail):
@@ -62,6 +64,8 @@ def test_create_planck_message_no_username(capfd):
 
 
 def test_create_planck_message_no_email():
+    from proxy.proxy_main import create_planck_message
+    from proxy.utils.message import Message
     class MockPlanck:
         class Message:
             def __init__(self, inmail):

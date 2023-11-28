@@ -1,7 +1,6 @@
 import subprocess
 import os
 import pytest
-from proxy.utils.parsers import get_contact_info
 from override_settings import override_settings
 
 
@@ -15,6 +14,7 @@ def test_decrypt_message_keep(
     test_settings_dict,
 ):
     email = collect_email.decode()
+    from proxy.utils.parsers import get_contact_info
     test_email_from, test_email_to = get_contact_info(email)
     settings_file = override_settings(test_dirs, settings_file, test_settings_dict)
 
@@ -37,6 +37,7 @@ def test_decrypt_message_deletion(
     test_settings_dict,
 ):
     email = collect_email.decode()
+    from proxy.utils.parsers import get_contact_info
     test_email_from, test_email_to = get_contact_info(email)
 
     test_settings_dict["DEBUG"] = False

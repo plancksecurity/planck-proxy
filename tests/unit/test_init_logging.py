@@ -1,18 +1,17 @@
 import os
 import codecs
-from proxy.utils.logging import init_logging
-from proxy.utils.message import Message
-
 
 def test_init_logging_creates_log_file(set_settings, test_dirs):
     settings = set_settings
     settings["mode"] = "decrypt"
     settings["work_dir"] = str(test_dirs["work"])
 
+    from proxy.utils.message import Message
     message = Message()
     message.msgfrom = "user@example.com"
     message.inmail = "This is a test message."
 
+    from proxy.utils.logging import init_logging
     init_logging(message)
 
     logpath = settings["logpath"]
