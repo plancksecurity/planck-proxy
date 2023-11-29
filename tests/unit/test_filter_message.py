@@ -1,6 +1,9 @@
 import pytest
 import subprocess
 
+from proxy.proxy_main import filter_message
+from proxy.utils.parsers import get_contact_info
+from proxy.utils.message import Message
 
 
 @pytest.mark.parametrize(
@@ -34,38 +37,31 @@ def test_dummy_filter_2(collect_email, expected, test_dirs):
 @pytest.mark.parametrize("collect_email", ["basic.eml"], indirect=True)
 def test_filtering_good(set_settings, test_dirs, collect_email):
     email = collect_email.decode()
-    from proxy.utils.parsers import get_contact_info
     test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     settings = set_settings
     settings["mode"] = "decrypt"
     settings["scan_pipes"] = [{"name": "dummy filter", "cmd": filter_command}]
-    from proxy.utils.message import Message
     message = Message()
     message.inmail_decrypted = collect_email
     message.msgfrom = test_email_from
 
-
-    from proxy.proxy_main import filter_message
     filter_message(message)
 
 
 @pytest.mark.parametrize("collect_email", ["basic_filter_evil.eml"], indirect=True)
 def test_filtering_evil(set_settings, test_dirs, collect_email):
     email = collect_email.decode()
-    from proxy.utils.parsers import get_contact_info
     test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     settings = set_settings
     settings["mode"] = "decrypt"
     settings["scan_pipes"] = [{"name": "dummy filter", "cmd": filter_command}]
-    from proxy.utils.message import Message
     message = Message()
     message.inmail_decrypted = collect_email
     message.msgfrom = test_email_from
 
     with pytest.raises(SystemExit) as exec_info:
-        from proxy.proxy_main import filter_message
         filter_message(message)
     assert exec_info.type == SystemExit
     assert exec_info.value.code == 1
@@ -74,19 +70,16 @@ def test_filtering_evil(set_settings, test_dirs, collect_email):
 @pytest.mark.parametrize("collect_email", ["basic_filter_retry.eml"], indirect=True)
 def test_filtering_retry(set_settings, test_dirs, collect_email):
     email = collect_email.decode()
-    from proxy.utils.parsers import get_contact_info
     test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
     settings = set_settings
     settings["mode"] = "decrypt"
     settings["scan_pipes"] = [{"name": "dummy filter", "cmd": filter_command}]
-    from proxy.utils.message import Message
     message = Message()
     message.inmail_decrypted = collect_email
     message.msgfrom = test_email_from
 
     with pytest.raises(SystemExit) as exec_info:
-        from proxy.proxy_main import filter_message
         filter_message(message)
     assert exec_info.type == SystemExit
     assert exec_info.value.code == 11
@@ -95,7 +88,6 @@ def test_filtering_retry(set_settings, test_dirs, collect_email):
 @pytest.mark.parametrize("collect_email", ["basic.eml"], indirect=True)
 def test_filtering_combined_pass(set_settings, test_dirs, collect_email):
     email = collect_email.decode()
-    from proxy.utils.parsers import get_contact_info
     test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     filter_command_2 = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
@@ -105,18 +97,15 @@ def test_filtering_combined_pass(set_settings, test_dirs, collect_email):
         {"name": "dummy filter", "cmd": filter_command},
         {"name": "dummy filter 2", "cmd": filter_command_2},
     ]
-    from proxy.utils.message import Message
     message = Message()
     message.inmail_decrypted = collect_email
     message.msgfrom = test_email_from
-    from proxy.proxy_main import filter_message
     filter_message(message)
 
 
 @pytest.mark.parametrize("collect_email", ["basic_filter_evil.eml"], indirect=True)
 def test_filtering_combined_fail(set_settings, test_dirs, collect_email):
     email = collect_email.decode()
-    from proxy.utils.parsers import get_contact_info
     test_email_from, test_email_to = get_contact_info(email)
     filter_command = f"python {test_dirs['root'] / 'dummy_filter.py'}"
     filter_command_2 = f"python {test_dirs['root'] / 'dummy_filter_2.py'}"
@@ -126,12 +115,10 @@ def test_filtering_combined_fail(set_settings, test_dirs, collect_email):
         {"name": "dummy filter", "cmd": filter_command},
         {"name": "dummy filter 2", "cmd": filter_command_2},
     ]
-    from proxy.utils.message import Message
     message = Message()
     message.inmail_decrypted = collect_email
     message.msgfrom = test_email_from
     with pytest.raises(SystemExit) as exec_info:
-        from proxy.proxy_main import filter_message
         filter_message(message)
     assert exec_info.type == SystemExit
     assert exec_info.value.code == 1

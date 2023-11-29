@@ -1,6 +1,7 @@
 import os
 import pytest
 
+from proxy.utils.printers import c, dbg, tohtml, toplain
 from proxy.planckProxy import *
 
 
@@ -31,7 +32,6 @@ def test_dbg(set_settings):
     ],
 )
 def test_c(text, color, output):
-    from proxy.utils.printers import c
     assert c(text, color) == output
 
 
@@ -45,7 +45,6 @@ def test_c(text, color, output):
     ],
 )
 def test_toplain(text, output):
-    from proxy.utils.printers import toplain
     assert toplain(text) == output
 
 
@@ -68,5 +67,4 @@ def test_toplain(text, output):
     ],
 )
 def test_tohtml(text, output):
-    from proxy.utils.printers import tohtml
     assert tohtml(text) == output

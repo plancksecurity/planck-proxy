@@ -1,5 +1,7 @@
 import pytest
+
 from email.message import Message
+from proxy.utils.parsers import get_contact_info, get_mail_headers
 
 
 @pytest.mark.parametrize(
@@ -15,7 +17,6 @@ from email.message import Message
 )
 def test_get_contact_pass(collect_email, expected):
     email = collect_email.decode()
-    from proxy.utils.parsers import get_contact_info
     assert get_contact_info(email) == expected
 
 
@@ -28,7 +29,6 @@ def test_get_contact_fail(set_settings, collect_email):
     """
     email = collect_email.decode()
     with pytest.raises(SystemExit) as pytest_wrapped_e:
-        from proxy.utils.parsers import get_contact_info
         get_contact_info(email)
     assert pytest_wrapped_e.type == SystemExit
     assert pytest_wrapped_e.value.code == 3
@@ -52,7 +52,6 @@ def test_get_recipients(set_settings, collect_email, expected):
     email = collect_email.decode()
     settings = set_settings
     settings["recipients"] = "myrecipient@test.com"
-    from proxy.utils.parsers import get_contact_info, get_mail_headers
     assert get_contact_info(email) == expected
     settings["recipients"] = False
 
@@ -79,7 +78,6 @@ def test_get_recipients(set_settings, collect_email, expected):
     ],
 )
 def test_get_mail_headers(inmsg, headername, expected_output):
-    from proxy.utils.parsers import get_mail_headers
     assert (
         get_mail_headers(inmsg, headername) == expected_output
         if expected_output is False
@@ -92,7 +90,6 @@ def test_get_contact_info_sender_only():
     message["From"] = "sender@example.com"
     message["Delivered-To"] = "recipient@example.com"
 
-    from proxy.utils.parsers import get_contact_info
     sender, recipient = get_contact_info(message.as_string())
     assert sender == "sender@example.com"
     assert recipient == "recipient@example.com"
@@ -103,7 +100,6 @@ def test_get_contact_info_with_return_path():
     message["Return-Path"] = "<sender@example.com>"
     message["Delivered-To"] = "recipient@example.com"
 
-    from proxy.utils.parsers import get_contact_info
     sender, recipient = get_contact_info(message.as_string())
     assert sender == "sender@example.com"
     assert recipient == "recipient@example.com"

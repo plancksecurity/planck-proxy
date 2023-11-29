@@ -1,9 +1,9 @@
 import pytest
+from proxy.utils.cryptography import decryptusingsq
 
 
 def test_decryptusingsq_handles_missing_pgp_message():
     # Test that decryptusingsq returns an error message when no PGP message is found in the input
-    from proxy.utils.cryptography import decryptusingsq
     result = decryptusingsq("This is a plain text message", "my_secret_key.pgp")
     assert isinstance(result, str)
     assert "No -----BEGIN PGP MESSAGE----- found" in result
@@ -13,7 +13,6 @@ def test_decryptusingsq_handles_missing_pgp_message():
 def test_sq_decrypt(collect_email, extra_keypair, test_dirs):
     key_path = test_dirs["keys"] / str(extra_keypair.fpr + ".sec.asc")
     assert key_path.exists()
-    from proxy.utils.cryptography import decryptusingsq
     dec_msg = decryptusingsq(collect_email.decode("utf-8"), str(key_path))
     assert len(dec_msg) == 2
     assert isinstance(dec_msg[0], str)

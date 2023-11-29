@@ -2,6 +2,7 @@ import subprocess
 import sqlite3
 import pytest
 from override_settings import override_settings
+from proxy.utils.parsers import get_contact_info
 
 
 @pytest.mark.parametrize("collect_email", ["basic.enc.eml"], indirect=True)
@@ -15,7 +16,6 @@ def test_import_extra_key(
 ):
     test_key_fpr = extra_keypair.fpr
     email = collect_email.decode()
-    from proxy.utils.parsers import get_contact_info
     test_email_from, test_email_to = get_contact_info(email)
 
     settings_file = override_settings(test_dirs, settings_file, test_settings_dict)
