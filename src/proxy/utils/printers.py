@@ -7,27 +7,28 @@ from datetime import datetime, timezone
 from collections import OrderedDict
 
 from proxy.proxy_settings import settings
-from proxy.planckProxy import console_logger, file_logger
+from proxy.utils.sysloggers import console_logger, file_logger, get_log_level
 
-def get_numeric_log_level(log_level_str):
-    """
-    Convert a string representation of a log level to its numeric value.
 
-    Args:
-        log_level_str (str): The string representation of the log level (case-insensitive).
+# def get_log_level(log_level_str):
+#     """
+#     Convert a string representation of a log level to its numeric value.
 
-    Returns:
-        int: The numeric value of the log level.
+#     Args:
+#         log_level_str (str): The string representation of the log level (case-insensitive).
 
-    Raises:
-        ValueError: If the provided log level string is invalid.
-    """
+#     Returns:
+#         int: The numeric value of the log level.
 
-    log_level = getattr(logging, log_level_str.upper(), None)
-    if log_level is not None and isinstance(log_level, int):
-        return log_level
-    else:
-        raise ValueError(f"Invalid log level: {log_level_str}")
+#     Raises:
+#         ValueError: If the provided log level string is invalid.
+#     """
+
+#     log_level = getattr(logging, log_level_str.upper(), None)
+#     if log_level is not None and isinstance(log_level, int):
+#         return log_level
+#     else:
+#         raise ValueError(f"Invalid log level: {log_level_str}")
 
 def print_init_info(args):
     """
@@ -145,13 +146,13 @@ def dbg(text, printtiming=False, pub=True, log_level="DEBUG"):
     text = str(text) + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
     ts_text = c(thisactiontime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"), 3)  + " - " + log_level + " - " + text
 
-    if pub is True and (get_numeric_log_level(log_level) >= get_numeric_log_level(settings['export_log_level'])):
+    if pub is True and (get_log_level(log_level) >= get_log_level(settings['export_log_level'])):
         settings["adminlog"] += toplain(ts_text) + "\n"
         settings["textlog"] += toplain(ts_text) + "\n"
         settings["htmllog"] += tohtml(ts_text) + "<br>\n"
 
-    console_logger.log(get_numeric_log_level(log_level), text)
-    file_logger.log(get_numeric_log_level(log_level), text)
+    console_logger.log(get_log_level(log_level), text)
+    file_logger.log(get_log_level(log_level), text)
 
     return took
 

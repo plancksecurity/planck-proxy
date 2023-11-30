@@ -9,7 +9,7 @@ from .printers import dbg, c
 from .emails import dbgmail
 
 from proxy.proxy_settings import settings
-from proxy.planckProxy import console_logger, file_logger
+from proxy.utils.sysloggers import console_logger
 
 
 # ## Exception / post-execution handling #####################################
