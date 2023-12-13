@@ -5,12 +5,9 @@
 
     "export_dir":       "/home/proxy/export",
 
-    "export_log_level":  "DEBUG",
-
     "keys_dir":         "keys",
 
     "SMTP_HOST":        "127.0.0.1",
-
     "SMTP_PORT":        "25",
 
     "sq_bin":           "/usr/local/bin/sq",

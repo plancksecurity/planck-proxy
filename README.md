@@ -81,9 +81,9 @@ This file provides the settings for the planck proxy. This is an example for the
 
     "keys_dir":         "keys",
 
-    "export_dir":       "/home/proxy/export",
+    "export_dir":       "export",
 
-    "export_log_level":  "DEBUG",
+    "export_log_level": "DEBUG",
 
     "SMTP_HOST":        "127.0.0.1",
 
@@ -110,7 +110,6 @@ It's the folder where the `planckproxy` command will use to store the databaes a
 Working directory, will be populated with a structure like this:
 
 ```
-work
 ├── <Recipient address>
 │   ├── <Sender address>
 │   │   ├── <Date/Time>
@@ -141,10 +140,9 @@ By default this directory is set to the `keys` folder inside the `home`directory
 
 #### export_dir
 
-Processed messages and logs will be exported to the folder `export_dir`. This should be an absolute path. The export folder layaout is:
+It's the folder where the `planckproxy` command will output the results. It will be populated with a structure like this:
 
 ```
-export
 ├── <Sender address>
 │   ├── <Date/Time>
 │   │   ├── planckproxy.log
@@ -152,11 +150,12 @@ export
 │   ├── <Another Date/Time>
 │   │   ├── planckproxy.log
 │   │   └── in.decrypt.processed.eml
-│   ├── <Another Date/Time>
+│   [...]
+├── <Another Sender address>
+│   ├── <Date/Time>
 │   │   ├── [...]
+│   [...]
 ```
-
-Each `planckproxy.log` file contains the log for the session corresponding to the processed message at the Date/Time. Those logs contain all the info at DEBUG level, but this can be modified with the key `export_log_level` in `settings.json`
 
 #### SMTP HOST and PORT
 
@@ -205,13 +204,7 @@ We also need to define a `home` setting. The planckproxy command will be execute
 {
     "home":             "/home/proxy/",
 
-    "work_dir":         "work",
-
-    "keys_dir":         "keys",
-
     "export_dir":       "/home/proxy/export",
-
-    "export_log_level":  "DEBUG",
 
     "SMTP_HOST":        "127.0.0.1",
 
@@ -225,7 +218,6 @@ We also need to define a `home` setting. The planckproxy command will be execute
 
     "scan_pipes": [
         {"name": "SpamAssassin", "cmd": "spamc --check -"},
-        {"name": "ClamAV", "cmd": "clamdscan --verbose -z -"}
     ]
 }
 ```
@@ -362,6 +354,64 @@ apt install spamassassin
 To run the test suite [pytest](https://docs.pytest.org/) must be installed. This can be done either system-wide or using a virtualenv. pip provides an automatic installation using `pip install pytest`
 
 To run the tests simply run the `pytest` command.
+
+
+## Helper scripts
+
+There are some utility scrips in the `scripts` folder that can be used externally for debugging
+
+### Decrypt
+
+Decrypts a message using planck
+
+```
+usage: decrypt.py [-h] [--key KEY] [--m M] msg
+
+positional arguments:
+  msg                  Path to the email to decrypt
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --key KEY            key to decrypt
+  --m M, --home_dir M  Location of the home folder
+```
+
+### Encrypt
+
+Encrypts a message using planck
+
+```
+usage: encrypt.py [-h] [--e E] [--m M] [--debug] msg our_key dest_key
+
+Encrypts an email message using planck
+
+positional arguments:
+  msg                   Path to the email to encrypt
+  our_key               path to the private key of the message sender
+  dest_key              path to the pub key of the message recipient
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --e E, --extra_key E  path to the public extra key
+  --m M, --home_dir M   Location of the temporary home folder
+  --debug               Keep the home folder and output debug info
+```
+
+### Delete keys from keyring
+
+Delete a user key from another user's Database
+
+```
+usage: deletekeyfromkeyring.py [-h] [--WORK_DIR WORK_DIR] keyring address
+
+positional arguments:
+  keyring              Email of user whose DB to delete from
+  address              Email of user whose key to delete
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --WORK_DIR WORK_DIR  Location of the work folder
+```
 
 ### Messages cleanup
 
