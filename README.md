@@ -81,7 +81,7 @@ This file provides the settings for the planck proxy. This is an example for the
 
     "keys_dir":         "keys",
 
-    "export_dir":       "export",
+    "export_dir":       "/home/proxy/export",
 
     "export_log_level": "DEBUG",
 
@@ -102,11 +102,12 @@ This file provides the settings for the planck proxy. This is an example for the
 }
 ```
 #### home
-Home directory for the proxy execution. `work_dir`, `keys_dir` and `export_dir` are exepcted to be there or will be created there otherwise.
+Path to the home directory for the proxy execution. `work_dir`and `keys_dir` are exepcted to be there or will be created there otherwise.
 
 #### work_dir
 
-It's the folder where the `planckproxy` command will use to store the databaes and working files. By default this directory is set to the `work` folder in the current working directory.
+It's the name of the folder where the `planckproxy` command will use to store the databaes and working files. By default this directory is set to the `work` subfolder in the current working directory.
+
 Working directory, will be populated with a structure like this:
 
 ```
@@ -135,12 +136,13 @@ Working directory, will be populated with a structure like this:
 
 #### keys_dir
 
-To import the extra key into the planck Proxy, the keypair must be placed into the `keys_dir` defined in the `settings.py` file.
-By default this directory is set to the `keys` folder inside the `home`directory.
+Name of the subfolder to `home` where the the secret for the proxy must be placed so it can be imported properly.
+
+By default this directory is set to the `keys` folder inside the `home` directory.
 
 #### export_dir
 
-It's the folder where the `planckproxy` command will output the results. It will be populated with a structure like this:
+Path to the folder where the `planckproxy` command will output the results. It will be populated with a structure like this:
 
 ```
 ├── <Sender address>
@@ -163,7 +165,7 @@ You must use this settings to specify the HOST and PORT of the SMTP server the p
 
 #### sq_bin
 
-Path to the `sq`command. This is part of the [sequoia](https://sequoia-pgp.org/) library which is a requirement to run the planck stack.
+Path to the `sq`command. This is part of the [sequoia](https://sequoia-pgp.org/) library. It's used to inspect the keychain and give extra feedback on the DEBUG level logs. If this command it's not present the corresponding part of the logs will be skipped.
 
 #### admin_addr
 
@@ -177,7 +179,7 @@ This is a debug feature. If the sender of a message enabled "Return receipt" on 
 #### scan_pipes
 
 List of the filters the proxy will apply to all messages. Each item in the list must contain a dictionary with the following:
-- name: Verbosa name of the filter. Eg. "Spamassassin"
+- name: Verbose name of the filter. Eg. "Spamassassin"
 - cmd: CLI Command needed to invoke the filter. The message will be passed into the command as a piped stdin argument. Eg. "spamc --check -"
 
 
