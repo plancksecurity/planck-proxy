@@ -13,6 +13,15 @@ smtpd_tls_chain_files = /volume/cert.bundle.crt
 smtpd_tls_security_level = may
 smtpd_tls_loglevel = 2
 
+# Nag the postmaster about local misconfigurations instead of bouncing back to the sender
+soft_bounce = yes
+delay_warning_time = 240h
+maximal_queue_lifetime = 10d
+bounce_queue_lifetime = 10d
+queue_run_delay = 5s
+minimal_backoff_time = 5s
+maximal_backoff_time = 3600s
+
 myorigin = {{hostname}}
 myhostname = {{hostname}}
 mydestination = $myhostname, localhost
