@@ -2,8 +2,6 @@ import os
 import pytest
 
 from proxy.utils.printers import c, dbg, tohtml, toplain
-from proxy.planckProxy import *
-
 
 def get_last_line(file_path):
     with open(file_path, "rb") as f:

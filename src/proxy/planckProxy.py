@@ -8,13 +8,15 @@ import logging
 import os
 
 # Create loggers
-console_logger = logging.getLogger('consoleLogger')
-file_logger = logging.getLogger('fileLogger')
+# console_logger = logging.getLogger('consoleLogger')
+# file_logger = logging.getLogger('fileLogger')
 
+from proxy.utils.sysloggers import console_logger, file_logger
 from proxy.utils.message import Message
 from proxy.utils.hooks import cleanup, except_hook
 from proxy.utils.printers import dbg, print_init_info, print_summary_info, print_keys_and_headers
-from proxy.utils.logging import init_logging, log_session, init_logfile
+from proxy.utils.logging import init_logging, log_session
+from proxy.utils.sysloggers import init_logfile
 from proxy.utils.exporting import init_exporting, export_session
 
 from proxy.proxy_settings import settings, init_settings
