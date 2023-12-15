@@ -131,8 +131,10 @@ def main():
     init_logfile(cli_args.loglevel, console_logger, file_logger)
 
     dbg(f"SETTINGS IMPORTED with 'HOME' as {settings['home']}")
-    run_proxy(cli_args)
-
+    try:
+        run_proxy(cli_args)
+    except:
+        exit(1)
 
 if __name__ == "__main__":
     main()

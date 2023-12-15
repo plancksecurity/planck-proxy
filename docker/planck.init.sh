@@ -30,4 +30,4 @@ postfix start
 env
 
 # Our main loop consists of tail'ing the logs
-tail -F /var/log/mail.log /home/proxy/planckproxy.log
+tail -F /var/log/mail.log /volume/planckproxy.log
