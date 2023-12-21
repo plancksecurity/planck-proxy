@@ -39,7 +39,7 @@ def init_logging(message):
         logpath = os.path.join(
             settings["work_dir"],
             sanitize_email_address(message.msgfrom),
-            datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            datetime.now(timezone.utc).strftime("%Y-%m-%dT%H%M%S.%fZ"),
         )
         settings["logpath"] = logpath
         if not os.path.exists(logpath):

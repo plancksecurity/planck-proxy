@@ -25,7 +25,7 @@ def init_exporting(message):
         global settings
         exportpath = os.path.join(
             settings["export_dir"],
-            datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            datetime.now(timezone.utc).strftime("%Y-%m-%dT%H%M%S.%fZ")
         )
         settings["exportpath"] = exportpath
         dbg("Export path is: " + exportpath)
