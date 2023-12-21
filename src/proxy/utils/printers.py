@@ -143,7 +143,7 @@ def dbg(text, printtiming=False, pub=True, log_level="DEBUG"):
     if len(text) == 0:  # don't output anything, only time the next event
         return took
 
-    text = str(text) + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
+    text = str(text.encode('ascii', 'replace').decode('ascii')) + (" " + c("{:1.6f}".format(took) + "s", 5) if printtiming else "")
     ts_text = c(thisactiontime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"), 3)  + " - " + log_level + " - " + text
 
     if pub is True and (get_log_level(log_level) >= get_log_level(settings['export_log_level'])):
