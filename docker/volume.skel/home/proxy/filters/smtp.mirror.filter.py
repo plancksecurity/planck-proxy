@@ -33,8 +33,7 @@ if len(smtp_host) > 0:
 		print("Message delivered to an SMTP mirror server")
 		exit(0)
 	except Exception as e:
+		# exit(0) # fake proper delivery for when you only have non-archiving, non-relaying mail servers to test against
 		raise Exception("Message could not be delivered to an SMTP mirror server: " + str(e))
-		exit(0) # fake proper delivery for when you only have non-archiving, non-relaying mail servers to test against
-		# exit(1)
 else:
 	print("Environment variable smtp_archive is empty, sending to an SMTP mirror server skipped")
