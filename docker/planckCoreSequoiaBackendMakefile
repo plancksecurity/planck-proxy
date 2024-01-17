@@ -66,7 +66,7 @@ endif
 all: build
 
 build:
-	$(CARGO) build $(CARGO_FLAGS)
+	RUSTFLAGS='-C link-dead-code' $(CARGO) build $(CARGO_FLAGS) --keep-going
 
 install: build
 	mkdir -p $(LIB_DIR) $(PKGCONFIG_DIR)
