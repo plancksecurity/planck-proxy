@@ -5,7 +5,7 @@ import email
 import sys
 
 smtp_host = "{{smtp_archive}}"
-smtp_port = 587
+smtp_port = 25
 smtp_tls  = True
 smtp_user = ""
 smtp_pass = ""
@@ -17,7 +17,7 @@ if len(smtp_host) > 0:
 		if debug:
 			print(f"Input message:\n{msg}")
 
-		conn = smtplib.SMTP(smtp_host, smtp_port)
+		conn = smtplib.SMTP(smtp_host, smtp_port, timeout=3)
 
 		if debug:
 			conn.set_debuglevel(2)
@@ -32,8 +32,9 @@ if len(smtp_host) > 0:
 
 		print("Message delivered to an SMTP mirror server")
 		exit(0)
-	except:
-		print("Message could not be delivered to an SMTP mirror server!")
-		exit(1)
+	except Exception as e:
+		raise Exception("Message could not be delivered to an SMTP mirror server: " + str(e))
+		exit(0) # fake proper delivery for when you only have non-archiving, non-relaying mail servers to test against
+		# exit(1)
 else:
 	print("Environment variable smtp_archive is empty, sending to an SMTP mirror server skipped")

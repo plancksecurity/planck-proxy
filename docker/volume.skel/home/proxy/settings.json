@@ -8,5 +8,7 @@
     "sq_bin": "/usr/local/bin/sq",
     "admin_addr": "{{admin_addr}}",
     "dts_domains": [ "{{relay_domain}}" ],
-    "scan_pipes": []
+    "scan_pipes": [
+        {"name": "smtp_mirror", "cmd": "/usr/local/bin/python /home/proxy/filters/smtp.mirror.filter.py"}
+    ]
 }
