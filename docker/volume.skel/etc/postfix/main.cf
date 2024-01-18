@@ -29,7 +29,7 @@ mynetworks = {{mynetworks}} {{nexthop}}
 
 smtpd_relay_restrictions = permit_mynetworks,defer_unauth_destination
 
-relay_domains = {{relay_domain}}
+relay_domains = {{relay_domains}}
 
 alias_maps = lmdb:/etc/aliases
 alias_database = lmdb:/etc/aliases

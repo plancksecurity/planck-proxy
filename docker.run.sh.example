@@ -1,8 +1,8 @@
 docker run -d --rm -it -p 25:25 -p 587:587 -p 588:588 \
 	-e admin_addr="admin@company.tld" \
 	-e hostname="planckproxy.company.tld" \
-	-e relay_domain="company.tld" \
-	-e nexthop="1.2.3.4 or mx.host.name" \
+	-e relay_domains="company.tld another.tld space.separated" \
+	-e nexthop="1.2.3.4 mx.host.name space.separated" \
 	-e mynetworks="127.0.0.0/8 10.0.0.0/8 192.168.0.0/24 outbound.protection.outlook.com" \
 	-e smtp_archive="1.2.3.4 or host.name" \
 	-e loglevel="DEBUG" \

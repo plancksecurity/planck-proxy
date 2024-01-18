@@ -16,9 +16,6 @@ cp -pravin /volume.skel/etc/postfix/* /volume/etc/postfix/
 /env2config.py || true
 chown proxy:proxy /home/proxy /volume/export /volume/planckproxy.log -R
 
-# TODO?: Symlink /var/spool/postfix into /volume (to retain undeliverable mails across container restarts)
-# TODO?: OpenDKIM + keys
-
 # Generate lookup tables for Postfix
 newaliases
 postmap /etc/postfix/transport || true
@@ -27,7 +24,8 @@ postmap /etc/postfix/transport-proxy || true
 # Launch Postfix
 postfix start
 
-env
+# Launch Cron (for regular SSL checks and alerts)
+crond
 
 # Our main loop consists of tail'ing the logs
 tail -F /var/log/mail.log /volume/planckproxy.log

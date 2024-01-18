@@ -137,7 +137,6 @@ RUN python -m build
 
 ### build runner
 FROM python:3.9-alpine as runner
-RUN apk update && apk search postfix btree
 RUN apk update && apk add python3 py3-pip postfix boost-dev boost-python3 botan-libs botan-dev sqlite rsyslog mailx vim
 RUN apk add bash inetutils-telnet nano mailx bind-tools # dev/debug tools
 RUN echo 'alias l="ls -la --color=yes"' >> /etc/bash/bashrc
@@ -166,7 +165,13 @@ RUN adduser --disabled-password --shell /bin/bash proxy
 RUN mkdir /home/proxy/work
 RUN mkdir /volume
 RUN mkdir /volume.skel
+RUN ln -s /usr/share/zoneinfo/CET /etc/localtime
+
 COPY ./docker/volume.skel /volume.skel
+
+# Keep Postfix queue in /volume.skel (cloned to /volume via planck.init.sh) so stuck messages survive container restarts
+RUN mv -i /var/spool/postfix/ /volume.skel/
+RUN ln -s /volume.skel/postfix/ /var/spool/postfix
 
 # Copy the init script
 COPY ./docker/planck.init.sh /planck.init.sh
