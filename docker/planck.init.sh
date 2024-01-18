@@ -22,6 +22,7 @@ while [ $sslcheck -ne 0 ]; do
 	set +e
 	/check.ssl.py checkonly
 	sslcheck=$?
+	set -e
 	if [ $sslcheck -eq 0 ]; then
 		break
 	else
