@@ -137,7 +137,7 @@ RUN python -m build
 
 ### build runner
 FROM python:3.9-alpine as runner
-RUN apk update && apk add python3 py3-pip postfix boost-dev boost-python3 botan-libs botan-dev sqlite rsyslog mailx vim
+RUN apk update && apk add py3-pip postfix boost-dev boost-python3 botan-libs botan-dev sqlite rsyslog mailx vim certbot
 RUN apk add bash inetutils-telnet nano mailx bind-tools # dev/debug tools
 RUN echo 'alias l="ls -la --color=yes"' >> /etc/bash/bashrc
 RUN echo 'alias pico="nano"' >> /etc/bash/bashrc
@@ -155,8 +155,10 @@ COPY --from=libWrapperBuilder /opt/planck /opt/planck
 COPY --from=pyWrapperBuilder /opt/planck /opt/planck
 COPY --from=pyWrapperBuilder /root/planckPythonWrapper/dist /opt/planck/dist/wrapper
 COPY --from=proxyBuilder /root/proxy/dist/ /opt/planck/dist/proxy
+RUN pip install -U pip
 RUN pip install /opt/planck/dist/wrapper/?*.whl
 RUN pip install /opt/planck/dist/proxy/?*.whl
+RUN pip install tldextract
 RUN cp -pravi /opt/planck/lib/?* /lib # silly workaround for "missing" libraries - using the /opt prefix and venvs inside a Docker is annoyingly pointless
 RUN rm -rf /opt/planck/dist
 
@@ -176,6 +178,7 @@ RUN ln -s /volume.skel/postfix/ /var/spool/postfix
 # Copy the init script
 COPY ./docker/planck.init.sh /planck.init.sh
 COPY ./docker/env2config.py /env2config.py
+COPY ./docker/check.ssl.py /check.ssl.py
 COPY ./docker/rsyslog.conf /etc/rsyslog.conf
 
 EXPOSE 25/tcp

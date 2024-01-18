@@ -5,4 +5,4 @@ if [ "x${tag}" != "xlatest" ]; then
 	docker tag dockerreg.planck.security/planckproxy:latest dockerreg.planck.security/planckproxy:${tag}
 fi
 
-# docker push dockerreg.planck.security/planckproxy
+docker push dockerreg.planck.security/planckproxy:${tag}

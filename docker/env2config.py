@@ -1,4 +1,4 @@
-#!/usr/bin/python -B
+#!/usr/local/bin/python -B
 
 import os
 import re
@@ -48,6 +48,9 @@ def install(d):
 
                     elif k == "relay_domains_list":
                         rep = str(os.environ["relay_domains"].split(" ")).replace("'", "\"")
+
+                    elif k == "smtp_tls_chain_files":
+                        rep = open("/tmp/smtp_tls_chain_files", "r").read()
 
                     elif "_escaped" in k:
                         rep = os.environ[k.replace("_escaped", "")].replace(".", "\.")
