@@ -1,8 +1,6 @@
 #!/usr/local/bin/python -B
 
-from subprocess import Popen, PIPE, STDOUT
 from datetime import datetime
-from pprint import pprint as dbg
 import tldextract
 import sys
 import ssl
@@ -10,22 +8,6 @@ import os
 
 def c(text, color=0):
 	return f"\033[1;3{color}m{text}\033[0;m"
-
-def run(cmd):
-	print("Running: " + cmd)
-	p = Popen(cmd.split(" "), shell=False, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-	lines = []
-	for line in p.stdout:
-		lines += [ line.decode("utf8") ]
-
-	retval = p.wait()
-	if retval == 0:
-		print(c(cmd,3) + ": " + c("OK", 2))
-	else:
-		print("\n".join(lines))
-		print(c(cmd,3) + ": " + c("FAIL", 2) +" : " + c(str(retval), 1))
-
-	return lines
 
 try:
 	checkonly = sys.argv[1] == "checkonly"
@@ -47,25 +29,30 @@ print("\nHostnames handled by this instance: " + c(", ".join(hostnames), 5))
 
 domains = []
 for h in hostnames:
-	domains += [ tldextract.extract(h).registered_domain ]
-domains = set([x for x in domains if x])
-print("  - We need certificates for the following top-level domains: " + c(", ".join(domains), 3) + "\n")
+	domain = tldextract.extract(h).registered_domain
+	domains += [ domain ]
+	if h == hostname:
+		maindomain = domain
+
+domains = sorted(set([x for x in domains if x]))
+print("  - We need certificates for the following top-level domains: " + c(", ".join(domains), 3))
+print("  - Primary domain (matching our own hostname): " + c(maindomain, 2) + "\n")
 
 allfine = True
-smtp_tls_chain_files = []
+tls_server_sni_maps  = []
 
 for d in domains:
 	print("Checking for existing certificate file for domain " + c(d, 5))
-	dc = "/volume/ssl/" + d + ".crt"
+	cf = "/volume/ssl/" + d + ".crt"
 	dryrun = None
 
-	if not os.path.isfile(dc):
-		print("Could not find certificate file " + c(dc, 3))
+	if not os.path.isfile(cf):
+		print("Could not find certificate file " + c(cf, 3))
 		dryrun = checkonly
 	else:
-		print("Found certificate file " + c(dc, 3) + ", checking validity...")
+		print("Found certificate file " + c(cf, 3) + ", checking validity...")
 		try:
-			cc = ssl._ssl._test_decode_cert(dc)
+			cc = ssl._ssl._test_decode_cert(cf)
 			expirydate = datetime.strptime(cc["notAfter"], "%b  %d %H:%M:%S %Y %Z")
 			diff = expirydate - datetime.now()
 
@@ -78,12 +65,12 @@ for d in domains:
 				print(c("ERROR", 1) + ": Certificate doesn't cover it's own domain " + c(d, 5) + " or the wildcard subdomain")
 				dryrun = checkonly
 			else:
-				print("    - includes our hostname " + d + " and the wildcard subdomain: " + c("OK", 2))
+				print("    - includes our hostname " + c(d, 5) + " and the wildcard subdomain: " + c("OK", 2))
 
 			if diff.days > 14:
 				print("  - Expires in " + c(str(diff.days), 3) + " days: " + c("OK", 2))
 			else:
-				print("  - Expires in " + c(str(diff.days), 5) + " days: " + c("consider renewing!", 3))
+				print("  - Expires in " + c(str(diff.days), 5) + " days: " + c("WARNING - consider renewing soon!", 3))
 				dryrun = checkonly
 				text  = f"The SSL certificate for the domain {d} is going to expire in {diff.days} days: consider renewing soon.\n\n"
 				text += f"To do so please run:\n  docker exec -it planckproxy /check.ssl.py\n"
@@ -99,7 +86,8 @@ for d in domains:
 	
 	if dryrun is None:
 		print(c("All checks passed for domain ", 2) + c(d, 5))
-		smtp_tls_chain_files += [ dc ]
+		tls_server_sni_maps += [       d + " " + cf ]
+		tls_server_sni_maps += [ "." + d + " " + cf ]
 	elif dryrun is True:
 		print(c("Please run ", 1) + c("docker exec -it planckproxy /check.ssl.py", 5) + c(" from your Docker host to generate or renew the SSL certificate file for " + c(d, 5), 1))
 		allfine = False
@@ -110,21 +98,19 @@ for d in domains:
 			ret = os.system(f"certbot certonly --manual --agree-tos --no-eff-email --key-type rsa --preferred-challenges=dns -m {admin_addr} -d {d},*.{d}")
 			if ret != 0:
 				keeptrying = input(c("Certbot failed generating a certificate for ", 1) + c(d, 5) + " - Retry? [Y/n] ") in ("", "y", "Y")
-				allfine = False
 			else:
 				print("Successfully generated a certificate for " + c(d, 5) + ", installing it...")
 				key = open("/etc/letsencrypt/live/" + d + "/privkey.pem").read()
-				print("Key: " + key)
 				crt = open("/etc/letsencrypt/live/" + d + "/fullchain.pem").read()
-				print("Crt: " + crt)
-				open(dc, "w").write(key + crt)
+				open(cf, "w").write(key + crt)
 				keeptrying = False
 
 	print()
 
-# This will be loaded by /env2config.py to populate smtp_tls_chain_files in /etc/postfix/main.cf
-# Passing env variables from child to parent process isn't possible hence the somewhat ugly temp file
-open("/tmp/smtp_tls_chain_files", "w").write(" ".join(smtp_tls_chain_files))
+# This will be loaded by /env2config.py to populate smtp_tls_chain_files in /etc/postfix/main.cf and tls_server_sni_maps in /etc/postfix/sni
+# Passing env variables from child to parent process isn't possible hence the somewhat ugly temp files
+open("/tmp/tls_server_sni_maps", "w").write("\n".join(tls_server_sni_maps))
+open("/tmp/smtp_tls_chain_files", "w").write("/volume/ssl/" + maindomain + ".crt")
 
 if not allfine:
 	exit(1)

@@ -13,6 +13,8 @@ smtpd_tls_chain_files = {{smtp_tls_chain_files}}
 smtpd_tls_security_level = may
 smtpd_tls_loglevel = 2
 
+tls_server_sni_maps = lmdb:${config_directory}/sni
+
 # Nag the postmaster about local misconfigurations instead of bouncing back to the sender
 soft_bounce = yes
 delay_warning_time = 240h

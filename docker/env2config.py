@@ -49,6 +49,9 @@ def install(d):
                     elif k == "relay_domains_list":
                         rep = str(os.environ["relay_domains"].split(" ")).replace("'", "\"")
 
+                    elif k == "tls_server_sni_maps":
+                        rep = open("/tmp/tls_server_sni_maps", "r").read()
+
                     elif k == "smtp_tls_chain_files":
                         rep = open("/tmp/smtp_tls_chain_files", "r").read()
 

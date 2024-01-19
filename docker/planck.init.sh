@@ -37,6 +37,7 @@ chown proxy:proxy /home/proxy /volume/export /volume/planckproxy.log -R
 
 # Generate lookup tables for Postfix
 newaliases
+postmap -F /etc/postfix/sni || true
 postmap /etc/postfix/transport || true
 postmap /etc/postfix/transport-proxy || true
 
