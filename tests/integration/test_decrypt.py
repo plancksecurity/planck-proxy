@@ -28,7 +28,7 @@ def test_decrypt_message_no_key(
     #assert p.stderr == b""
     #assert p.returncode == 0
 
-    decrypt_out_path = test_dirs["work"] / test_email_to / test_email_from
+    decrypt_out_path = test_dirs["home"] / "work" / test_email_to / test_email_from
     out_folder = [f.path for f in os.scandir(decrypt_out_path)][0]
     decrypted = out_folder + "/in.decrypt.processed.eml"
     with open(decrypted) as decrypted_email:
@@ -57,7 +57,7 @@ def test_decrypt_message(
     #assert p.stderr == b""
     #assert p.returncode == 0
 
-    decrypt_out_path = test_dirs["work"] / test_email_to / test_email_from
+    decrypt_out_path = test_dirs["home"] / "work" / test_email_to / test_email_from
     out_folder = [f.path for f in os.scandir(decrypt_out_path)][0]
     decrypted = out_folder + "/in.decrypt.processed.eml"
     with open(decrypted) as decrypted_email:
@@ -83,7 +83,7 @@ def test_decrypt_message_no_delivered_to(
     #assert p.stderr == b""
     #assert p.returncode == 0
 
-    sender_folder = test_dirs["work"] / test_email_to / test_email_from
+    sender_folder = test_dirs["home"] / "work" / test_email_to / test_email_from
 
     assert Path(sender_folder).exists
 
@@ -107,6 +107,6 @@ def test_multiple_to(
     #assert p.stderr == b""
     #assert p.returncode == 0
 
-    sender_folder = test_dirs["work"] / test_email_to / test_email_from
+    sender_folder = test_dirs["home"] / "work" / test_email_to / test_email_from
 
     assert Path(sender_folder).exists

@@ -27,7 +27,7 @@ def test_dirs(tmp_path):
     """
     return {
         "tmp": tmp_path,
-        "home": Path(os.environ["PROJECT_ROOT"]),
+        "home": tmp_path,
         "root": Path(os.environ["TEST_ROOT"]),
         "project_root": Path(os.environ["PROJECT_ROOT"]),
         "test_keys": Path(os.environ["TEST_ROOT"]) / "test_keys",
