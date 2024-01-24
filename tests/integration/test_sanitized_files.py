@@ -25,5 +25,5 @@ def test_sanitized_files(
     #assert p.returncode == 0
     
 
-    decrypt_out_path = test_dirs["work"] / sanitize_email_address(test_email_to) / sanitize_email_address(test_email_from)
+    decrypt_out_path = test_dirs["home"] / "work" / sanitize_email_address(test_email_to) / sanitize_email_address(test_email_from)
     assert os.listdir(decrypt_out_path)
