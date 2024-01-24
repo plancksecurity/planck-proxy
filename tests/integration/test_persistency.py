@@ -23,7 +23,7 @@ def test_decrypt_message_keep(
     #assert p.stderr == b""
     #assert p.returncode == 0
 
-    decrypt_out_path = test_dirs["work"] / test_email_to / test_email_from
+    decrypt_out_path = test_dirs["home"] / "work" / test_email_to / test_email_from
     assert os.listdir(decrypt_out_path)
 
 
@@ -47,5 +47,5 @@ def test_decrypt_message_deletion(
     #assert p.stderr == b""
     #assert p.returncode == 0
 
-    decrypt_out_path = test_dirs["work"] / test_email_to / test_email_from
+    decrypt_out_path = test_dirs["home"] / "work" / test_email_to / test_email_from
     assert not os.listdir(decrypt_out_path)

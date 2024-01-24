@@ -11,7 +11,7 @@ def test_decryptusingsq_handles_missing_pgp_message():
 
 @pytest.mark.parametrize("collect_email", ["basic.enc.eml"], indirect=True)
 def test_sq_decrypt(collect_email, extra_keypair, test_dirs):
-    key_path = test_dirs["keys"] / str(extra_keypair.fpr + ".sec.asc")
+    key_path = test_dirs["home"] / "keys" / str(extra_keypair.fpr + ".sec.asc")
     assert key_path.exists()
     dec_msg = decryptusingsq(collect_email.decode("utf-8"), str(key_path))
     assert len(dec_msg) == 2
