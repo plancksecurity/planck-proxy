@@ -27,12 +27,10 @@ def test_dirs(tmp_path):
     """
     return {
         "tmp": tmp_path,
+        "home": Path(os.environ["PROJECT_ROOT"]),
         "root": Path(os.environ["TEST_ROOT"]),
         "project_root": Path(os.environ["PROJECT_ROOT"]),
-        "keys": tmp_path / "keys",
         "test_keys": Path(os.environ["TEST_ROOT"]) / "test_keys",
-        "work": tmp_path / "work",
-        "export": tmp_path / "export",
         "emails": Path(os.environ["TEST_ROOT"]) / "emails",
     }
 
@@ -45,11 +43,11 @@ def extra_keypair(test_dirs):
     pubkey = test_dirs["test_keys"] / str(EXTRA_KEY.fpr + ".pub.asc")
     privkey = test_dirs["test_keys"] / str(EXTRA_KEY.fpr + ".sec.asc")
 
-    if not os.path.exists(test_dirs["keys"]):
-        os.makedirs(test_dirs["keys"])
+    if not os.path.exists(test_dirs["home"] / "keys"):
+        os.makedirs(test_dirs["home"] / "keys")
 
-    shutil.copy(pubkey, test_dirs["keys"])
-    shutil.copy(privkey, test_dirs["keys"])
+    shutil.copy(pubkey, test_dirs["home"] / "keys")
+    shutil.copy(privkey, test_dirs["home"] / "keys")
     return EXTRA_KEY
 
 
@@ -108,9 +106,7 @@ def test_settings_dict(test_dirs):
     Set the basic test_settings that will be used to overwrite the defaults on 'settings_tests.json'
     """
     test_settings = {
-        "work_dir": str(test_dirs["work"]),
-        "export_dir": str(test_dirs["export"]),
-        "keys_dir": str(test_dirs["keys"]),
+        "home": str(test_dirs["home"]),
         "test-nomails": True,
         "DEBUG": True,
     }
