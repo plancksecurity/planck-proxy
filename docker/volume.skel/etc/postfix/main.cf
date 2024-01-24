@@ -5,13 +5,15 @@ append_dot_mydomain = no
 readme_directory = no
 compatibility_level = 2
 
-smtp_tls_chain_files  = /volume/cert.bundle.crt
+smtp_tls_chain_files  = {{smtp_tls_chain_files}}
 smtp_tls_CApath=/etc/ssl/certs
 smtp_tls_session_cache_database = lmdb:${data_directory}/smtp_scache
 
-smtpd_tls_chain_files = /volume/cert.bundle.crt
+smtpd_tls_chain_files = {{smtp_tls_chain_files}}
 smtpd_tls_security_level = may
 smtpd_tls_loglevel = 2
+
+tls_server_sni_maps = lmdb:${config_directory}/sni
 
 # Nag the postmaster about local misconfigurations instead of bouncing back to the sender
 soft_bounce = yes
@@ -29,7 +31,7 @@ mynetworks = {{mynetworks}} {{nexthop}}
 
 smtpd_relay_restrictions = permit_mynetworks,defer_unauth_destination
 
-relay_domains = {{relay_domain}}
+relay_domains = {{relay_domains}}
 
 alias_maps = lmdb:/etc/aliases
 alias_database = lmdb:/etc/aliases

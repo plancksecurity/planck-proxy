@@ -1,0 +1,3 @@
+MAILTO={{admin_addr}}
+
+0	9	*	*	*	/check.ssl.py > /dev/null 2>&1

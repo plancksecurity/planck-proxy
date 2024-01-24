@@ -1,7 +1,7 @@
 FROM alpine:3.18.3 as alpine-gcc
 RUN apk update && apk add gcc git make autoconf automake libtool build-base
 
-### building SequoiaBackend # TODO!!
+### building SequoiaBackend
 FROM rust:alpine3.18 as sequoiaBuilder
 ENV SEQUOIA_BRANCH=david/time_t
 ARG GH_USER
@@ -13,7 +13,7 @@ COPY ./docker/planckCoreSequoiaBackend.conf local.conf
 COPY ./docker/planckCoreSequoiaBackendMakefile Makefile
 RUN make install -j $(nproc --ignore=2)
 
-### building ym
+### building yml2
 FROM python:3.9-alpine as yml2Builder
 ENV YML2_BRANCH=v2.7.6
 ARG GH_USER
@@ -23,7 +23,7 @@ WORKDIR /root/yml2
 RUN git clone --depth=1 --branch=$YML2_BRANCH https://${GH_USER}:${GH_TOKEN}@github.com/plancksecurity/foundation-yml2.git .
 RUN make dist -j $(nproc --ignore=2)
 
-### building libetp
+### building libetpan
 FROM alpine-gcc as libetpanBuilder
 ENV LIBETPAN_BRANCH=v3.3.16
 ARG GH_USER
@@ -33,7 +33,7 @@ RUN git clone --depth=1 --branch=$LIBETPAN_BRANCH https://${GH_USER}:${GH_TOKEN}
 RUN ./autogen.sh --prefix=/opt/planck
 RUN make install -j $(nproc --ignore=2)
 
-### building ASN
+### building ASN.1
 FROM alpine-gcc as asn1cBuilder
 ENV ASN1C_BRANCH=v0.9.28
 ARG GH_USER
@@ -44,7 +44,7 @@ RUN autoreconf -iv
 RUN ./configure --prefix=/opt/planck
 RUN make install -j $(nproc --ignore=2)
 
-### building libPlanckTranspo
+### building libPlanckTransport
 FROM alpine-gcc as libPlanckTransportBuilder
 ENV LIBPLANCKTRANSPORT_BRANCH=v3.3.16
 ARG GH_USER
@@ -59,7 +59,7 @@ COPY ./docker/libPlanckTransport.conf local.conf
 RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtualenv/bin" && \
     export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make -j $(nproc --ignore=2) && make install
 
-### building libPlanckCxx #TODO
+### building libPlanckCxx
 FROM alpine-gcc as libPlanckCxxBuilder
 ENV LIBPLANCKCXX_BRANCH=david/alpine-compat-3.3.16
 ARG GH_USER
@@ -69,7 +69,7 @@ RUN git clone --depth=1 --branch=$LIBPLANCKCXX_BRANCH https://${GH_USER}:${GH_TO
 RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN make install -j $(nproc --ignore=2)
 
-### build core
+### build corev3
 FROM python:3.9-alpine as planckCoreBuilder
 ENV PLANCKCORE_BRANCH=CORE-226
 ARG GH_USER
@@ -93,7 +93,7 @@ ENV DYLD_LIBRARY_PATH=/opt/planck/lib
 RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtualenv/bin" && \
     export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make -j $(nproc --ignore=2) && make install && make dbinstall
 
-### build libplanck adapt
+### build libplanck adapter
 FROM alpine-gcc as libWrapperBuilder
 ENV LIBPLANCKWRAPPER_BRANCH=v3.3.16
 ARG GH_USER
@@ -105,7 +105,7 @@ RUN git clone --depth=1 --branch=$LIBPLANCKWRAPPER_BRANCH https://${GH_USER}:${G
 RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN make install -j $(nproc --ignore=2)
 
-### build pywrapp
+### build pywrapper
 FROM python:3.9-alpine as pyWrapperBuilder
 ENV PYTHONWRAPPER_BRANCH=v3.3.16
 ARG GH_USER
@@ -137,8 +137,7 @@ RUN python -m build
 
 ### build runner
 FROM python:3.9-alpine as runner
-RUN apk update && apk search postfix btree
-RUN apk update && apk add python3 py3-pip postfix boost-dev boost-python3 botan-libs botan-dev sqlite rsyslog mailx vim
+RUN apk update && apk add py3-pip postfix boost-dev boost-python3 botan-libs botan-dev sqlite rsyslog mailx vim certbot
 RUN apk add bash inetutils-telnet nano mailx bind-tools # dev/debug tools
 RUN echo 'alias l="ls -la --color=yes"' >> /etc/bash/bashrc
 RUN echo 'alias pico="nano"' >> /etc/bash/bashrc
@@ -156,8 +155,10 @@ COPY --from=libWrapperBuilder /opt/planck /opt/planck
 COPY --from=pyWrapperBuilder /opt/planck /opt/planck
 COPY --from=pyWrapperBuilder /root/planckPythonWrapper/dist /opt/planck/dist/wrapper
 COPY --from=proxyBuilder /root/proxy/dist/ /opt/planck/dist/proxy
+RUN pip install -U pip
 RUN pip install /opt/planck/dist/wrapper/?*.whl
 RUN pip install /opt/planck/dist/proxy/?*.whl
+RUN pip install tldextract
 RUN cp -pravi /opt/planck/lib/?* /lib # silly workaround for "missing" libraries - using the /opt prefix and venvs inside a Docker is annoyingly pointless
 RUN rm -rf /opt/planck/dist
 
@@ -166,11 +167,18 @@ RUN adduser --disabled-password --shell /bin/bash proxy
 RUN mkdir /home/proxy/work
 RUN mkdir /volume
 RUN mkdir /volume.skel
+RUN ln -s /usr/share/zoneinfo/CET /etc/localtime
+
 COPY ./docker/volume.skel /volume.skel
+
+# Keep Postfix queue in /volume.skel (cloned to /volume via planck.init.sh) so stuck messages survive container restarts
+RUN mv -i /var/spool/postfix/ /volume.skel/
+RUN ln -s /volume.skel/postfix/ /var/spool/postfix
 
 # Copy the init script
 COPY ./docker/planck.init.sh /planck.init.sh
 COPY ./docker/env2config.py /env2config.py
+COPY ./docker/check.ssl.py /check.ssl.py
 COPY ./docker/rsyslog.conf /etc/rsyslog.conf
 
 EXPOSE 25/tcp
@@ -181,7 +189,6 @@ RUN chown proxy:proxy . -R
 
 ENV PEP_LOG_ADAPTER=1
 ENV PEP_MULTITHREAD=1
-
 
 ## TEST ENTRY POINT
 # # Copy the settings file
