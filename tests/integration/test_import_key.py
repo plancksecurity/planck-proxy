@@ -21,7 +21,7 @@ def test_import_extra_key(
     settings_file = override_settings(test_dirs, settings_file, test_settings_dict)
 
     # Run the command
-    command = f"planckproxy decrypt {settings_file}"
+    command = f"planckproxy decrypt {settings_file} -l DEBUG"
     p = subprocess.run([command], shell=True, capture_output=True, input=collect_email)
 
     #assert p.stderr == b""

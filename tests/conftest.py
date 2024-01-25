@@ -108,7 +108,7 @@ def test_settings_dict(test_dirs):
     test_settings = {
         "home": str(test_dirs["home"]),
         "test-nomails": True,
-        "DEBUG": True,
+        "DEBUG": True
     }
     return test_settings
 
