@@ -69,7 +69,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -f FILE, --file FILE  Route for the file to analyze.
   -l LOGLEVEL, --loglevel LOGLEVEL
-                        Set log loglegvel, default is INFO.
+                        Set log legvel, default is INFO.
 ```
 ### settings_file
 This file provides the settings for the planck proxy. This is an example for the settings:
