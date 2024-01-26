@@ -34,6 +34,7 @@ def init_logging(message):
         None
     """
 
+
     try:
         global settings
         logpath = os.path.join(

@@ -7,7 +7,7 @@ from proxy.utils.message import Message
 def test_init_logging_creates_log_file(set_settings, test_dirs):
     settings = set_settings
     settings["mode"] = "decrypt"
-    settings["work_dir"] = str(test_dirs["work"])
+    settings["work_dir"] = str(os.path.join(test_dirs["home"], "work"))
 
     message = Message()
     message.msgfrom = "user@example.com"
