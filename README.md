@@ -51,24 +51,25 @@ In order to run the planck proxy you need the planck core, the planck python wra
 
 ## Usage and settings
 
-The core of the planck proxy is the planckProxy.py script. It is intended to be invoked by a postfix setup in order to handle the decryption of messages. See the [Postfix configuration](https://git.planck.security/planck/planck-proxy/#postfix-configuration).
+The core of the planck proxy is the planckProxy.py script. It is intended to be invoked by a postfix setup in order to handle the decryption of messages. See the [Postfix configuration](https://github.com/plancksecurity/planck-proxy?tab=readme-ov-file#postfix).
 
 You can see all the available arguments and their usage running the help command `planckproxy -h`
 
 ```
-usage: planckproxy [-h] [--DEBUG] {decrypt} settings_file
+
+usage: planckproxy [-h] [-f FILE] [-l LOGLEVEL] {decrypt} settings_file
 
 planck Proxy CLI.
 
 positional arguments:
-  {decrypt}      Mode
-  settings_file  Route for the "settings.json" file.
+  {decrypt}             Mode
+  settings_file         Route for the "settings.json" file.
 
 optional arguments:
   -h, --help            show this help message and exit
   -f FILE, --file FILE  Route for the file to analyze.
   -l LOGLEVEL, --loglevel LOGLEVEL
-                        Set log legvel, default is INFO.
+                        Set log loglegvel, default is INFO.
 ```
 ### settings_file
 This file provides the settings for the planck proxy. This is an example for the settings:

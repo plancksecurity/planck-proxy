@@ -105,7 +105,7 @@ def main():
         "-l",
         "--loglevel",
         default="INFO",
-        help="Set log legvel, default is INFO.",
+        help="Set log loglegvel, default is INFO.",
     )
 
     parser.add_argument(
