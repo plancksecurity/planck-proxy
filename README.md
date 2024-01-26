@@ -182,6 +182,21 @@ List of the filters the proxy will apply to all messages. Each item in the list 
 - name: Verbose name of the filter. Eg. "Spamassassin"
 - cmd: CLI Command needed to invoke the filter. The message will be passed into the command as a piped stdin argument. Eg. "spamc --check -"
 
+### file
+
+The planckproxy command will read the stdin for a message to decrypt by default, but since in some cases this may not be possible, the optional `-f` or `--file` argument can be used to provide the path to an email file which will be used as the input for the command.
+
+### log level
+
+By default the logs are set to `INFO`, but the parameter `-l` or `--loglevel` can be used to specify the detail of the information shown on the logs:
+
+| Level | Meaning |
+| --- | --- |
+| DEBUG | Detailed information, typically of interest only when diagnosing problems. |
+| INFO | Confirmation that things are working as expected. |
+| WARNING | An indication that something unexpected happened, or indicative of some problem in the near future. The software is still working as expected. |
+| ERROR | Due to a more serious problem, the software has not been able to perform some function. |
+
 
 ## Sample configuration
 
@@ -361,59 +376,6 @@ To run the tests simply run the `pytest` command.
 ## Helper scripts
 
 There are some utility scrips in the `scripts` folder that can be used externally for debugging
-
-### Decrypt
-
-Decrypts a message using planck
-
-```
-usage: decrypt.py [-h] [--key KEY] [--m M] msg
-
-positional arguments:
-  msg                  Path to the email to decrypt
-
-optional arguments:
-  -h, --help           show this help message and exit
-  --key KEY            key to decrypt
-  --m M, --home_dir M  Location of the home folder
-```
-
-### Encrypt
-
-Encrypts a message using planck
-
-```
-usage: encrypt.py [-h] [--e E] [--m M] [--debug] msg our_key dest_key
-
-Encrypts an email message using planck
-
-positional arguments:
-  msg                   Path to the email to encrypt
-  our_key               path to the private key of the message sender
-  dest_key              path to the pub key of the message recipient
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --e E, --extra_key E  path to the public extra key
-  --m M, --home_dir M   Location of the temporary home folder
-  --debug               Keep the home folder and output debug info
-```
-
-### Delete keys from keyring
-
-Delete a user key from another user's Database
-
-```
-usage: deletekeyfromkeyring.py [-h] [--WORK_DIR WORK_DIR] keyring address
-
-positional arguments:
-  keyring              Email of user whose DB to delete from
-  address              Email of user whose key to delete
-
-optional arguments:
-  -h, --help           show this help message and exit
-  --WORK_DIR WORK_DIR  Location of the work folder
-```
 
 ### Messages cleanup
 
