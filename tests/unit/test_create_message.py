@@ -1,5 +1,4 @@
 import pytest
-#from proxy.utils.message import Message
 from proxy.proxy_main import create_planck_message
 from proxy.proxy_settings import settings
 from unittest.mock import patch
