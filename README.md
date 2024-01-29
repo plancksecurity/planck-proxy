@@ -1,4 +1,4 @@
-# planck Proxy
+## planck Security hub
 
 This project provides a tool able to decrypt with planck incoming messages which are encrypted with an **extra key**, and pass them along unencrypted to a filtering system. Then the original message is sent encrypted to the next hop or discarded, based on the feedback of the filtering system.
 
@@ -6,30 +6,22 @@ This project provides a tool able to decrypt with planck incoming messages which
 
 ### Decryption
 
-When the planck Proxy is provided an encrypted message and set to the mode `decrypt`, it will decrypt the message given the following conditions.
+When the planck security hub is provided an encrypted message and set to the mode `decrypt`, it will decrypt the message given the following conditions.
 
-- The extra key has been properly imported and configured (see "usage and settings")
-- The message has been encrypted with the extra key
+*   The extra key has been properly imported and configured (see "usage and settings")
+*   The message has been encrypted with the extra key
 
-If the message meets those requirements or if the original message is unencrypted it will be processed into the `work_dir/<recipient>/<sender>/`folder
+If the message meets those requirements or if the original message is unencrypted it will be processed into the `work_dir/<recipient>/<sender>/` folder
 
-Once the message is processed it will be ran through the `scan_pipes`commands. If all the commands finish successfully with a 0 exit code, then the message will be sent out using the provided SMTP configuration.
+Once the message is processed it will be ran through the `scan_pipes`commands. If all the commands finish successfully with a 0 exit code, then the message will be sent out using the provided SMTP configuration. And exported into the `export` folder
 
 If any of the `scan_pipes` fail, the message will be re-queued on postfix, a warining email will be sent to the address in `admin_addr`setting and another one will be sent back to the email sender.
 
-## Installation
+## Building
 
-The planck proxy can be installed as a command line command with pip from the tarball or wheel file.
+This software can be either delivered as a standalone Docker image or as a python package.
 
-`pip install path/to/planck-proxy-X.Y.Z-py3-none-any.whl` or `pip install path/to/planck-proxy-X.Y.Z.tar.gz`
-
-### Development mode
-
-The package can be installed for development mode with the editable flag.
-
-`pip install -e .`
-
-### Building
+### Building the Python package
 
 Distribution files can be built with the standard build command, using the settings on `pyproject.toml`:
 
@@ -37,23 +29,76 @@ Distribution files can be built with the standard build command, using the setti
 
 Output will be found inside the `dist` folder.
 
-## Requirements
+### Building the Docker image
 
-### Python developer dependencies
+1.  In order to build the Docker image, Docker must be installed in your machine. It can be downloaded [here](https://docs.docker.com/get-docker/).
+2.  A local copy of the Proxy can be obtained from the official repository at [plancksecurity/planck-proxy](https://github.com/plancksecurity/planck-proxy)
+3.  Environment variables GH_USER and GH_TOKEN need to be set with the secrets provided by a member of the development team so that the Docker image can access repositories on GitHub.
 
-You can automatically insall all the python dependencies with the following command:
+    `export GH_USER=XXXX export GH_TOKEN=XXXX`
+
+4.  The Docker image for the `:latest` version can be built using the following command:
+
+    `docker build --build-arg GH_USER=${GH_USER} --build-arg GH_TOKEN=${GH_TOKEN} --tag=dockerreg.planck.security/planckproxy $* .`
+
+5.  To log into the Planck Docker registry, use the following command:
+
+    `docker login dockerreg.planck.security`
+
+6.  The code can be pushed to the Docker registry using the following command:
+
+    `docker push dockerreg.planck.security/planckproxy`
+
+7.  To build the Docker image for a specific release version (X.Y.Z in this example), the following command must be used:
+
+    `docker build --build-arg GH_USER=${GH_USER} --build-arg GH_TOKEN=${GH_TOKEN} --tag=dockerreg.planck.security/planckproxy:X.Y.Z $* .`
+
+8.  To push the code for the release version to the Docker registry, use the following command:
+
+    `docker push dockerreg.planck.security/planckproxy:X.Y.Z`
+
+9.  The uploaded Docker images can be viewed at [https://dockerreg.planck.security/browser/repo/planckproxy](https://dockerreg.planck.security/browser/repo/planckproxy)
+
+## Installation
+
+This software can be either installed as a standalone Docker image or as a python package. The python package does rely on having Postfix installed in the target system and a proper configuration (see [Postfix configuration](https://github.com/plancksecurity/planck-proxy?tab=readme-ov-file#postfix) below). The Docker image comes bundled with a Postfix instance and it's already pre-configured.
+
+### Python package installation
+
+In order to run the planck security hub as a package you need the planck core, the [planckPythonWrapper](https://github.com/plancksecurity/foundation-planckPythonWrapper) adapter and their dependencies installed. It can be done following [this guide](https://dev.pep.foundation/Adapter/Adapter%20Build%20Instructions_Version_3.x_DRAFT) or by cloning [this project](https://github.com/plancksecurity/foundation-planckCoreStack) and following the provided instructions.
+
+The planck security hub can be installed as a command line command with pip from the tarball or wheel file.
+
+`pip install path/to/planck-proxy-X.Y.Z-py3-none-any.whl` or `pip install path/to/planck-proxy-X.Y.Z.tar.gz`
+
+#### Development mode
+
+There are some extra python dependencies which may be needed for testing and other development features that can be installed with the following command:
 
 `pip install -r requirements_dev.txt`
 
-### planck python wrapper
+The package can be installed for development mode with the editable flag. This enables modifying the python code without having to re-build the command.
 
-In order to run the planck proxy you need the planck core, the planck python wrapper adapter and their dependencies installed. It can be done following [this guide](https://dev.pep.foundation/Adapter/Adapter%20Build%20Instructions_Version_3.x_DRAFT)
+`pip install -e path/to/this/local/repo`
+
+### Docker installation
+
+If the Planck Security Hub Docker image wasn't built locally, it an be pulled dockerhub repository. Someone on the dev team will need to provide the login credentials.
+
+```
+docker login dockerreg.planck.security
+docker pull dockerreg.planck.security/planckproxy:latest
+```
+
+After the Docker image is on the local machine, the container can be executed. There is a `docker.run.sh.example` script available for configuration. This script can be edited to align with the required network settings.
+
+Please refer to the [Service manual installation page](https://help.planck.security/articles/#!planck-security-hub-service-manual-3-0-1/installation) to see how to integrate the docker into your email server.
 
 ## Usage and settings
 
-The core of the planck proxy is the planckProxy.py script. It is intended to be invoked by a postfix setup in order to handle the decryption of messages. See the [Postfix configuration](https://github.com/plancksecurity/planck-proxy?tab=readme-ov-file#postfix).
+The core of the planck security hub is the `planckProxy.py` script. It is intended to be invoked by a postfix setup in order to handle the decryption of messages. See the [Postfix configuration](https://github.com/plancksecurity/planck-proxy?tab=readme-ov-file#postfix).
 
-You can see all the available arguments and their usage running the help command `planckproxy -h`
+All the available arguments and their usage can be printed running the help command `planckproxy -h`
 
 ```
 
@@ -63,15 +108,17 @@ planck Proxy CLI.
 
 positional arguments:
   {decrypt}             Mode
-  settings_file         Route for the "settings.json" file.
+  settings_file         Route for the "settings.json" file
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -f FILE, --file FILE  Route for the file to analyze.
+  -h, --help            Show this help message and exit
+  -f FILE, --file FILE  Route for the file to analyze
   -l LOGLEVEL, --loglevel LOGLEVEL
-                        Set log legvel, default is INFO.
+                        Set log legvel, default is INFO
 ```
+
 ### settings_file
+
 This file provides the settings for the planck proxy. This is an example for the settings:
 
 ```
@@ -102,14 +149,16 @@ This file provides the settings for the planck proxy. This is an example for the
     ]
 }
 ```
+
 #### home
+
 Path to the home directory for the proxy execution. `work_dir`and `keys_dir` are exepcted to be there or will be created there otherwise.
 
 #### work_dir
 
-It's the name of the folder where the `planckproxy` command will use to store the databaes and working files. By default this directory is set to the `work` subfolder in the current working directory.
+It is the name of the folder where the `planckproxy` command will use to store the databaes and working files. By default this directory is set to the `work` subfolder in the current `home` directory.
 
-Working directory, will be populated with a structure like this:
+It will be populated with a structure like this:
 
 ```
 ├── <Recipient address>
@@ -137,7 +186,7 @@ Working directory, will be populated with a structure like this:
 
 #### keys_dir
 
-Name of the subfolder to `home` where the the secret for the proxy must be placed so it can be imported properly.
+Name of the subfolder to `home` where the the secret key for the security hub must be placed so it can be imported properly.
 
 By default this directory is set to the `keys` folder inside the `home` directory.
 
@@ -162,11 +211,11 @@ Path to the folder where the `planckproxy` command will output the results. It w
 
 #### SMTP HOST and PORT
 
-You must use this settings to specify the HOST and PORT of the SMTP server the planck Proxy will use to send the messages.
+This following settings must be used to specify the HOST and PORT of the SMTP server the planck security hub will use to send the messages.
 
 #### sq_bin
 
-Path to the `sq`command. This is part of the [sequoia](https://sequoia-pgp.org/) library. It's used to inspect the keychain and give extra feedback on the DEBUG level logs. If this command it's not present the corresponding part of the logs will be skipped.
+Path to the `sq`command. This is part of the [sequoia](https://sequoia-pgp.org/) library. It is used to inspect the keychain and give extra feedback on the `DEBUG` level logs. If this command is not present the corresponding part of the logs will be skipped.
 
 #### admin_addr
 
@@ -174,18 +223,18 @@ Address for the sysadmin. This address will recieve email notifications if any e
 
 #### dts_domains
 
-This is a debug feature. If the sender of a message enabled "Return receipt" on its email client and the sender address is part of the dts_domains list, an email with the proxy log output will be sent back to the sender.
-
+This is a debug feature. If the sender of a message enables "Return receipt" on its email client and the sender address is part of the `dts_domains` list, an email with the proxy log output will be sent back to the sender.
 
 #### scan_pipes
 
-List of the filters the proxy will apply to all messages. Each item in the list must contain a dictionary with the following:
-- name: Verbose name of the filter. Eg. "Spamassassin"
-- cmd: CLI Command needed to invoke the filter. The message will be passed into the command as a piped stdin argument. Eg. "spamc --check -"
+List of the filters the security hub will apply to all messages. Each item in the list must contain a dictionary with the following:
+
+*   name: Verbose name of the filter. Eg. "Spamassassin"
+*   cmd: CLI Command needed to invoke the filter. The message will be passed into the command as a piped stdin argument. Eg. "spamc --check -"
 
 ### file
 
-The planckproxy command will read the stdin for a message to decrypt by default, but since in some cases this may not be possible, the optional `-f` or `--file` argument can be used to provide the path to an email file which will be used as the input for the command.
+The `planckproxy` command will read the `stdin` for a message to decrypt by default, but since in some cases this may not be possible, the optional `-f` or `--file` argument can be used to provide the path to an email file which will be used as the input for the command.
 
 ### log level
 
@@ -198,12 +247,11 @@ By default the logs are set to `INFO`, but the parameter `-l` or `--loglevel` ca
 | WARNING | An indication that something unexpected happened, or indicative of some problem in the near future. The software is still working as expected. |
 | ERROR | Due to a more serious problem, the software has not been able to perform some function. |
 
-
 ## Sample configuration
 
-
 ### User accounts
-We need a proxy user to run the service and own the work dir.
+
+A proxy user is needed to run the service and own the `work` directory.
 
 ```
 sudo adduser proxy
@@ -214,9 +262,8 @@ chown proxy:proxy . -R
 ```
 
 ### Settings
-The proxy must be configured to send messages on a custom port to avoid entering into a loop state, otherwise emails forwarded by the proxy would be put again into the proxy due to the transport configuration. So on the `settings.json` file we use `10587`, which has a custom definition on Postfix's `master.cf`
 
-We also need to define a `home` setting. The planckproxy command will be executed by postfix, but we want to use the proxy home to create the work folders and import the keys.
+The security hub must be configured to send messages on a custom port to avoid entering into a loop state, otherwise emails forwarded by the security hub would be put again into the inbound queue due to the transport configuration. So on the `settings.json` file we the SMTP port is defined as `10587`, which has a custom definition on Postfix's `master.cf`
 
 ```
 {
@@ -242,11 +289,11 @@ We also need to define a `home` setting. The planckproxy command will be execute
 
 ### Postfix
 
-The planck Proxy uses postfix to handle the message sending and queuing, so some configuration is needed in postfix to correctly bind the email flow to the planck Proxy.
+The planck security hub uses Postfix to handle the message sending and queuing, so some configuration is needed in postfix to correctly bind the email flow.
 
 #### main.cf
 
-Following there's an example of a minimal `/etc/postfix/main.cf` file. This will route all default smtp traffic through the transport map transport(line 31). `192.168.130.0/24 192.168.249.0/24` are the netwoks allowed to send messages to the proxy, in this example the VLAN 130 (DMZ) and 249 (Servers). Those are defined on line 19.
+Following there is an example of a minimal `/etc/postfix/main.cf` file. This will route all default smtp traffic through the transport map transport(line 31). `192.168.130.0/24 192.168.249.0/24` are the netwoks allowed to send messages to the security hub, in this example the VLAN 130 (DMZ) and 249 (Servers). Those are defined on line 19.
 
 ```
 smtpd_banner = $myhostname ESMTP $mail_name (Debian/GNU)
@@ -285,17 +332,19 @@ planckproxy_destination_concurrency_limit = 4
 ```
 
 #### transport
-Create or add the following to the `/etc/postfix/transport`, which routes all the emails to the target mailbox server (`192.168.130.17`). We need to specifically map emails from our domain here, otherwise postfix will ignore reinjected messages.
+
+Create or add the following to the `/etc/postfix/transport`, which routes all the emails to the target mailbox server (`192.168.130.17`). Emails for our current domain must be specifically mapped, otherwise postfix will ignore reinjected messages.
 
 ```
 /^root@.*/                                                     local:
 /.*@proxy\.planck\.dev/                         smtp:[192.168.130.17]
 /.*@.*/                                                         smtp:
-````
+```
 
 Then run `postmap transport`
 
 #### transport-proxy
+
 Create or add the following to the `/etc/postfix/transport-proxy`, which routes all the emails to the `planckproxy` section on `master.cf` (line 35 on `master.cf` on this example)
 
 ```
@@ -304,9 +353,9 @@ Create or add the following to the `/etc/postfix/transport-proxy`, which routes 
 
 Then run `postmap transport-proxy`
 
-
 #### master.cf
-Add the following to `/etc/postfix/master.cf` This sets smtp transport for ports `587`, `588` and `10587`, allowing only traffic for our networks, which have been configured on `main.cf`. It also sets a custom transport map `transport-proxy` for them. Finally sets the emails coming from the `planckprocy` service to be piped into the `planckproxy decrypt` command.
+
+Add the following to `/etc/postfix/master.cf` This sets smtp transport for ports `587`, `588` and `10587`, allowing only traffic for our networks, which have been configured on `main.cf`. It also sets a custom transport map `transport-proxy` for them. Finally sets the emails coming from the `planckproxy` service to be piped into the `planckproxy decrypt` command.
 
 ```
 # ==========================================================================
@@ -347,9 +396,10 @@ Add the following to `/etc/postfix/master.cf` This sets smtp transport for ports
 planckproxy unix - n n - 1 pipe
   flags=DRhu user=planck argv=/opt/planck-proxy/src/proxy/planckProxy.py decrypt /home/planck/settings.json
 ```
+
 ## Monitoring
 
-Cron can be used for basic monitoring. Here's an example to notify once per hour about mails stuck in Postfix's queue
+Cron can be used for basic monitoring. Here is an example to notify once per hour about mails stuck in Postfix's queue
 
 ```
 0 * * * * mailq | grep -v "is empty"
@@ -366,13 +416,11 @@ apt install spamassassin
 /etc/init.d/spamassassin start
 ```
 
-
 ## Testing
 
 To run the test suite [pytest](https://docs.pytest.org/) must be installed. This can be done either system-wide or using a virtualenv. pip provides an automatic installation using `pip install pytest`
 
 To run the tests simply run the `pytest` command.
-
 
 ## Helper scripts
 
