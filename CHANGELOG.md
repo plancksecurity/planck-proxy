@@ -6,11 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 ### Added
+- Multi-domain compatibility
+- "--recipient" argument to specify the recipient for a message when Delivered-to is not in the headers. (Exchange compatibility)
+- SSL certification generation integrated into the Docker initialization file.
 
 ### Changed
 
 ### Fixed
-
 
 ### Removed
 
