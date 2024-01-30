@@ -102,19 +102,21 @@ All the available arguments and their usage can be printed running the help comm
 
 ```
 
-usage: planckproxy [-h] [-f FILE] [-l LOGLEVEL] {decrypt} settings_file
+usage: planckproxy [-h] [-f FILE] [-l LOGLEVEL] [--recipients RECIPIENTS] {decrypt} settings_file
 
 planck Proxy CLI.
 
 positional arguments:
   {decrypt}             Mode
-  settings_file         Route for the "settings.json" file
+  settings_file         Path to the "settings.json" file
 
 optional arguments:
-  -h, --help            Show this help message and exit
-  -f FILE, --file FILE  Route for the file to analyze
+  -h, --help            show this help message and exit
+  -f FILE, --file FILE  Path to the file to analyze
   -l LOGLEVEL, --loglevel LOGLEVEL
                         Set log legvel, default is INFO
+  --recipient RECIPIENT
+                        Recipient address of the message if Delivered-To header can't be found within the email
 ```
 
 ### settings_file
@@ -246,6 +248,10 @@ By default the logs are set to `INFO`, but the parameter `-l` or `--loglevel` ca
 | INFO | Confirmation that things are working as expected. |
 | WARNING | An indication that something unexpected happened, or indicative of some problem in the near future. The software is still working as expected. |
 | ERROR | Due to a more serious problem, the software has not been able to perform some function. |
+
+### recipient
+
+The security hub is relying on the `Delivered-To` header added by Postfix to handle the message. If another kind of email server will be providing messages to the `planckproxy` command, use the `--recipient` argument to specify the address where the message should be delivered after the inspection.
 
 ## Sample configuration
 
