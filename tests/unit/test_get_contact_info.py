@@ -51,9 +51,9 @@ def test_get_recipients(set_settings, collect_email, expected):
     """
     email = collect_email.decode()
     settings = set_settings
-    settings["recipients"] = "myrecipient@test.com"
+    settings["recipient"] = "myrecipient@test.com"
     assert get_contact_info(email) == expected
-    settings["recipients"] = False
+    settings["recipient"] = False
 
 
 @pytest.mark.parametrize(

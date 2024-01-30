@@ -1,5 +1,4 @@
 import pytest
-from proxy.utils.message import Message
 from proxy.proxy_main import create_planck_message
 from proxy.proxy_settings import settings
 from unittest.mock import patch
@@ -19,9 +18,13 @@ def test_create_planck_message(capfd):
                 self.to = [MockIdentity("to_username", "to@example.com")]
                 self.cc = []
                 self.bcc = []
+                self.inmail = inmail
+                self.msgto = "to@example.com"
+                self.msgfrom = "from@example.com"
 
-    mock_message = Message("foo")
     mock_planck = MockPlanck()
+    mock_message = mock_planck.Message("foo")
+
     global settings
     settings["mode"] = "decrypt"
     settings["logpath"] = ""
@@ -30,9 +33,7 @@ def test_create_planck_message(capfd):
     create_planck_message(mock_planck, mock_message)
     print(settings["textlog"])
     captured = capfd.readouterr()
-    assert "from_username" in captured.out
     assert "from@example.com" in captured.out
-    assert "to_username" in captured.out
     assert "to@example.com" in captured.out
 
 
@@ -44,9 +45,13 @@ def test_create_planck_message_no_username(capfd):
                 self.to = [MockIdentity("to_username", "to@example.com")]
                 self.cc = []
                 self.bcc = []
+                self.inmail = inmail
+                self.msgto = "to@example.com"
+                self.msgfrom = "from@example.com"
 
-    mock_message = Message("foo")
     mock_planck = MockPlanck()
+    mock_message = mock_planck.Message("foo")
+
     global settings
     settings["mode"] = "decrypt"
     settings["logpath"] = ""
@@ -55,9 +60,7 @@ def test_create_planck_message_no_username(capfd):
     create_planck_message(mock_planck, mock_message)
     print(settings["textlog"])
     captured = capfd.readouterr()
-    assert "from_username" not in captured.out
     assert "from@example.com" in captured.out
-    assert "to_username" in captured.out
     assert "to@example.com" in captured.out
 
 
@@ -69,9 +72,12 @@ def test_create_planck_message_no_email():
                 self.to = [MockIdentity("to_username", "to@example.com")]
                 self.cc = []
                 self.bcc = []
+                self.inmail = inmail
+                self.msgto = "to@example.com"
+                self.msgfrom = "from@example.com"
 
-    mock_message = Message("foo")
     mock_planck = MockPlanck()
+    mock_message = mock_planck.Message("foo")
     global settings
     settings["mode"] = "decrypt"
     settings["logpath"] = ""

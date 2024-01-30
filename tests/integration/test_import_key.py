@@ -21,14 +21,14 @@ def test_import_extra_key(
     settings_file = override_settings(test_dirs, settings_file, test_settings_dict)
 
     # Run the command
-    command = f"planckproxy decrypt {settings_file}"
+    command = f"planckproxy decrypt {settings_file} -l DEBUG"
     p = subprocess.run([command], shell=True, capture_output=True, input=collect_email)
 
     #assert p.stderr == b""
     #assert p.returncode == 0
 
     # Check that the key is in the planck Database
-    keys_db = test_dirs["work"] / test_email_to / ".pEp" / "keys.db"
+    keys_db = test_dirs["home"] / "work" / test_email_to / ".pEp" / "keys.db"
     db = sqlite3.connect(keys_db)
     keys = db.execute("SELECT primary_key FROM keys")
     assert test_key_fpr in [key[0] for key in keys]

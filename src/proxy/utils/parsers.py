@@ -48,7 +48,7 @@ def get_contact_info(inmail, reinjection=False):
                 break
     # Figure out the recipient (rely on the Delivered-To header
 
-    if not settings["recipients"]:
+    if not settings["recipient"]:
         msgto = ""
         for hdr in ["To", "Delivered-To"] if reinjection else ["Delivered-To"]:
             try:
@@ -67,7 +67,7 @@ def get_contact_info(inmail, reinjection=False):
             exit(3)
 
     else:
-        msgto = settings["recipients"]
+        msgto = settings["recipient"]
 
     msgfrom = msgfrom.lower()
     msgto = msgto.lower()

@@ -6,13 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 ### Added
-
 ### Changed
-
 ### Fixed
-
-
 ### Removed
+
+## [v3.2.0] - 30-01-24
+### Added
+- Multi-domain compatibility
+- "--recipient" argument to specify the recipient for a message when Delivered-to is not in the headers. (Exchange compatibility)
+- SSL certification generation integrated into the Docker initialization file.
+
 
 ## [v3.1.0] - 22-11-23
 ### Added
@@ -24,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "-l", "--loglevel" argument can be used to specify the loglevel of the output. This gets rid of the "DEBUG" argument.
 - "export_dir" on settings.json to specify the absolute path to a folder where the unencrypted emails and session logs will be stored.
 - "export_log_level" on settings.json to specify the log level of exported files.
-
 
 ### Changed
 - settings_file is now a mandatory argument. We cannot rely on "settings.json" to be inside the home directory if we define that inside the settings itself, it's a chicken vs egg problem.
