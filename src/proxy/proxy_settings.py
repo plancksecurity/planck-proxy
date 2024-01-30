@@ -10,7 +10,7 @@ settings = {
     "export_dir": "export",
     "export_log_level": "DEBUG",
     "home": "",
-    "recipients": False,
+    "recipient": False,
 }
 
 

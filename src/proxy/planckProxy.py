@@ -4,12 +4,7 @@ import argparse
 import atexit
 import json
 import sys
-import logging
-import os
 
-# Create loggers
-# console_logger = logging.getLogger('consoleLogger')
-# file_logger = logging.getLogger('fileLogger')
 
 from proxy.utils.sysloggers import console_logger, file_logger
 from proxy.utils.message import Message
@@ -109,9 +104,9 @@ def main():
     )
 
     parser.add_argument(
-        "--recipients",
+        "--recipient",
         default=False,
-        help=("Write down the recipients of the message if Delivered-To header can't be found within the email."),
+        help=("Recipient address of the message if Delivered-To header can't be found within the email."),
     )
 
     # Update the settings dict with the parsed arguments

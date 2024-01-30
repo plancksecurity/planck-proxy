@@ -36,7 +36,7 @@ def sendmail(msg, recipient=None):
     dbg(f"Sending message:\n{msg}", pub=False)
     try:
         if recipient is not None:
-            settings["recipients"] = recipient
+            settings["recipient"] = recipient
 
         msgfrom, msgto = get_contact_info(msg, True)
         with smtplib.SMTP(settings["SMTP_HOST"], settings["SMTP_PORT"]) as server:
