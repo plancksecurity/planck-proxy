@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Removed
 
+## [v3.2.1] - 30-01-24
+### Changed
+- Align dependencies to core v3.3.22
+
+
 ## [v3.2.0] - 30-01-24
 ### Added
 - Multi-domain compatibility

@@ -25,7 +25,7 @@ RUN make dist -j $(nproc --ignore=2)
 
 ### building libetpan
 FROM alpine-gcc as libetpanBuilder
-ENV LIBETPAN_BRANCH=v3.3.16
+ENV LIBETPAN_BRANCH=v3.3.22
 ARG GH_USER
 ARG GH_TOKEN
 WORKDIR /root/libetpan
@@ -46,7 +46,7 @@ RUN make install -j $(nproc --ignore=2)
 
 ### building libPlanckTransport
 FROM alpine-gcc as libPlanckTransportBuilder
-ENV LIBPLANCKTRANSPORT_BRANCH=v3.3.16
+ENV LIBPLANCKTRANSPORT_BRANCH=v3.3.22
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add python3 py3-pip
@@ -61,7 +61,7 @@ RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtua
 
 ### building libPlanckCxx
 FROM alpine-gcc as libPlanckCxxBuilder
-ENV LIBPLANCKCXX_BRANCH=david/alpine-compat-3.3.16
+ENV LIBPLANCKCXX_BRANCH=david/alpine-compat
 ARG GH_USER
 ARG GH_TOKEN
 WORKDIR /root/libPlanckCxx11
@@ -71,7 +71,7 @@ RUN make install -j $(nproc --ignore=2)
 
 ### build corev3
 FROM python:3.9-alpine as planckCoreBuilder
-ENV PLANCKCORE_BRANCH=CORE-226
+ENV PLANCKCORE_BRANCH=v3.3.22
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add git build-base util-linux-dev sqlite-dev boost-dev boost-python3 botan-libs botan-dev
@@ -95,7 +95,7 @@ RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtua
 
 ### build libplanck adapter
 FROM alpine-gcc as libWrapperBuilder
-ENV LIBPLANCKWRAPPER_BRANCH=v3.3.16
+ENV LIBPLANCKWRAPPER_BRANCH=v3.3.22
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add python3 py3-pip e2fsprogs-dev
@@ -107,7 +107,7 @@ RUN make install -j $(nproc --ignore=2)
 
 ### build pywrapper
 FROM python:3.9-alpine as pyWrapperBuilder
-ENV PYTHONWRAPPER_BRANCH=v3.3.16
+ENV PYTHONWRAPPER_BRANCH=v3.3.22
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add git boost-dev make gcc build-base e2fsprogs-dev
