@@ -21,10 +21,9 @@ if not os.path.exists(ssldir):
 
 hostname      = os.environ["hostname"]
 relay_domains = os.environ["relay_domains"]
-nexthop       = os.environ["nexthop"]
 admin_addr    = os.environ["admin_addr"]
 
-hostnames = set([hostname] + relay_domains.split(" ") + nexthop.split(" "))
+hostnames = set([hostname] + relay_domains.split(" "))
 print("\nHostnames handled by this instance: " + c(", ".join(hostnames), 5))
 
 domains = []
