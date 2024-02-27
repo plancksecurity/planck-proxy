@@ -10,6 +10,9 @@ echo -e "\n\n=== $(date) Planck Proxy started ===\n" >> /volume/planckproxy.log
 ln -s /volume/planckproxy.log /home/proxy/planckproxy.log
 mkdir -p /volume/export
 
+# Sync volume keys with container keys
+ln -s /volume/home/proxy/keys /home/proxy/keys
+
 # Generate config files from templates in /volume/
 cp -pravin /volume.skel/* /volume/
 cp -pravin /volume.skel/home/proxy/* /volume/home/proxy/
