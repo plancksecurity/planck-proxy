@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Removed
 
+## [unreleased] - 06-03-24
+### Changed
+- Align dependencies to core v3.3.24
+### Fixed
+- Symlinked keys folders for easier deployment
+
 ## [v3.2.1] - 30-01-24
 ### Changed
 - Align dependencies to core v3.3.22
