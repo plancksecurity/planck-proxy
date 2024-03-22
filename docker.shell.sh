@@ -1,1 +1,1 @@
-docker exec -it planckproxy /bin/bash
+docker exec -it securityhub-dev /bin/bash
