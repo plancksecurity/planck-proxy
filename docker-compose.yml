@@ -1,0 +1,55 @@
+name: proxy
+networks:
+  proxy:
+    name: proxy
+services:
+  haproxy:
+    image: haproxy:lts
+    deploy:
+      restart_policy: # fail until any of the hubs generates the haproxy.cfg and saved it to the shared /volume
+        condition: on-failure
+        max_attempts: 3
+        delay: 3s
+        window: 60s
+    depends_on:
+      - hub
+    sysctls:
+      - net.ipv4.ip_unprivileged_port_start=0
+    ports:
+      - 10025:25
+      - 10587:587
+      - 10588:588
+      - 8404:8404
+    networks:
+      - proxy
+    volumes:
+      - ./docker/volume/haproxy:/usr/local/etc/haproxy:ro
+      - ./docker/volume/ssl:/ssl:ro
+
+  hub:
+    image: dockerreg.planck.security/securityhub-dev:latest
+    deploy:
+      mode: replicated
+      replicas: 24
+      endpoint_mode: dnsrr
+      # restart_policy:
+        # condition: on-failure
+        # max_attempts: 3
+    networks:
+      - proxy
+    environment:
+      - admin_addr=tech@planck.security
+      - hostname=proxymx.planck.dev
+      - relay_domains=proxy.planck.dev proxy2.planck.dev
+      - nexthop=192.168.130.17
+      - mynetworks=127.0.0.0/8 192.168.130.0/24 192.168.249.0/24 80.90.47.0/28 outbound.protection.outlook.com
+      - smtp_archive=
+      - loglevel=DEBUG
+      - replicas=24 # keep this in sync with the parameter in "deploy" or HAProxy will throw "could not resolve address"
+    # healthcheck: # spams the log with "warning: haproxy read: EOF"
+      # test: ["CMD", "nc", "-z", "127.0.0.1", "25"]
+      # interval: 30s
+      # timeout: 10s
+      # retries: 5
+    volumes:
+      - ./docker/volume:/volume

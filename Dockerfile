@@ -167,6 +167,7 @@ RUN adduser --disabled-password --shell /bin/bash proxy
 RUN mkdir /home/proxy/work
 RUN mkdir /volume
 RUN mkdir /volume.skel
+RUN mkdir /haproxy
 RUN ln -s /usr/share/zoneinfo/CET /etc/localtime
 
 COPY ./docker/volume.skel /volume.skel
@@ -186,6 +187,7 @@ EXPOSE 587/tcp
 EXPOSE 588/tcp
 WORKDIR /home/proxy
 RUN chown proxy:proxy . -R
+RUN echo BUILD_DATE=$(date +%Y%m%d-%H%M) > /planck.env
 
 ENV PEP_LOG_ADAPTER=1
 ENV PEP_MULTITHREAD=1

@@ -5,6 +5,7 @@
 
 25        inet  n       -       n       -       -       smtpd
   -o syslog_name=postfix/smtp-25
+  -o smtpd_upstream_proxy_protocol=haproxy
   -o smtpd_reject_unlisted_recipient=no
   -o smtpd_recipient_restrictions=
   -o content_filter=planckproxy
@@ -12,6 +13,7 @@
 
 587       inet  n       -       n       -       -       smtpd
   -o syslog_name=postfix/smtp-587
+  -o smtpd_upstream_proxy_protocol=haproxy
   -o smtpd_tls_security_level=encrypt
   -o tls_preempt_cipherlist=yes
   -o smtpd_reject_unlisted_recipient=no
@@ -20,6 +22,7 @@
 
 588       inet  n       -       n       -       -       smtpd
   -o syslog_name=postfix/smtp-588
+  -o smtpd_upstream_proxy_protocol=haproxy
   -o smtpd_tls_security_level=encrypt
   -o smtpd_reject_unlisted_recipient=no
   -o smtpd_recipient_restrictions=

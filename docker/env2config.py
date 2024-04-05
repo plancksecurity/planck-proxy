@@ -55,18 +55,31 @@ def install(d):
                     elif k == "smtp_tls_chain_files":
                         rep = open("/tmp/smtp_tls_chain_files", "r").read()
 
+                    elif "servers_" in k:
+                        port = k.split("_")[1]
+                        print("PORT: " + port)
+                        print("Replicas: " + os.environ["replicas"])
+                        replicas = int(os.environ["replicas"])
+                        if replicas == 1:
+                            rep = f"server hub_{port} hub:{port} send-proxy\n"
+                        else:
+                            rep = ""
+                            for i in range(1, replicas + 1):
+                                rep += f"server hub_{i}_{port} proxy-hub-{i}:{port} send-proxy\n\t"
+
                     elif "_escaped" in k:
                         rep = os.environ[k.replace("_escaped", "")].replace(".", "\.")
 
                     else:
                         rep = os.environ[k]
-                except Exception:
-                    print("  + " + c("ERROR", 1) + ": Env variable " + k + " not set!")
+                except Exception as e:
+                    print("  + " + c("ERROR", 1) + ": Env variable " + k + " not set! Error: " + str(e))
                     continue
                 print("  + Replacing " + c("{{" + k + "}}", 2) + " with " + c(rep, 3))
                 data = re.sub(r"\{\{" + k + "\}\}", rep, data)
 
-            open("/" + fshort, "w").write(data)
+            open(fshort, "w").write(data)
 
+install("/volume/haproxy") # path as expected by 
 install("/volume/home")
 install("/volume/etc")

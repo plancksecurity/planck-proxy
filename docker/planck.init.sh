@@ -5,13 +5,13 @@ set -e
 
 # Logging
 rsyslogd
-echo -e "\n\n=== $(date) Planck Proxy started ===\n"
-echo -e "\n\n=== $(date) Planck Proxy started ===\n" >> /volume/planckproxy.log
-ln -s /volume/planckproxy.log /home/proxy/planckproxy.log
+echo -e "\n\n=== $(date) Planck Proxy @ $(hostname -f) started ===\n"
+echo -e "\n\n=== $(date) Planck Proxy @ $(hostname -f) started ===\n" >> /home/proxy/planckproxy.log
+# ln -sfn /volume/planckproxy.log /home/proxy/planckproxy.log # We (may) use "replicas" in docker-compose so if this is the global /volume logfile every container will tail -f this one
 mkdir -p /volume/export
 
 # Sync volume keys with container keys
-ln -s /volume/home/proxy/keys /home/proxy/keys
+ln -sfn /volume/home/proxy/keys /home/proxy/keys
 
 # Generate config files from templates in /volume/
 cp -pravin /volume.skel/* /volume/
@@ -36,7 +36,8 @@ done
 
 # Generate config files, set permissions
 /env2config.py || true
-chown proxy:proxy /home/proxy /volume/export /volume/planckproxy.log -R
+cp /haproxy/haproxy.tpl /volume/haproxy/haproxy.cfg
+chown proxy:proxy /home/proxy /volume/export -R
 
 # Generate lookup tables for Postfix
 newaliases
@@ -51,4 +52,4 @@ postfix start
 crond
 
 # Our main loop consists of tail'ing the logs
-tail -F /var/log/mail.log /volume/planckproxy.log
+tail -F /var/log/mail.log /home/proxy/planckproxy.log
