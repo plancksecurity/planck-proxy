@@ -57,7 +57,7 @@ def install(d):
 
                     elif "servers_" in k:
                         port = k.split("_")[1]
-                        print("PORT: " + port)
+                        print("Port: " + port)
                         print("Replicas: " + os.environ["replicas"])
                         replicas = int(os.environ["replicas"])
                         if replicas == 1:
@@ -80,6 +80,6 @@ def install(d):
 
             open(fshort, "w").write(data)
 
-install("/volume/haproxy") # path as expected by 
+install("/volume/haproxy")
 install("/volume/home")
 install("/volume/etc")

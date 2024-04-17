@@ -36,8 +36,9 @@ done
 
 # Generate config files, set permissions
 /env2config.py || true
-cp /haproxy/haproxy.tpl /volume/haproxy/haproxy.cfg
 chown proxy:proxy /home/proxy /volume/export -R
+# In order to reuse the generic install() from env2config we do a bit of a detour here (and in all the replicas)
+cp -pravin /haproxy/haproxy.tpl /volume/haproxy/haproxy.cfg
 
 # Generate lookup tables for Postfix
 newaliases

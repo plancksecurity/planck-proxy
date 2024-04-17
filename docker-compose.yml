@@ -6,7 +6,7 @@ services:
   haproxy:
     image: haproxy:lts
     deploy:
-      restart_policy: # fail until any of the hubs generates the haproxy.cfg and saved it to the shared /volume
+      restart_policy: # wait until any of the hubs generated the haproxy.cfg and copied it to the shared /volume
         condition: on-failure
         max_attempts: 3
         delay: 3s
