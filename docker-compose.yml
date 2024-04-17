@@ -7,10 +7,10 @@ services:
     image: haproxy:lts
     deploy:
       restart_policy: # wait until any of the hubs generated the haproxy.cfg and copied it to the shared /volume
-        condition: on-failure
-        max_attempts: 3
-        delay: 3s
-        window: 60s
+        condition: unless-stopped
+        max_attempts: 5
+        delay: 1s
+        window: 5s
     depends_on:
       - hub
     sysctls:
@@ -33,7 +33,7 @@ services:
       replicas: 24
       endpoint_mode: dnsrr
       # restart_policy:
-        # condition: on-failure
+        # condition: unless-stopped
         # max_attempts: 3
     networks:
       - proxy

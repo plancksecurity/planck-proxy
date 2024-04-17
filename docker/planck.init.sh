@@ -7,7 +7,6 @@ set -e
 rsyslogd
 echo -e "\n\n=== $(date) Planck Proxy @ $(hostname -f) started ===\n"
 echo -e "\n\n=== $(date) Planck Proxy @ $(hostname -f) started ===\n" >> /home/proxy/planckproxy.log
-# ln -sfn /volume/planckproxy.log /home/proxy/planckproxy.log # We (may) use "replicas" in docker-compose so if this is the global /volume logfile every container will tail -f this one
 mkdir -p /volume/export
 
 # Sync volume keys with container keys
@@ -37,7 +36,8 @@ done
 # Generate config files, set permissions
 /env2config.py || true
 chown proxy:proxy /home/proxy /volume/export -R
-# In order to reuse the generic install() from env2config we do a bit of a detour here (and in all the replicas)
+# In order to reuse the generic, recursive install() from env2config we do a bit of a detour here
+# copying from /volume to /haproxy and back to /volume, also needlessly in every single replica
 cp -pravin /haproxy/haproxy.tpl /volume/haproxy/haproxy.cfg
 
 # Generate lookup tables for Postfix
