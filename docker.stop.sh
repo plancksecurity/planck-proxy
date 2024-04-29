@@ -1,1 +1,1 @@
-docker stop planckproxy
+docker compose down

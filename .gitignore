@@ -2,8 +2,8 @@
 debug.log
 planckproxy.log
 settings_OTHER.json
+/.env
 pytestdebug.log
-docker.run.sh
 **/keys/*.asc
 docker/volume
 work/**
