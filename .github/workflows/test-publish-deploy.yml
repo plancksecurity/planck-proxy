@@ -33,7 +33,7 @@ jobs:
   publish:
     runs-on:: ubuntu-latest
     timeout-minutes: 30
-     - name: Debug secrets
+    - name: Debug secrets
       shell: bash
       run: echo "$SECRETS_CONTEXT"
       env:
