@@ -67,7 +67,7 @@ jobs:
         SSH_KEY: ${{ secrets.PLANCK_SSH_KEY }}
       shell: bash
       run: |
-        echo "${SSH_KEY} >> ~/ssh.key"
+        echo "${SSH_KEY}" >> ~/ssh.key
         chmod 400 ~/ssh.key
         ssh -o StrictHostKeychecking=no -i ~/ssh.key root@80.90.47.3 -p 24122 "hostname -f"
         echo "TODO: docker pull + compose ${{ env.IMAGE }}"
