@@ -12,11 +12,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-    - name: Debug secrets
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Build package
+      run: |
+        python -m build
+    - name: Test with pytest
+      run: |
+        pip install pytest-cov
+  publish:
+    runs-on:: ubuntu-latest
+    timeout-minutes: 30
+     - name: Debug secrets
       shell: bash
       run: echo "$SECRETS_CONTEXT"
       env:
@@ -41,21 +58,20 @@ jobs:
         build-args: |
           GH_USER=${{ secrets.ALL_REPO_ACCESS_USER }}
           GH_TOKEN=${{ secrets.ALL_REPO_ACCESS_TOKEN }}
-        tags: ${{ secrets.PLANCK_DOCKER_REGISTRY_HOST }}/${{ env.IMAGE }}
+        tags: |
+          ${{ secrets.PLANCK_DOCKER_REGISTRY_HOST }}/${{ env.IMAGE }}
+          ${{ secrets.PLANCK_DOCKER_REGISTRY_HOST }}/planckproxy:latest
         cache-from: type=registry,ref=${{ secrets.PLANCK_DOCKER_REGISTRY_HOST }}/planckproxy:buildcache
         cache-to: type=registry,ref=${{ secrets.PLANCK_DOCKER_REGISTRY_HOST }}/planckproxy:buildcache,mode=max
-    # TODO: deploy on o365proxy.planck.dev
-    # - name: Set up Python 3.10
-      # uses: actions/setup-python@v3
-      # with:
-        # python-version: "3.10"
-    # - name: Install dependencies
-      # run: |
-        # python -m pip install --upgrade pip
-        # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    # - name: Build package
-      # run: |
-        # python -m build
-    # - name: Test with pytest
-      # run: |
-        # pip install pytest-cov
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    - name: Extract SSH key from secrets
+      env:
+        SSH_KEY: ${{ secrets.PLANCK_SSH_KEY }}
+      shell: bash
+      run: |
+        echo "${SSH_KEY} >> ~/ssh.key"
+        chmod 400 ~/ssh.key
+        ssh -o StrictHostKeychecking=no -i ~/ssh.key root@80.90.47.3 -p 24122 "hostname -f"
+        echo "TODO: docker pull + compose ${{ env.IMAGE }}"
