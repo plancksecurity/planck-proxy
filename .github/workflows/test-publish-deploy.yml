@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  test-publish-deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -30,9 +30,7 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest-cov
-  publish:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+
     - name: Debug secrets
       shell: bash
       run: echo "$SECRETS_CONTEXT"
@@ -50,7 +48,7 @@ jobs:
         registry: ${{ secrets.PLANCK_DOCKER_REGISTRY_HOST }}
         username: ${{ secrets.PLANCK_DOCKER_REGISTRY_USER }}
         password: ${{ secrets.PLANCK_DOCKER_REGISTRY_PASSWORD }}
-    - name: Build and push
+    - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -63,10 +61,8 @@ jobs:
           ${{ secrets.PLANCK_DOCKER_REGISTRY_HOST }}/planckproxy:latest
         cache-from: type=registry,ref=${{ secrets.PLANCK_DOCKER_REGISTRY_HOST }}/planckproxy:buildcache
         cache-to: type=registry,ref=${{ secrets.PLANCK_DOCKER_REGISTRY_HOST }}/planckproxy:buildcache,mode=max
-  deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 1
-    - name: Extract SSH key from secrets
+
+    - name: Deploy on O365proxy.planck.dev
       env:
         SSH_KEY: ${{ secrets.PLANCK_SSH_KEY }}
       shell: bash
