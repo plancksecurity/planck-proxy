@@ -31,7 +31,7 @@ jobs:
       # run: |
         # pip install pytest-cov
 
-  publish:
+  publish-deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -61,10 +61,6 @@ jobs:
         cache-from: type=registry,ref=${{ secrets.PLANCK_DOCKER_REGISTRY_HOST }}/planckproxy:buildcache
         cache-to: type=registry,ref=${{ secrets.PLANCK_DOCKER_REGISTRY_HOST }}/planckproxy:buildcache,mode=max
 
-  deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
     - name: Deploy on O365proxy.planck.dev
       env:
         SSH_KEY: ${{ secrets.PLANCK_SSH_KEY }}
