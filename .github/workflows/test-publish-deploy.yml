@@ -12,9 +12,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  runs-on: ubuntu-latest
-  timeout-minutes: 30
   test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
     # - name: Set up Python 3.10
       # uses: actions/setup-python@v3
@@ -32,6 +32,8 @@ jobs:
         # pip install pytest-cov
 
   publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
     - name: Define registry host, image name & version
       run: echo "IMAGE=planckproxy:$(TZ=CET date +%Y%m%d-%H%M)-${{ github.ref_name }}-${{ github.run_number }}" >> $GITHUB_ENV
@@ -60,6 +62,8 @@ jobs:
         cache-to: type=registry,ref=${{ secrets.PLANCK_DOCKER_REGISTRY_HOST }}/planckproxy:buildcache,mode=max
 
   deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
     - name: Deploy on O365proxy.planck.dev
       env:
