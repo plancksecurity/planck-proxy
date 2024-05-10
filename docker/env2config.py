@@ -2,6 +2,7 @@
 
 import os
 import re
+import shutil
 
 def c(text, color=0):
     return f"\033[1;3{color}m{text}\033[0;m"
@@ -79,6 +80,10 @@ def install(d):
                 data = re.sub(r"\{\{" + k + "\}\}", rep, data)
 
             open(fshort, "w").write(data)
+            shutil.copymode(f, fshort)
+            print(f"Copied mode from {f} to {fshort}")
+            shutil.copystat(f, fshort)
+            print(f"Copied stat from {f} to {fshort}")
 
 install("/volume/haproxy")
 install("/volume/home")
