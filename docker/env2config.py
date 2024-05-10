@@ -81,9 +81,7 @@ def install(d):
 
             open(fshort, "w").write(data)
             shutil.copymode(f, fshort)
-            print(f"Copied mode from {f} to {fshort}")
             shutil.copystat(f, fshort)
-            print(f"Copied stat from {f} to {fshort}")
 
 install("/volume/haproxy")
 install("/volume/home")
