@@ -3,7 +3,7 @@ RUN apk update && apk add gcc git make autoconf automake libtool build-base
 
 ### building SequoiaBackend
 FROM rust:alpine3.18 as sequoiaBuilder
-ENV SEQUOIA_BRANCH=david/time_t
+ENV SEQUOIA_BRANCH=CORE-453
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add git pkgconf openssl-dev make bzip2-dev sqlite-dev musl-dev botan-libs
@@ -25,7 +25,7 @@ RUN make dist -j $(nproc --ignore=2)
 
 ### building libetpan
 FROM alpine-gcc as libetpanBuilder
-ENV LIBETPAN_BRANCH=v3.3.24
+ENV LIBETPAN_BRANCH=v3.3.32
 ARG GH_USER
 ARG GH_TOKEN
 WORKDIR /root/libetpan
@@ -46,7 +46,7 @@ RUN make install -j $(nproc --ignore=2)
 
 ### building libPlanckTransport
 FROM alpine-gcc as libPlanckTransportBuilder
-ENV LIBPLANCKTRANSPORT_BRANCH=v3.3.24
+ENV LIBPLANCKTRANSPORT_BRANCH=v3.3.32
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add python3 py3-pip
@@ -61,7 +61,7 @@ RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtua
 
 ### building libPlanckCxx
 FROM alpine-gcc as libPlanckCxxBuilder
-ENV LIBPLANCKCXX_BRANCH=david/alpine-compat
+ENV LIBPLANCKCXX_BRANCH=CORE-453
 ARG GH_USER
 ARG GH_TOKEN
 WORKDIR /root/libPlanckCxx11
@@ -71,7 +71,7 @@ RUN make install -j $(nproc --ignore=2)
 
 ### build corev3
 FROM python:3.9-alpine as planckCoreBuilder
-ENV PLANCKCORE_BRANCH=v3.3.24
+ENV PLANCKCORE_BRANCH=CORE-453
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add git build-base util-linux-dev sqlite-dev boost-dev boost-python3 botan-libs botan-dev
@@ -95,7 +95,7 @@ RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtua
 
 ### build libplanck adapter
 FROM alpine-gcc as libWrapperBuilder
-ENV LIBPLANCKWRAPPER_BRANCH=v3.3.24
+ENV LIBPLANCKWRAPPER_BRANCH=CORE-453
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add python3 py3-pip e2fsprogs-dev
@@ -107,7 +107,7 @@ RUN make install -j $(nproc --ignore=2)
 
 ### build pywrapper
 FROM python:3.9-alpine as pyWrapperBuilder
-ENV PYTHONWRAPPER_BRANCH=v3.3.24
+ENV PYTHONWRAPPER_BRANCH=v3.3.32
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add git boost-dev make gcc build-base e2fsprogs-dev
@@ -123,7 +123,7 @@ ENV DYLD_LIBRARY_PATH=/opt/planck/lib
 WORKDIR /root/planckPythonWrapper/
 RUN git clone --depth=1 --branch=$PYTHONWRAPPER_BRANCH https://${GH_USER}:${GH_TOKEN}@github.com/plancksecurity/foundation-planckPythonWrapper.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
-RUN ln -s /usr/lib/libboost_python311.so /usr/lib/libboost_python3.so
+RUN ln -s /usr/lib/libboost_python312.so /usr/lib/libboost_python3.so
 RUN pip install --upgrade setuptools==61.0.0
 RUN make dist-whl -j $(nproc --ignore=2)
 
@@ -167,6 +167,7 @@ RUN adduser --disabled-password --shell /bin/bash proxy
 RUN mkdir /home/proxy/work
 RUN mkdir /volume
 RUN mkdir /volume.skel
+RUN mkdir /haproxy
 RUN ln -s /usr/share/zoneinfo/CET /etc/localtime
 
 COPY ./docker/volume.skel /volume.skel
@@ -186,6 +187,7 @@ EXPOSE 587/tcp
 EXPOSE 588/tcp
 WORKDIR /home/proxy
 RUN chown proxy:proxy . -R
+RUN echo BUILD_DATE=$(date +%Y%m%d-%H%M) > /planck.env
 
 ENV PEP_LOG_ADAPTER=1
 ENV PEP_MULTITHREAD=1
