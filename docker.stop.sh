@@ -1,1 +1,1 @@
-docker stop planckproxy
+docker stop securityhub-dev
