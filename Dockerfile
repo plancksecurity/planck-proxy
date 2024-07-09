@@ -125,7 +125,7 @@ RUN git clone --depth=1 --branch=$PYTHONWRAPPER_BRANCH https://${GH_USER}:${GH_T
 RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN ls -la /usr/lib/libboost_python*
 RUN ln -s /usr/lib/libboost_python312.so /usr/lib/libboost_python3.so
-RUN pip install --upgrade setuptools==61.0.0
+RUN pip install --upgrade setuptools pip
 RUN make dist-whl -j $(nproc --ignore=2)
 
 ### build proxy
