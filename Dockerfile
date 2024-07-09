@@ -3,7 +3,7 @@ RUN apk update && apk add gcc git make autoconf automake libtool build-base
 
 ### building SequoiaBackend
 FROM rust:alpine3.18 AS sequoiaBuilder
-ENV SEQUOIA_BRANCH=david/time_t
+ENV SEQUOIA_BRANCH=develop
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add git pkgconf openssl-dev make bzip2-dev sqlite-dev musl-dev botan-libs
@@ -15,7 +15,7 @@ RUN make install -j $(nproc --ignore=2)
 
 ### building yml2
 FROM python:3.12-alpine AS yml2Builder
-ENV YML2_BRANCH=v2.7.6
+ENV YML2_BRANCH=develop
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add git build-base
@@ -25,7 +25,7 @@ RUN make dist -j $(nproc --ignore=2)
 
 ### building libetpan
 FROM alpine-gcc AS libetpanBuilder
-ENV LIBETPAN_BRANCH=v3.3.32
+ENV LIBETPAN_BRANCH=develop
 ARG GH_USER
 ARG GH_TOKEN
 WORKDIR /root/libetpan
@@ -46,7 +46,7 @@ RUN make install -j $(nproc --ignore=2)
 
 ### building libPlanckTransport
 FROM alpine-gcc AS libPlanckTransportBuilder
-ENV LIBPLANCKTRANSPORT_BRANCH=v3.3.32
+ENV LIBPLANCKTRANSPORT_BRANCH=develop
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add python3 py3-pip
@@ -61,7 +61,7 @@ RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtua
 
 ### building libPlanckCxx
 FROM alpine-gcc AS libPlanckCxxBuilder
-ENV LIBPLANCKCXX_BRANCH=david/alpine-compat
+ENV LIBPLANCKCXX_BRANCH=develop
 ARG GH_USER
 ARG GH_TOKEN
 WORKDIR /root/libPlanckCxx11
@@ -71,7 +71,7 @@ RUN make install -j $(nproc --ignore=2)
 
 ### build corev3
 FROM python:3.12-alpine AS planckCoreBuilder
-ENV PLANCKCORE_BRANCH=v3.3.32
+ENV PLANCKCORE_BRANCH=develop
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add git build-base util-linux-dev sqlite-dev boost-dev boost-python3 botan-libs botan-dev

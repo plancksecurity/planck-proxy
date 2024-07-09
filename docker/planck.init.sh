@@ -38,7 +38,7 @@ done
 chown proxy:proxy /home/proxy /volume/export -R
 # In order to reuse the generic, recursive install() from env2config we do a bit of a detour here
 # copying from /volume to /haproxy and back to /volume, also needlessly in every single replica
-cp -pravin /haproxy/haproxy.tpl /volume/haproxy/haproxy.cfg
+cp -pravi /haproxy/haproxy.tpl /volume/haproxy/haproxy.cfg
 
 # Generate lookup tables for Postfix
 newaliases
