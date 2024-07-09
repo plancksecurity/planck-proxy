@@ -1,8 +1,8 @@
-FROM alpine:3.18.3 as alpine-gcc
+FROM alpine:3.18.3 AS alpine-gcc
 RUN apk update && apk add gcc git make autoconf automake libtool build-base
 
 ### building SequoiaBackend
-FROM rust:alpine3.18 as sequoiaBuilder
+FROM rust:alpine3.18 AS sequoiaBuilder
 ENV SEQUOIA_BRANCH=david/time_t
 ARG GH_USER
 ARG GH_TOKEN
@@ -14,7 +14,7 @@ COPY ./docker/planckCoreSequoiaBackendMakefile Makefile
 RUN make install -j $(nproc --ignore=2)
 
 ### building yml2
-FROM python:3.9-alpine as yml2Builder
+FROM python:3.12-alpine AS yml2Builder
 ENV YML2_BRANCH=v2.7.6
 ARG GH_USER
 ARG GH_TOKEN
@@ -24,8 +24,8 @@ RUN git clone --depth=1 --branch=$YML2_BRANCH https://${GH_USER}:${GH_TOKEN}@git
 RUN make dist -j $(nproc --ignore=2)
 
 ### building libetpan
-FROM alpine-gcc as libetpanBuilder
-ENV LIBETPAN_BRANCH=v3.3.24
+FROM alpine-gcc AS libetpanBuilder
+ENV LIBETPAN_BRANCH=v3.3.32
 ARG GH_USER
 ARG GH_TOKEN
 WORKDIR /root/libetpan
@@ -34,7 +34,7 @@ RUN ./autogen.sh --prefix=/opt/planck
 RUN make install -j $(nproc --ignore=2)
 
 ### building ASN.1
-FROM alpine-gcc as asn1cBuilder
+FROM alpine-gcc AS asn1cBuilder
 ENV ASN1C_BRANCH=v0.9.28
 ARG GH_USER
 ARG GH_TOKEN
@@ -45,8 +45,8 @@ RUN ./configure --prefix=/opt/planck
 RUN make install -j $(nproc --ignore=2)
 
 ### building libPlanckTransport
-FROM alpine-gcc as libPlanckTransportBuilder
-ENV LIBPLANCKTRANSPORT_BRANCH=v3.3.24
+FROM alpine-gcc AS libPlanckTransportBuilder
+ENV LIBPLANCKTRANSPORT_BRANCH=v3.3.32
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add python3 py3-pip
@@ -60,7 +60,7 @@ RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtua
     export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make -j $(nproc --ignore=2) && make install
 
 ### building libPlanckCxx
-FROM alpine-gcc as libPlanckCxxBuilder
+FROM alpine-gcc AS libPlanckCxxBuilder
 ENV LIBPLANCKCXX_BRANCH=david/alpine-compat
 ARG GH_USER
 ARG GH_TOKEN
@@ -70,8 +70,8 @@ RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN make install -j $(nproc --ignore=2)
 
 ### build corev3
-FROM python:3.9-alpine as planckCoreBuilder
-ENV PLANCKCORE_BRANCH=v3.3.24
+FROM python:3.12-alpine AS planckCoreBuilder
+ENV PLANCKCORE_BRANCH=v3.3.32
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add git build-base util-linux-dev sqlite-dev boost-dev boost-python3 botan-libs botan-dev
@@ -94,8 +94,8 @@ RUN . /opt/tools/virtualenv/bin/activate && export PATH="$PATH:/opt/tools/virtua
     export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && make -j $(nproc --ignore=2) && make install && make dbinstall
 
 ### build libplanck adapter
-FROM alpine-gcc as libWrapperBuilder
-ENV LIBPLANCKWRAPPER_BRANCH=v3.3.24
+FROM alpine-gcc AS libWrapperBuilder
+ENV LIBPLANCKWRAPPER_BRANCH=develop
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add python3 py3-pip e2fsprogs-dev
@@ -106,8 +106,8 @@ RUN echo 'PREFIX=/opt/planck' > local.conf
 RUN make install -j $(nproc --ignore=2)
 
 ### build pywrapper
-FROM python:3.9-alpine as pyWrapperBuilder
-ENV PYTHONWRAPPER_BRANCH=v3.3.24
+FROM python:3.12-alpine AS pyWrapperBuilder
+ENV PYTHONWRAPPER_BRANCH=develop
 ARG GH_USER
 ARG GH_TOKEN
 RUN apk update && apk add git boost-dev make gcc build-base e2fsprogs-dev
@@ -123,12 +123,13 @@ ENV DYLD_LIBRARY_PATH=/opt/planck/lib
 WORKDIR /root/planckPythonWrapper/
 RUN git clone --depth=1 --branch=$PYTHONWRAPPER_BRANCH https://${GH_USER}:${GH_TOKEN}@github.com/plancksecurity/foundation-planckPythonWrapper.git .
 RUN echo 'PREFIX=/opt/planck' > local.conf
-RUN ln -s /usr/lib/libboost_python311.so /usr/lib/libboost_python3.so
+RUN ls -la /usr/lib/libboost_python*
+RUN ln -s /usr/lib/libboost_python312.so /usr/lib/libboost_python3.so
 RUN pip install --upgrade setuptools==61.0.0
 RUN make dist-whl -j $(nproc --ignore=2)
 
 ### build proxy
-FROM python:3.9-alpine as proxyBuilder
+FROM python:3.12-alpine AS proxyBuilder
 RUN apk update && apk add python3 py3-pip
 WORKDIR /root/proxy/
 COPY . /root/proxy/
@@ -136,13 +137,13 @@ RUN pip install build
 RUN python -m build
 
 ### build runner
-FROM python:3.9-alpine as runner
+FROM python:3.12-alpine AS runner
 RUN apk update && apk add py3-pip postfix boost-dev boost-python3 botan-libs botan-dev sqlite rsyslog mailx vim certbot
 RUN apk add bash inetutils-telnet nano mailx bind-tools # dev/debug tools
 RUN echo 'alias l="ls -la --color=yes"' >> /etc/bash/bashrc
 RUN echo 'alias pico="nano"' >> /etc/bash/bashrc
 WORKDIR /root/
-RUN ln -s /usr/lib/libboost_python311.so /usr/lib/libboost_python3.so
+RUN ln -s /usr/lib/libboost_python312.so /usr/lib/libboost_python3.so
 ENV LD_LIBRARY_PATH=/opt/planck/lib
 ENV DYLD_LIBRARY_PATH=/opt/planck/lib
 COPY --from=sequoiaBuilder /opt/planck /opt/planck
